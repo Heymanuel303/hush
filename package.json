@@ -1,0 +1,33 @@
+{
+  "name": "word-block",
+  "version": "1.7",
+  "description": "Cross-browser MV3 extension that hides Reddit posts, X tweets, YouTube videos, and Google results containing words you choose.",
+  "license": "MIT",
+  "author": "Emmanuel Janssens",
+  "type": "commonjs",
+  "private": false,
+  "engines": {
+    "node": ">=18.0.0"
+  },
+  "scripts": {
+    "test": "node --test",
+    "test:watch": "node --test --watch",
+    "lint": "npx --yes web-ext lint --source-dir src",
+    "start": "npx --yes web-ext run --source-dir src",
+    "start:chromium": "npx --yes web-ext run --source-dir src --target chromium",
+    "sign": "npx --yes web-ext sign --source-dir src --channel=unlisted --artifacts-dir web-ext-artifacts"
+  },
+  "keywords": [
+    "firefox",
+    "chrome",
+    "browser-extension",
+    "webextension",
+    "manifest-v3",
+    "content-blocker",
+    "keyword-filter",
+    "reddit",
+    "twitter",
+    "youtube",
+    "google"
+  ]
+}

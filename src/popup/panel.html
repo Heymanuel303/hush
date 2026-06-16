@@ -1,0 +1,160 @@
+<!doctype html>
+<html lang="en">
+    <head>
+        <meta charset="utf-8" />
+        <link rel="stylesheet" href="panel.css" />
+    </head>
+    <body>
+        <div class="header">
+            <div class="brand">
+                <span class="mark" aria-hidden="true">
+                    <svg
+                        width="13"
+                        height="13"
+                        viewBox="0 0 24 24"
+                        fill="none"
+                        stroke="currentColor"
+                        stroke-width="2.5"
+                        stroke-linecap="round"
+                    >
+                        <circle cx="11" cy="11" r="8"></circle>
+                        <line x1="5" y1="5" x2="17" y2="17"></line>
+                    </svg>
+                </span>
+                <h1>Word Block</h1>
+            </div>
+            <label class="switch">
+                <span class="switch-label" id="toggleLabel">On</span>
+                <span class="toggle">
+                    <input
+                        type="checkbox"
+                        id="toggle"
+                        checked
+                        aria-label="Toggle blocking on or off"
+                    />
+                    <span class="track" aria-hidden="true"></span>
+                    <span class="thumb" aria-hidden="true"></span>
+                </span>
+            </label>
+        </div>
+
+        <div class="onboard" id="onboard" hidden>
+            <span
+                >Add words below — Word Block hides any post on Reddit, X,
+                YouTube &amp; Google that mentions them. Try a starter pack to
+                begin.</span
+            >
+            <button id="onboardClose" class="onboard-x" aria-label="Dismiss tip">
+                &times;
+            </button>
+        </div>
+
+        <div class="hero">
+            <div class="stat tab">
+                <span class="num" id="tabCount" aria-live="polite">0</span>
+                <span class="stat-sub">
+                    <span id="tabLabel">hidden on this tab</span>
+                    <span class="pill" id="site" hidden></span>
+                </span>
+            </div>
+            <div class="divider" aria-hidden="true"></div>
+            <div class="stat total">
+                <button
+                    id="resetTotal"
+                    title="Click to reset the all-time total"
+                    aria-label="All-time total — click to reset"
+                >
+                    <span class="num" id="total">0</span>
+                    <span class="stat-sub">all-time</span>
+                    <span class="reclaimed" id="reclaimed" hidden></span>
+                </button>
+            </div>
+        </div>
+
+        <div class="add-row">
+            <input
+                id="word"
+                type="text"
+                placeholder="Add a word or @handle"
+                autofocus
+                aria-label="Add a keyword"
+            />
+            <button id="add">Add</button>
+        </div>
+
+        <div class="packs" id="packs">
+            <button
+                class="packs-toggle"
+                id="packsToggle"
+                type="button"
+                aria-expanded="false"
+                aria-controls="packsList"
+            >
+                <span>Starter packs</span>
+                <svg
+                    class="chev"
+                    width="11"
+                    height="11"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    stroke-width="2.5"
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    aria-hidden="true"
+                >
+                    <polyline points="6 9 12 15 18 9"></polyline>
+                </svg>
+            </button>
+            <div class="packs-list" id="packsList" hidden></div>
+        </div>
+
+        <div class="list-wrap">
+            <div class="list-head">
+                <div class="list-title">
+                    <span>Blocked words</span>
+                    <span id="count"></span>
+                </div>
+                <button id="clearAll">Clear all</button>
+            </div>
+            <ul id="list"></ul>
+            <div class="empty" id="empty">
+                <span class="empty-icon" aria-hidden="true">
+                    <svg
+                        width="22"
+                        height="22"
+                        viewBox="0 0 24 24"
+                        fill="none"
+                        stroke="currentColor"
+                        stroke-width="2"
+                        stroke-linecap="round"
+                        stroke-linejoin="round"
+                    >
+                        <circle cx="11" cy="11" r="7"></circle>
+                        <line x1="16" y1="16" x2="21" y2="21"></line>
+                    </svg>
+                </span>
+                <h2>Nothing blocked yet</h2>
+                <p>Add a word above to start hiding posts.</p>
+            </div>
+        </div>
+
+        <p class="hint">
+            Hides matching results on Reddit, X, YouTube &amp; Google. Matching is
+            case-insensitive; prefix a word with <strong>=</strong> for
+            whole-word only. Double-click a word to edit it, or paste a comma- or
+            line-separated list to add several at once.
+        </p>
+
+        <div class="toast" id="toast" hidden>
+            <span class="toast-msg" id="toastMsg"></span>
+            <button id="undo" type="button">Undo</button>
+        </div>
+
+        <!-- Shared libraries load first so panel.js sees their definitions. -->
+        <script src="../lib/words.js"></script>
+        <script src="../lib/format.js"></script>
+        <script src="../data/packs.js"></script>
+        <script src="panel.js"></script>
+    </body>
+</html>
