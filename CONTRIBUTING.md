@@ -1,6 +1,6 @@
-# Contributing to Word Block
+# Contributing to Hush
 
-Thanks for your interest in improving Word Block! This is a small, dependency-free
+Thanks for your interest in improving Hush! This is a small, dependency-free
 browser extension, so getting started is quick.
 
 ## Project philosophy
@@ -22,7 +22,7 @@ You need **Node 18+** to run the tests. That's it — there is nothing to instal
 
 ```bash
 git clone <your-fork-url>
-cd word-block
+cd hush
 npm test          # runs the unit tests (node --test)
 ```
 

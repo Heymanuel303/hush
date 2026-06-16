@@ -1,4 +1,4 @@
-// Word Block — content script.
+// Hush — content script.
 //
 // Injected into Reddit, X, YouTube, and Google search. Hides any "post unit"
 // whose text contains an active block word, then keeps hiding as the feed

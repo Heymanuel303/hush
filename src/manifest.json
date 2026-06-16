@@ -1,12 +1,12 @@
 {
   "manifest_version": 3,
-  "name": "Keyword Content Blocker",
+  "name": "Hush",
   "version": "1.7",
   "description": "Hide Reddit posts, X tweets, YouTube videos, and Google results that mention words you choose.",
   "permissions": ["storage", "tabs"],
   "action": {
     "default_popup": "popup/panel.html",
-    "default_title": "Word Block"
+    "default_title": "Hush"
   },
   "background": {
     "service_worker": "background.js",

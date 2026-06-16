@@ -1,4 +1,4 @@
-// Word Block — word rules.
+// Hush — word rules.
 //
 // The single source of truth for the "=" whole-word convention and for matching
 // post text against the active block list. Keeping this logic in one file is what

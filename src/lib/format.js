@@ -1,4 +1,4 @@
-// Word Block — display formatting helpers (popup only).
+// Hush — display formatting helpers (popup only).
 //
 // Pure functions, loaded as a plain <script> by panel.html before panel.js and
 // `require()`d by the Node test suite. The trailing `module.exports` is a no-op

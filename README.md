@@ -1,6 +1,6 @@
-# Word Block
+# Hush
 
-> Hide the noise. Word Block hides posts on **Reddit**, tweets on **X**, videos on
+> Hide the noise. Hush hides posts on **Reddit**, tweets on **X**, videos on
 > **YouTube**, and results on **Google Search** whose text contains any word from
 > a list you control.
 
@@ -112,7 +112,7 @@ invariants to respect.
 
 ## Privacy
 
-Word Block collects nothing and sends nothing anywhere. All state (your word
+Hush collects nothing and sends nothing anywhere. All state (your word
 list, packs, counts) lives in the browser's local extension storage. Starter
 packs are bundled local data — no network requests are made.
 

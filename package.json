@@ -1,5 +1,5 @@
 {
-  "name": "word-block",
+  "name": "hush",
   "version": "1.7",
   "description": "Cross-browser MV3 extension that hides Reddit posts, X tweets, YouTube videos, and Google results containing words you choose.",
   "license": "MIT",

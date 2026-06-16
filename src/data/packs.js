@@ -1,4 +1,4 @@
-// Word Block — starter packs.
+// Hush — starter packs.
 //
 // Optional keyword bundles shown as on/off toggles in the popup. Loaded as a
 // plain <script> by panel.html (before panel.js) and by content.js (manifest

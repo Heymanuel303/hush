@@ -1,4 +1,4 @@
-// Word Block — popup UI.
+// Hush — popup UI.
 //
 // Owns the toolbar popup: the on/off toggle, the per-tab and all-time counts,
 // the keyword list editor, and the starter-pack toggles. Pure helpers live in
