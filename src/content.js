@@ -15,12 +15,11 @@ let hiddenCount = 0;   // posts currently hidden on this tab (drives the badge)
 
 const HOST = location.hostname;
 
+// Which curated site is this? Delegates to the shared registry (data/sites.js,
+// loaded just before this file) so the popup's per-site editor and this matcher
+// can never disagree about a site's id. Guard with typeof in case it's absent.
 function currentSite() {
-  if (HOST.includes("reddit.com")) return "Reddit";
-  if (HOST.includes("x.com") || HOST.includes("twitter.com")) return "X";
-  if (HOST.includes("youtube.com")) return "YouTube";
-  if (HOST.includes("google.")) return "Google";
-  return null;
+  return (typeof siteIdForHost === "function") ? siteIdForHost(HOST) : null;
 }
 
 // One-way notification to the badge + lifetime total. delta = posts newly
@@ -193,21 +192,28 @@ function scheduleScan() {
 
 const observer = new MutationObserver(scheduleScan);
 
-// Two raw word sources feed matching: the user's custom list (`blockWords` in
-// storage, the only thing the popup's list shows) plus the words contributed by
-// whichever starter packs the user has toggled on (`enabledPacks` = pack names).
-// They're kept separate so packs never leak into the visible custom-word list.
+// Three raw word sources feed matching: the user's custom list (`blockWords` in
+// storage, the only thing the popup's main list shows), the words contributed by
+// whichever starter packs are toggled on (`enabledPacks` = pack names), and the
+// per-site words for THIS site only (`siteWords[currentSite()]`, the popup's
+// advanced-mode editor). They're kept separate so packs and per-site words never
+// leak into the visible custom-word list.
 let customWords = [];
 let enabledPacks = [];
+let siteWords = {}; // { siteId: [raw, ...] }; only this site's slice is applied here
 
-// Recompile the active rule set from custom words ∪ enabled-pack words. The
-// union, dedupe, and compile all happen in buildRules (lib/words.js); PACKS comes
-// from data/packs.js, loaded just before this file in the same content script
-// (shared isolated-world scope). Guard with typeof in case it's ever absent so
-// matching still works on at least the custom words.
+// Recompile the active rule set from custom words ∪ enabled-pack words ∪ this
+// site's per-site words. The union, dedupe, and compile all happen in buildRules
+// (lib/words.js); PACKS comes from data/packs.js, loaded just before this file in
+// the same content script (shared isolated-world scope). Guard with typeof in
+// case it's ever absent so matching still works on at least the custom words.
 function rebuildRules() {
   const packs = (typeof PACKS !== "undefined" && Array.isArray(PACKS)) ? PACKS : [];
-  blockWords = buildRules(customWords, packs, enabledPacks);
+  const site = currentSite();
+  // Guard against a corrupted/non-array slice so buildRules' spread can't throw
+  // and silently disable matching on the page (panel.js guards the same way).
+  const mine = (site && Array.isArray(siteWords[site])) ? siteWords[site] : [];
+  blockWords = buildRules(customWords, packs, enabledPacks, mine);
 }
 
 // Let the popup ask how many posts are hidden on this tab, and which site.
@@ -220,9 +226,10 @@ api.runtime.onMessage.addListener((msg) => {
 });
 
 // Load saved state, then start watching.
-api.storage.local.get(["blockWords", "enabled", "enabledPacks"]).then(res => {
+api.storage.local.get(["blockWords", "enabled", "enabledPacks", "siteWords"]).then(res => {
   customWords = res.blockWords || [];
   enabledPacks = res.enabledPacks || [];
+  siteWords = res.siteWords || {};
   rebuildRules();
   enabled = res.enabled !== false; // default ON
   report(0); // clear any stale badge from a previous page
@@ -260,6 +267,14 @@ api.storage.onChanged.addListener((changes, area) => {
     enabledPacks = changes.enabledPacks.newValue || [];
     rebuildRules();
     unhideAll(); // re-hide from scratch with the new pack selection
+    scan();
+    report(0);
+  }
+
+  if (changes.siteWords) {
+    siteWords = changes.siteWords.newValue || {};
+    rebuildRules(); // only this site's slice is folded in (see rebuildRules)
+    unhideAll();    // re-hide from scratch with the new per-site words
     scan();
     report(0);
   }

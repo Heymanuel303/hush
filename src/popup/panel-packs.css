@@ -1,0 +1,93 @@
+/* Hush popup — starter packs. */
+
+/* ---- starter packs ---- */
+.packs {
+  margin: -4px 0 14px;
+}
+.packs[hidden] {
+  display: none;
+}
+.packs-toggle {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  width: 100%;
+  border: none;
+  background: none;
+  cursor: pointer;
+  padding: 4px 2px;
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--muted);
+}
+.packs-toggle:hover {
+  color: var(--accent);
+}
+.packs-toggle:disabled {
+  cursor: default;
+  opacity: 0.5;
+}
+.packs-toggle .chev {
+  transition: transform 150ms ease;
+}
+.packs-toggle[aria-expanded="true"] .chev {
+  transform: rotate(180deg);
+}
+.packs-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  padding: 6px 2px 2px;
+}
+.packs-list[hidden] {
+  display: none;
+}
+.pack {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  border: 1px solid var(--border);
+  background: var(--surface);
+  border-radius: 999px;
+  padding: 5px 11px;
+  font-size: 11.5px;
+  font-weight: 600;
+  color: var(--text);
+  cursor: pointer;
+  transition:
+    background 120ms ease,
+    border-color 120ms ease,
+    color 120ms ease;
+}
+/* Hover stays a neutral darken so the accent fill is reserved as the
+   unambiguous signal for the toggled-on state (below). */
+.pack:hover {
+  background: var(--surface-hover);
+  color: var(--text);
+}
+/* Toggled on: accent-soft fill + accent text + a leading dot — a
+   persistent active state that hover no longer mimics. */
+.pack.on {
+  background: var(--accent-soft);
+  border-color: transparent;
+  color: var(--accent-strong);
+}
+.pack.on:hover {
+  background: var(--accent-soft);
+}
+.pack.on::before {
+  content: "";
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: currentColor;
+  flex: none;
+}
+.pack:disabled {
+  opacity: 0.5;
+  cursor: default;
+}
+.pack:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 1px;
+}

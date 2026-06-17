@@ -25,6 +25,11 @@ bundler, no runtime dependencies, and nothing ever leaves your browser.
 - **Starter packs** — toggle on a curated bundle (Spoilers, Politics, Crypto,
   Sports, Celebrity, Search Spam). They're persistent on/off switches that never
   clutter your custom list. Edit them in [`src/data/packs.js`](src/data/packs.js).
+- **Advanced mode** — flip the accent-colored **Advanced** toggle to recolor the
+  panel and reveal a per-site editor. Words you add there block **only** on that
+  site (Reddit, X, YouTube, or Google), layered on top of your global list and any
+  packs. The supported sites are curated in
+  [`src/data/sites.js`](src/data/sites.js).
 - **Hidden-post counter** — a toolbar badge shows how many posts are hidden on the
   current tab; the popup shows that plus a persisted **all-time total** and an
   estimate of time saved.
@@ -88,7 +93,7 @@ src/
 ├── content.js           # injected into sites: hides matching posts, reports counts
 ├── popup/               # toolbar popup (html / css / js)
 ├── lib/                 # shared, testable logic: matching engine + formatters
-└── data/packs.js        # starter-pack definitions (local data)
+└── data/                # local data: packs.js (starter packs) + sites.js (site registry)
 test/                    # node --test unit tests
 ```
 

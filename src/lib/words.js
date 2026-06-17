@@ -94,12 +94,15 @@ function resolvePackWords(packs, enabledPacks) {
   return out;
 }
 
-// Build the active compiled rule set from the union of custom words and the words
-// of every enabled pack: dedupe the raw union, then compile each survivor.
-function buildRules(customWords, packs, enabledPacks) {
+// Build the active compiled rule set from the union of custom words, the words of
+// every enabled pack, and any per-site words for the current site (advanced
+// mode): dedupe the raw union, then compile each survivor. `siteWords` is an
+// optional raw-word array; omitting it preserves the original three-source union.
+function buildRules(customWords, packs, enabledPacks, siteWords) {
   const raw = dedupeWords([
     ...(customWords || []),
     ...resolvePackWords(packs, enabledPacks),
+    ...(siteWords || []),
   ]);
   return raw.map(compileRule).filter(Boolean);
 }

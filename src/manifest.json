@@ -68,7 +68,7 @@
         "*://www.google.co.nz/search?*"
       ],
       "run_at": "document_idle",
-      "js": ["lib/words.js", "data/packs.js", "content.js"]
+      "js": ["lib/words.js", "data/packs.js", "data/sites.js", "content.js"]
     }
   ],
   "browser_specific_settings": {

@@ -2,7 +2,15 @@
 <html lang="en">
     <head>
         <meta charset="utf-8" />
-        <link rel="stylesheet" href="panel.css" />
+        <!-- Split stylesheets; ORDER MATTERS. theme first (defines the custom
+             properties everything reads); reduced-motion (in panel-misc) last. -->
+        <link rel="stylesheet" href="panel-theme.css" />
+        <link rel="stylesheet" href="panel-header.css" />
+        <link rel="stylesheet" href="panel-hero.css" />
+        <link rel="stylesheet" href="panel-list.css" />
+        <link rel="stylesheet" href="panel-packs.css" />
+        <link rel="stylesheet" href="panel-sites.css" />
+        <link rel="stylesheet" href="panel-misc.css" />
     </head>
     <body>
         <div class="header">
@@ -23,19 +31,46 @@
                 </span>
                 <h1>Hush</h1>
             </div>
-            <label class="switch">
-                <span class="switch-label" id="toggleLabel">On</span>
-                <span class="toggle">
-                    <input
-                        type="checkbox"
-                        id="toggle"
-                        checked
-                        aria-label="Toggle blocking on or off"
-                    />
-                    <span class="track" aria-hidden="true"></span>
-                    <span class="thumb" aria-hidden="true"></span>
-                </span>
-            </label>
+            <div class="header-right">
+                <button
+                    class="adv-toggle"
+                    id="advToggle"
+                    type="button"
+                    aria-pressed="false"
+                    title="Advanced mode — add words for specific sites"
+                    aria-label="Toggle advanced mode"
+                >
+                    <svg
+                        width="12"
+                        height="12"
+                        viewBox="0 0 24 24"
+                        fill="none"
+                        stroke="currentColor"
+                        stroke-width="2.2"
+                        stroke-linecap="round"
+                        aria-hidden="true"
+                    >
+                        <line x1="4" y1="8" x2="20" y2="8"></line>
+                        <circle cx="9" cy="8" r="2.4" fill="var(--bg)"></circle>
+                        <line x1="4" y1="16" x2="20" y2="16"></line>
+                        <circle cx="15" cy="16" r="2.4" fill="var(--bg)"></circle>
+                    </svg>
+                    <span>Advanced</span>
+                </button>
+                <label class="switch">
+                    <span class="switch-label" id="toggleLabel">On</span>
+                    <span class="toggle">
+                        <input
+                            type="checkbox"
+                            id="toggle"
+                            checked
+                            aria-label="Toggle blocking on or off"
+                        />
+                        <span class="track" aria-hidden="true"></span>
+                        <span class="thumb" aria-hidden="true"></span>
+                    </span>
+                </label>
+            </div>
         </div>
 
         <div class="onboard" id="onboard" hidden>
@@ -139,6 +174,15 @@
             </div>
         </div>
 
+        <div class="sites" id="sites" hidden>
+            <div class="sites-head"><span>Per-site words</span></div>
+            <p class="sites-intro">
+                Words added here block <strong>only</strong> on that site, on top
+                of your list above.
+            </p>
+            <div id="sitesList"></div>
+        </div>
+
         <p class="hint">
             Hides matching results on Reddit, X, YouTube &amp; Google. Matching is
             case-insensitive; prefix a word with <strong>=</strong> for
@@ -151,10 +195,18 @@
             <button id="undo" type="button">Undo</button>
         </div>
 
-        <!-- Shared libraries load first so panel.js sees their definitions. -->
+        <!-- Classic scripts sharing one global scope; ORDER MATTERS. Shared libs
+             first, then panel-core (api + DOM refs + state), then the feature
+             files, then panel.js last (it runs init() once everything's loaded).
+             See panel.js for the full load-order contract. -->
         <script src="../lib/words.js"></script>
         <script src="../lib/format.js"></script>
         <script src="../data/packs.js"></script>
+        <script src="../data/sites.js"></script>
+        <script src="panel-core.js"></script>
+        <script src="panel-keywords.js"></script>
+        <script src="panel-packs.js"></script>
+        <script src="panel-sites.js"></script>
         <script src="panel.js"></script>
     </body>
 </html>

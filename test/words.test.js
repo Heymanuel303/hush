@@ -119,3 +119,23 @@ test("buildRules works with no packs enabled", () => {
   const rules = buildRules(["solo"], [{ name: "P", words: ["x"] }], []);
   assert.deepEqual(rules.map(r => r.needle), ["solo"]);
 });
+
+test("buildRules folds in per-site words and dedupes across all sources", () => {
+  const packs = [{ name: "Pets", words: ["cat"] }];
+  // custom: bird; pack: cat; per-site: =dog (whole-word) + bird (dup of custom)
+  const rules = buildRules(["bird"], packs, ["Pets"], ["=dog", "bird"]);
+  const needles = rules.map(r => r.needle).sort();
+  assert.deepEqual(needles, ["bird", "cat", "dog"]); // "bird" compiled once
+  // The per-site "=dog" kept its whole-word regex through the union.
+  const dog = rules.find(r => r.needle === "dog");
+  assert.ok(dog.re instanceof RegExp);
+  assert.ok(dog.re.test("a dog ran"));
+  assert.ok(!dog.re.test("dogma"));
+});
+
+test("buildRules treats an omitted/empty siteWords arg as no per-site words", () => {
+  const a = buildRules(["x"], [], []);
+  const b = buildRules(["x"], [], [], []);
+  assert.deepEqual(a.map(r => r.needle), b.map(r => r.needle));
+  assert.deepEqual(a.map(r => r.needle), ["x"]);
+});

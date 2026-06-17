@@ -1,0 +1,82 @@
+/* Hush popup — theme: design tokens (:root vars, light + dark), base body, and the body.paused / body.advanced state classes. Loaded FIRST: every other stylesheet reads these custom properties. */
+
+:root {
+  color-scheme: light dark;
+  --bg: #ffffff;
+  --surface: #f6f6f7;
+  --surface-hover: #ececef;
+  --text: #1a1a1c;
+  --muted: #6b6b73;
+  --border: rgba(0, 0, 0, 0.1);
+  --accent: #d93a00;
+  --accent-soft: rgba(217, 58, 0, 0.12);
+  --accent-strong: #b53000; /* AA-contrast accent for small text on accent-soft */
+  --shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+  /* Advanced-mode accent (violet) — distinct hue so the mode reads at a glance.
+     Always available so the .adv-toggle can wear it even while the panel is on
+     its default accent; body.advanced then swaps the panel accent to it. */
+  --adv: #5b3df5;
+  --adv-soft: rgba(91, 61, 245, 0.12);
+  --adv-strong: #4a2fd0; /* AA on --adv-soft */
+  --adv-grad: #9b8cff; /* second stop for the brand mark gradient in advanced */
+}
+@media (prefers-color-scheme: dark) {
+  :root {
+    --bg: #1c1c1e;
+    --surface: #2a2a2d;
+    --surface-hover: #34343a;
+    --text: #f2f2f5;
+    --muted: #9a9aa3;
+    --border: rgba(255, 255, 255, 0.12);
+    --accent: #ff5a1f;
+    --accent-soft: rgba(255, 90, 31, 0.16);
+    --accent-strong: #ff8a52;
+    --shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
+    --adv: #8b7bff;
+    --adv-soft: rgba(139, 123, 255, 0.18);
+    --adv-strong: #b4a9ff;
+    --adv-grad: #b4a9ff;
+  }
+  /* #fff on the dark accent only hits 3.1:1; dark text on it is 5.6:1 (AA). */
+  #add {
+    color: #1a1a1c;
+  }
+}
+
+* {
+  box-sizing: border-box;
+}
+/* Explicit width on the root too, so Firefox sizes the popup correctly even
+   if it measures layout before the stylesheet fully applies. */
+html {
+  width: 324px;
+}
+body {
+  font-family:
+    system-ui,
+    -apple-system,
+    sans-serif;
+  width: 324px;
+  margin: 0;
+  padding: 16px;
+  background: var(--bg);
+  color: var(--text);
+  font-size: 13px;
+}
+body.paused .hero,
+body.paused .list-wrap,
+body.paused .add-row,
+body.paused .sites {
+  opacity: 0.45;
+}
+
+/* Advanced mode: swap the whole panel onto the violet accent. Everything that
+   reads --accent* (toggle, buttons, pills, mode chips, focus rings) follows. */
+body.advanced {
+  --accent: var(--adv);
+  --accent-soft: var(--adv-soft);
+  --accent-strong: var(--adv-strong);
+}
+body.advanced .mark {
+  background: linear-gradient(135deg, var(--adv), var(--adv-grad));
+}
