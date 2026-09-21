@@ -118,9 +118,20 @@ function getSelectors() {
       ".vt6azd:not(.g-blk)",     // current organic root (rotates often)
       ".Ww4FFb",                 // organic root, alternate/mobile layout
       "#rso div.g",              // legacy organic block (still on some layouts)
-      "#rso > div[data-hveid]"   // rotation-proof fallback: data-hveid is a
+      "#rso > div[data-hveid]",  // rotation-proof fallback: data-hveid is a
                                  // functional id that outlives class renames;
                                  // direct-child + #rso keep it to outer units
+      // The mobile SERP mostly shares markup with desktop (.Ww4FFb above
+      // already covers one mobile layout); these are additional fallbacks for
+      // mobile-only wrappers, where #rso is absent or classes are rotated.
+      // Drafted from known markup and MUST be verified on device — Firefox for
+      // Android remote debugging via about:debugging over USB (see
+      // CONTRIBUTING.md). When they stop matching, re-sync from
+      // github.com/ublacklist/builtin (google.yml), which lists mobile selectors.
+      // Each targets ONE result, never the results column itself.
+      "#rso .kvH3mc",            // mobile organic result card
+      "#main .MjjYud"            // mobile SERP where #rso is absent but #main
+                                 // is present (per-result slot, not the column)
     ];
   }
   return [];

@@ -62,8 +62,8 @@ Make the Google branch of `getSelectors()` in `src/content.js` hide results on t
 
 ## Acceptance
 
-- [ ] The Google branch of `getSelectors()` still contains the vertical guard and all five original selectors, byte-for-byte unchanged, plus the appended mobile fallback group with a comment block and trailing `//` comments in the existing style.
-- [ ] No appended selector can match the whole results column (`#main`, `#rso`, `#center_col`, `#search` or equivalent container selectors are absent).
-- [ ] `npm test` and `npm run lint` both pass.
+- [x] The Google branch of `getSelectors()` still contains the vertical guard and all five original selectors, byte-for-byte unchanged, plus the appended mobile fallback group with a comment block and trailing `//` comments in the existing style.
+- [x] No appended selector can match the whole results column (`#main`, `#rso`, `#center_col`, `#search` or equivalent container selectors are absent).
+- [x] `npm test` and `npm run lint` both pass.
 - [ ] On-device (Firefox for Android): with a common word like `the` blocked, searching that word on mobile `www.google.com` makes matching results vanish, the results column itself never disappears, and the popup's lifetime count increments once per hidden result — and if this fails, the selectors were corrected from the remote inspector until it passes.
-- [ ] Only `src/content.js` differs from the pre-phase tree (beyond the pre-existing uncommitted version/sign-script changes in `src/manifest.json` and `package.json`), and nothing was committed.
+- [x] Only `src/content.js` differs from the pre-phase tree (beyond the pre-existing uncommitted version/sign-script changes in `src/manifest.json` and `package.json`), and nothing was committed.

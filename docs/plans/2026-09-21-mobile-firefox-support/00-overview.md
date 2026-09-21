@@ -38,7 +38,7 @@ Make Hush usable in Firefox for Android (sideloaded signed `.xpi`, with Reddit/X
 
 ## Phases
 1. [01-mobile-youtube-selectors](01-mobile-youtube-selectors.md) — append `ytm-*` per-video wrappers to the YouTube branch of `getSelectors()` · _solo_ ✓
-2. [02-mobile-google-selectors](02-mobile-google-selectors.md) — add mobile-SERP result fallbacks to the Google branch of `getSelectors()` · _solo_
+2. [02-mobile-google-selectors](02-mobile-google-selectors.md) — add mobile-SERP result fallbacks to the Google branch of `getSelectors()` · _solo_ ✓
 3. [03-popup-android-layout](03-popup-android-layout.md) — `html.mobile` detection + fluid popup CSS, `gecko_android` manifest block, README install notes · _solo_
 
 **Dependency shape:** 01, 02 and 03 are independent and can run in any order or in parallel (01 and 02 both edit `getSelectors()` in `src/content.js` but different branches; run them sequentially in the same tree to avoid a merge).
