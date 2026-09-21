@@ -1,6 +1,6 @@
 {
   "name": "hush",
-  "version": "1.7",
+  "version": "1.9",
   "description": "Cross-browser MV3 extension that hides Reddit posts, X tweets, YouTube videos, and Google results containing words you choose.",
   "license": "MIT",
   "author": "Emmanuel Janssens",
@@ -15,7 +15,7 @@
     "lint": "npx --yes web-ext lint --source-dir src",
     "start": "npx --yes web-ext run --source-dir src",
     "start:chromium": "npx --yes web-ext run --source-dir src --target chromium",
-    "sign": "npx --yes web-ext sign --source-dir src --channel=unlisted --artifacts-dir web-ext-artifacts"
+    "sign": "set -a && . ./.env && set +a && npx --yes web-ext sign --source-dir src --channel=unlisted --artifacts-dir web-ext-artifacts"
   },
   "keywords": [
     "firefox",
