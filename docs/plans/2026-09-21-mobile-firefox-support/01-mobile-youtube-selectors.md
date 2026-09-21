@@ -54,8 +54,8 @@ No other files change:
 
 ## Acceptance
 
-- [ ] The YouTube branch of `getSelectors()` returns 12 selectors: the 8 pre-existing ones unchanged, followed by `ytm-rich-item-renderer`, `ytm-video-with-context-renderer`, `ytm-compact-video-renderer`, `ytm-media-item`, each with a `// mobile (m.youtube.com): ...` trailing comment and a comment block above the group (separate app / ytm- prefix / verify on device via about:debugging over USB).
-- [ ] No feed/section container selectors were added (`ytm-item-section-renderer`, `ytm-section-list-renderer`, `ytm-rich-grid-renderer`, `ytm-browse`).
-- [ ] Only `src/content.js` is modified; `git status` shows no other file touched by this phase. Changes left uncommitted (the user commits manually; no push, no PR).
-- [ ] `npm test` and `npm run lint` both pass.
+- [x] The YouTube branch of `getSelectors()` returns 12 selectors: the 8 pre-existing ones unchanged, followed by `ytm-rich-item-renderer`, `ytm-video-with-context-renderer`, `ytm-compact-video-renderer`, `ytm-media-item`, each with a `// mobile (m.youtube.com): ...` trailing comment and a comment block above the group (separate app / ytm- prefix / verify on device via about:debugging over USB).
+- [x] No feed/section container selectors were added (`ytm-item-section-renderer`, `ytm-section-list-renderer`, `ytm-rich-grid-renderer`, `ytm-browse`).
+- [x] Only `src/content.js` is modified; `git status` shows no other file touched by this phase. Changes left uncommitted (the user commits manually; no push, no PR).
+- [x] `npm test` and `npm run lint` both pass.
 - [ ] **Verify on device:** in Firefox for Android with the extension installed, add a common block word (e.g. `the`), open `m.youtube.com` home, search, and a watch page — matching videos vanish and the popup's lifetime count increments (Firefox for Android shows no toolbar badge). If nothing hides, the drafted selectors are stale: connect via `about:debugging` over USB from desktop Firefox, inspect the element wrapping one video on the failing surface, and replace/add the correct `ytm-*` wrapper tag in the mobile group (keeping the per-post-unit rule and comment style).

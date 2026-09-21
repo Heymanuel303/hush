@@ -2,7 +2,7 @@
 
 **Slug:** `mobile-firefox-support` (folder: `docs/plans/2026-09-21-mobile-firefox-support/`)
 **Created:** 2026-09-21
-**Status:** planned
+**Status:** in-progress
 
 ## Goal
 Make Hush usable in Firefox for Android (sideloaded signed `.xpi`, with Reddit/X/YouTube/Google optionally added to the home screen as web apps). Two things stand in the way today: `getSelectors()` only knows desktop YouTube/Google markup, and the popup is a fixed 324px popover, which looks broken when Firefox for Android opens it as a full-screen page.
@@ -37,7 +37,7 @@ Make Hush usable in Firefox for Android (sideloaded signed `.xpi`, with Reddit/X
 - [ ] Sites added to the home screen via "Add to Home screen" still get filtered.
 
 ## Phases
-1. [01-mobile-youtube-selectors](01-mobile-youtube-selectors.md) — append `ytm-*` per-video wrappers to the YouTube branch of `getSelectors()` · _solo_
+1. [01-mobile-youtube-selectors](01-mobile-youtube-selectors.md) — append `ytm-*` per-video wrappers to the YouTube branch of `getSelectors()` · _solo_ ✓
 2. [02-mobile-google-selectors](02-mobile-google-selectors.md) — add mobile-SERP result fallbacks to the Google branch of `getSelectors()` · _solo_
 3. [03-popup-android-layout](03-popup-android-layout.md) — `html.mobile` detection + fluid popup CSS, `gecko_android` manifest block, README install notes · _solo_
 

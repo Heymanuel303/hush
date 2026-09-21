@@ -84,7 +84,18 @@ function getSelectors() {
       "ytd-reel-item-renderer",          // shorts (old markup)
       "ytm-shorts-lockup-view-model",    // shorts in search/feed (new markup)
       "ytm-shorts-lockup-view-model-v2", // shorts lockup (newer variant)
-      "yt-lockup-view-model"             // new search/related lockup
+      "yt-lockup-view-model",            // new search/related lockup
+      // m.youtube.com is a separate app whose per-video wrappers are ytm-*
+      // custom elements (the two ytm-shorts-* entries above are the exception:
+      // desktop reuses those shorts components). The group below is drafted
+      // from known mobile markup and MUST be verified on device — Firefox for
+      // Android remote debugging via about:debugging over USB, inspect the
+      // element wrapping ONE video. Nesting (ytm-media-item inside the
+      // renderers) is expected; scan() hides the outermost match only.
+      "ytm-rich-item-renderer",          // mobile (m.youtube.com): home feed item
+      "ytm-video-with-context-renderer", // mobile (m.youtube.com): home/subs/search video card
+      "ytm-compact-video-renderer",      // mobile (m.youtube.com): watch-page related list
+      "ytm-media-item"                   // mobile (m.youtube.com): grid/list media card (newer markup)
     ];
   }
   if (HOST.includes("google.")) {
