@@ -143,10 +143,10 @@ Fluid, tappable popup layout when Firefox for Android opens the popup as a full-
 
 ## Acceptance
 
-- [ ] `npm run lint` and `npm test` pass.
+- [x] `npm run lint` and `npm test` pass.
 - [ ] Desktop popup is byte-identical in behavior: `html`/`body` still 324px, no `mobile` class present, no visual change light or dark.
 - [ ] On Firefox for Android the popup opens as a full page, lays out fluidly at phone width (no horizontal scroll, max 520px centred column on wide screens), and every control (add row, keyword rows, mode pills, remove buttons, pack chips, site editor, header toggles) has a ≥40px tap target; the on/off switch still animates correctly.
-- [ ] The `mobile` class is added before the first render (no visible 324px→fluid flash) and detection survives `getPlatformInfo` being unavailable (userAgent fallback).
-- [ ] `src/manifest.json` has `browser_specific_settings.gecko_android.strict_min_version === "120.0"` and the `gecko` block plus `version` are unchanged (`git diff src/manifest.json` shows only the added block).
-- [ ] README has the `### Firefox for Android` install subsection (debug-menu sideload of the signed `.xpi`, home-screen web apps keep working, full-page popup, no badge on Android).
-- [ ] All changes are left **uncommitted**; no push, no PR.
+- [x] The `mobile` class is added before the first render (no visible 324px→fluid flash) and detection survives `getPlatformInfo` being unavailable (userAgent fallback).
+- [x] `src/manifest.json` has `browser_specific_settings.gecko_android.strict_min_version === "120.0"` and the `gecko` block plus `version` are unchanged (`git diff src/manifest.json` shows only the added block).
+- [x] README has the `### Firefox for Android` install subsection (debug-menu sideload of the signed `.xpi`, home-screen web apps keep working, full-page popup, no badge on Android).
+- [x] All changes are left **uncommitted**; no push, no PR.

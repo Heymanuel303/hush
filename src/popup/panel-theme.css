@@ -63,6 +63,53 @@ body {
   color: var(--text);
   font-size: 13px;
 }
+
+/* Mobile (html.mobile, set by panel.js when the platform is Android):
+   Firefox for Android opens the popup as a full-screen page, so the 324px
+   popover width goes fluid — edge-to-edge on phones, a centred readable
+   column on tablets — and every control gets a >=40px tap target. All
+   mobile overrides live in this one block; html.mobile-prefixed selectors
+   out-specify the originals in the later stylesheets, so order is safe. */
+html.mobile,
+html.mobile body {
+  width: 100%;
+  max-width: 100%;
+}
+html.mobile body {
+  max-width: 520px;
+  margin: 0 auto;
+  padding: 16px;
+  font-size: 14px;
+}
+
+/* Tap targets (originals are 20–36px tall; see the per-file sources below). */
+html.mobile #word, /* 36px — panel-hero.css */
+html.mobile #add, /* 36px — panel-hero.css */
+html.mobile #clearAll, /* text button — panel-list.css */
+html.mobile #resetTotal, /* text button — panel-hero.css */
+html.mobile .mode, /* 22px pill — panel-list.css */
+html.mobile li.row input.edit, /* 26px — panel-list.css */
+html.mobile .pack, /* ~27px chip — panel-packs.css */
+html.mobile .packs-toggle, /* panel-packs.css */
+html.mobile .site-input, /* 32px — panel-sites.css */
+html.mobile .site-add-btn, /* 32px — panel-sites.css */
+html.mobile .site-toggle, /* panel-sites.css */
+html.mobile .adv-toggle, /* 24px pill — panel-header.css */
+html.mobile .onboard-x, /* panel-list.css */
+html.mobile .toast #undo /* panel-misc.css */ {
+  min-height: 40px;
+}
+/* .remove is a 28px circle (panel-list.css); grow both axes to keep it round. */
+html.mobile .remove {
+  width: 40px;
+  height: 40px;
+}
+/* The on/off switch (.toggle, panel-header.css) is fixed 34x20px geometry —
+   the thumb travel is a hard-coded translateX(14px), so stretching .toggle
+   breaks it. Enlarge the surrounding label's tap area instead. */
+html.mobile .switch {
+  padding: 10px 0 10px 10px;
+}
 body.paused .hero,
 body.paused .list-wrap,
 body.paused .add-row,

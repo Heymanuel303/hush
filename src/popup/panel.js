@@ -171,6 +171,14 @@ async function maybeShowOnboarding() {
 
 /* ---------------- init ---------------- */
 (async function init() {
+  // Firefox for Android opens action popups as a full-page tab, not a 324px
+  // popover — tag <html> so panel-theme.css can swap to the fluid layout.
+  try {
+    const info = await api.runtime.getPlatformInfo();
+    if (info && info.os === "android") document.documentElement.classList.add("mobile");
+  } catch {
+    if (/Android/i.test(navigator.userAgent)) document.documentElement.classList.add("mobile");
+  }
   const { enabled, enabledPacks: ep, advanced, siteWords: sw } =
     await api.storage.local.get(["enabled", "enabledPacks", "advanced", "siteWords"]);
   enabledPacks = ep || [];

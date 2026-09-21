@@ -71,6 +71,26 @@ Regular Firefox only loads signed extensions permanently. Mozilla signs
 4. Install it: open `about:addons` → gear ⚙ → **Install Add-on From File…** and
    pick the `.xpi`. It now survives restarts.
 
+### Firefox for Android
+
+Firefox for Android installs sideloaded add-ons only through its debug menu.
+Use the signed `.xpi` built in the section above (`npm run sign` →
+`web-ext-artifacts/`).
+
+1. Copy the signed `.xpi` to your phone.
+2. Enable the debug menu: **Settings → About Firefox** → tap the Firefox logo
+   5 times.
+3. Go back to **Settings → Install add-on from file…** and pick the `.xpi`.
+
+Notes:
+
+- Sites added to the home screen (**menu → Add to Home screen**) keep working —
+  Hush still hides posts inside them.
+- The popup opens as a **full-screen page** on Android rather than a popover;
+  this is expected, and it lays out to fit the phone width.
+- There is **no toolbar badge** count on Android (Firefox for Android has no
+  badge); the per-tab and all-time counts are still shown in the popup.
+
 > **Cross-browser note:** the manifest declares the background as both
 > `background.service_worker` (Chrome MV3) and `background.scripts` (Firefox MV3);
 > each browser reads its own key and ignores the other.
