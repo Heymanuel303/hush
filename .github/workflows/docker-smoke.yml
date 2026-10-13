@@ -1,0 +1,40 @@
+name: docker-smoke
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  smoke:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      # No platform on the runner: select the local overlay (postgres, a throwaway apps
+      # network and the web container on localhost:8080) instead of the default base file.
+      - name: Create .env
+        run: |
+          cp .env.example .env
+          sed -i "s|^SESSION_SECRET=.*|SESSION_SECRET=$(openssl rand -base64 32)|" .env
+          sed -i "s|^COMPOSE_FILE=.*|COMPOSE_FILE=docker-compose.yml:docker-compose.local.yml|" .env
+          grep -q "^SESSION_SECRET=.\+" .env
+          grep -q "^COMPOSE_FILE=docker-compose.yml:docker-compose.local.yml$" .env
+      # --wait returns non-zero when any healthcheck fails or migrate exits non-zero.
+      - name: Build and start the stack
+        run: docker compose up --build --wait --wait-timeout 300
+      - name: Web serves the SPA
+        run: curl -f http://127.0.0.1:8080/
+      - name: API health through nginx
+        run: curl -f http://127.0.0.1:8080/api/health
+      - name: Logs
+        if: failure()
+        run: |
+          docker compose ps
+          docker compose logs
+      - name: Down
+        if: always()
+        run: docker compose down -v

@@ -13,22 +13,27 @@ A privacy-setup monorepo. The core is **Hush**, a cross-browser (Firefox + Chrom
   - `popup/` — `panel.html` plus per-feature classic scripts and stylesheets that share one global scope (see the popup bullet under Architecture). JS: `panel-core.js` (api shim + DOM refs + shared state) → `panel-keywords.js` → `panel-packs.js` → `panel-sites.js` → `panel.js` (entry/init, loaded **last**). CSS: `panel-theme.css` (loaded **first**) → `panel-header.css` → `panel-hero.css` → `panel-list.css` → `panel-packs.css` → `panel-sites.css` → `panel-misc.css`
   - `lib/` — `words.js` (matching engine + the `=` whole-word convention), `format.js` (number/duration formatting)
   - `data/` — `packs.js` (starter-pack definitions) + `sites.js` (the curated site registry: `SITES` + `siteIdForHost`)
-- `test/` — `node --test` unit tests for the pure logic in `src/lib/` and `src/data/`
+- `test/` — `node --test` unit tests (run with `pnpm ext:test`) for the pure logic in `src/lib/` and `src/data/`
 - `browser/` — `ublock/managed-storage.json` (uBO baseline: settings + filter-list selection) and `hush/managed-storage.json` (Hush default words/packs/site words), both Firefox *managed storage* native manifests that `setup.sh` copies into `<mozilla home>/managed-storage/`; `firefox/policies.json` + `chrome/policies.json` are the **locked-device** enterprise policies (kid PC), not for a personal machine. Key names in the uBO file are verified against uBO's `storage.js` (`userSettings` = `[name, "string"]` pairs, `toOverwrite.filterLists`, `toAdd.trustedSiteDirectives`).
 - `filters/` — uBlock Origin filter lists (`youtube-cleanup`, `social-cleanup`, `strict-mode`), referenced by raw GitHub URL from the uBO config. Not shipped.
 - `infra/` — home server (`192.168.1.11`, ssh alias `nas`) docs: `README.md` (Tailscale + Pi-hole v6 in Docker, DNS flow), `pihole/` (blocklists, kid-mode draft), `tailscale/` (client hardening scripts). Secrets never go here.
 - `docs/` — `extension.md` (the full extension README; root `README.md` is the repo umbrella) and `plans/`.
-- Repo root — `setup.sh` (Linux bootstrap: installs the managed-storage manifests, optional `--locked`/`--tailscale`/`--harden`), `package.json`, `README.md`, `CONTRIBUTING.md`, `LICENSE`, `.gitignore`, this file. `package.json` is **not** shipped (it's outside `src/`).
+- `apps/api`, `apps/web`, `packages/contracts`, `e2e/`, `scripts/` — the **Household Hub** pnpm workspace (see below). `src/` and `test/` are **not** part of it.
+- Repo root — `setup.sh` (Linux bootstrap: installs the managed-storage manifests, optional `--locked`/`--tailscale`/`--harden`), `package.json`, `README.md`, `CONTRIBUTING.md`, `LICENSE`, `.gitignore`, this file. `package.json` (the pnpm workspace root; `ext:*` scripts for the extension) is **not** shipped (it's outside `src/`).
 
 The files in `src/lib/` and `src/data/` end with a `if (typeof module !== "undefined" && module.exports) { ... }` guard so they work both as a plain browser `<script>` (the guard is a no-op there) **and** as a `require()`d CommonJS module in the Node tests. This is how the project tests without a build step.
 
+## Household Hub
+
+The repo also holds the **Hush Household Hub**, a self-hosted console (NestJS + Prisma on PostgreSQL in `apps/api`, Vue 3 + shadcn-vue in `apps/web`, Zod contracts in `packages/contracts`) that pairs browsers and pushes profile config down to Hush. Its stack, commands, product rules and design direction live in **`AGENTS.md`** — read that before touching anything outside `src/`. The extension never imports from the workspace and stays dependency-free.
+
 ## Commands
 
-- **Run tests:** `npm test` (alias for `node --test`). Needs Node ≥18; nothing to install.
-- **Lint:** `npm run lint` (`web-ext lint` via npx — validates the manifest and that referenced files exist).
-- **Load for dev (Firefox):** `about:debugging#/runtime/this-firefox` → Load Temporary Add-on → pick `src/manifest.json`. Or `npm start` (web-ext, with auto-reload). Removed on restart.
+- **Run tests:** `pnpm ext:test` (runs `node --test "test/*.test.js"`; `node --test test/` fails on Node 22). Needs Node 22; nothing to install. The root `pnpm test` runs the hub tests and then `ext:test`.
+- **Lint:** `pnpm ext:lint` (`web-ext lint` via npx — validates the manifest and that referenced files exist).
+- **Load for dev (Firefox):** `about:debugging#/runtime/this-firefox` → Load Temporary Add-on → pick `src/manifest.json`. Or `pnpm ext:start` (web-ext, with auto-reload). Removed on restart.
 - **Load for dev (Chrome):** `chrome://extensions` → Developer mode → Load unpacked → pick the `src/` folder.
-- **Sign / build a permanent `.xpi`:** `npm run sign` (runs `web-ext sign --source-dir src --channel=unlisted`). Credentials come from `.env` env vars (`WEB_EXT_API_KEY` / `WEB_EXT_API_SECRET`; see `.env.example`) — `.env` is git-ignored, never commit it. Output lands in `web-ext-artifacts/`. Mozilla rejects re-signing an existing version, so **bump `src/manifest.json` `version` before every sign.**
+- **Sign / build a permanent `.xpi`:** `pnpm ext:sign` (runs `web-ext sign --source-dir src --channel=unlisted`). Credentials come from `.env` env vars (`WEB_EXT_API_KEY` / `WEB_EXT_API_SECRET`; see `.env.example`) — `.env` is git-ignored, never commit it. Output lands in `web-ext-artifacts/`. Mozilla rejects re-signing an existing version, so **bump `src/manifest.json` `version` before every sign.**
 
 ## Architecture
 

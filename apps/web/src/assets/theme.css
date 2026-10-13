@@ -1,0 +1,111 @@
+/*
+ * Hush Household Hub theme: the single source of every colour, font and radius token.
+ * Values follow the Design direction in AGENTS.md: the extension popup's warm paper/ink
+ * neutrals (src/popup/panel-theme.css) and the Hush orange accent. No second accent.
+ */
+@import 'tailwindcss';
+@import 'tw-animate-css';
+@import '@fontsource/ibm-plex-sans/400.css';
+@import '@fontsource/ibm-plex-sans/500.css';
+@import '@fontsource/ibm-plex-sans/600.css';
+
+@custom-variant dark (&:is(.dark *));
+
+@theme inline {
+  --font-sans: 'IBM Plex Sans', ui-sans-serif, system-ui, sans-serif;
+  --font-heading: var(--font-sans);
+  /* Pairing codes, IP addresses and ETags. */
+  --font-mono: ui-monospace, SFMono-Regular, Menlo, monospace;
+
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  --color-popover: var(--popover);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-destructive: var(--destructive);
+  --color-border: var(--border);
+  --color-input: var(--input);
+  --color-ring: var(--ring);
+
+  /* 6px everywhere (buttons, inputs, badges, cells, cards); 12px only on dialogs and the
+     pairing-code card (rounded-xl). */
+  --radius-sm: calc(var(--radius) - 2px);
+  --radius-md: var(--radius);
+  --radius-lg: var(--radius);
+  --radius-xl: 0.75rem;
+}
+
+:root {
+  --radius: 0.375rem;
+
+  --background: #fbfaf8;
+  --foreground: #1a1a1c;
+  --card: #ffffff;
+  --card-foreground: #1a1a1c;
+  --popover: #ffffff;
+  --popover-foreground: #1a1a1c;
+  --primary: #d93a00;
+  --primary-foreground: #ffffff;
+  --secondary: #f3f1ec;
+  --secondary-foreground: #1a1a1c;
+  --muted: #f3f1ec;
+  --muted-foreground: #6b6b73;
+  --accent: #f3f1ec;
+  --accent-foreground: #1a1a1c;
+  --destructive: #b42318;
+  --border: rgba(26, 26, 28, 0.12);
+  --input: rgba(26, 26, 28, 0.18);
+  --ring: #d93a00;
+
+  /* Page gutter: 16px on phones, 24px from 640px up. Content column max 1120px. */
+  --gutter: 1rem;
+  --content-max: 70rem;
+}
+
+@media (min-width: 640px) {
+  :root {
+    --gutter: 1.5rem;
+  }
+}
+
+.dark {
+  --background: #1c1c1e;
+  --foreground: #f2f2f5;
+  --card: #2a2a2d;
+  --card-foreground: #f2f2f5;
+  --popover: #2a2a2d;
+  --popover-foreground: #f2f2f5;
+  --primary: #ff5a1f;
+  --primary-foreground: #1c1c1e;
+  --secondary: #2a2a2d;
+  --secondary-foreground: #f2f2f5;
+  --muted: #2a2a2d;
+  --muted-foreground: #9a9aa3;
+  --accent: #2a2a2d;
+  --accent-foreground: #f2f2f5;
+  --destructive: #ff6b5e;
+  --border: rgba(255, 255, 255, 0.12);
+  --input: rgba(255, 255, 255, 0.18);
+  --ring: #ff5a1f;
+}
+
+@layer base {
+  * {
+    @apply border-border outline-ring/50;
+  }
+  html {
+    @apply font-sans;
+  }
+  body {
+    @apply bg-background text-foreground antialiased;
+  }
+}

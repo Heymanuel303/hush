@@ -1,0 +1,18 @@
+node_modules
+dist
+pnpm-lock.yaml
+coverage
+test-results
+playwright-report
+apps/web/src/components/ui
+apps/api/src/generated
+# The extension and the config/docs folders keep their own formatting and are not part of the
+# pnpm workspace.
+src
+test
+browser
+filters
+infra
+docs
+setup.sh
+CLAUDE.md

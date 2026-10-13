@@ -12,18 +12,20 @@ browser extension, so getting started is quick.
   `const api = typeof browser !== "undefined" ? browser : chrome;`.
 - **Privacy first.** Nothing is fetched and nothing leaves the browser; the
   manifest promises `data_collection: none`. Don't add network calls or trackers.
-- **Readable over clever.** Comments explain the *why* of non-obvious code. Match
+- **Readable over clever.** Comments explain the _why_ of non-obvious code. Match
   the surrounding style when you edit.
 
 ## Getting set up
 
-You need **Node 18+** to run the tests. That's it — there is nothing to install
-(no `npm install` required; the test runner is built into Node).
+You need **Node 22** and **pnpm** (`corepack enable`) to run the scripts. For the extension
+there is nothing to install (no `pnpm install` required; the test runner is built into Node).
+The Household Hub in `apps/` and `packages/` is a separate pnpm workspace; its conventions
+are in [`AGENTS.md`](./AGENTS.md).
 
 ```bash
 git clone <your-fork-url>
 cd hush
-npm test          # runs the unit tests (node --test)
+pnpm ext:test     # runs the unit tests (node --test)
 ```
 
 ### Load the extension while developing
@@ -36,9 +38,9 @@ npm test          # runs the unit tests (node --test)
 Or, with [`web-ext`](https://github.com/mozilla/web-ext) (fetched on demand):
 
 ```bash
-npm start            # launches Firefox with the extension loaded + auto-reload
-npm run start:chromium
-npm run lint         # web-ext lint: validates the manifest and file references
+pnpm ext:start       # launches Firefox with the extension loaded + auto-reload
+pnpm ext:start:chromium
+pnpm ext:lint        # web-ext lint: validates the manifest and file references
 ```
 
 ## Project layout
@@ -59,6 +61,8 @@ src/
     └── packs.js         # starter-pack definitions (local data)
 
 test/                    # node --test unit tests for the pure logic in lib/ + data/
+
+apps/, packages/, e2e/   # Household Hub (pnpm workspace; see AGENTS.md)
 ```
 
 The pure, browser-agnostic logic lives in `src/lib/` and `src/data/`. Those files
@@ -78,7 +82,7 @@ the matching list in `getSelectors()` (`src/content.js`).
 
 Edit `src/data/packs.js`. Each pack is `{ name, words: [...] }`. A pack's `name`
 is its stable id (renaming it drops users' toggle state). Prefix a word with `=`
-for whole-word matching. `npm test` validates pack integrity (unique names,
+for whole-word matching. `pnpm ext:test` validates pack integrity (unique names,
 non-empty words, everything compiles).
 
 ### Change matching behavior
@@ -90,8 +94,8 @@ in a second place.
 
 ## Before you open a pull request
 
-1. **`npm test` passes.** Add tests for any logic you add or change.
-2. **`npm run lint` is clean** (runs `web-ext lint`).
+1. **`pnpm ext:test` passes.** Add tests for any logic you add or change.
+2. **`pnpm ext:lint` is clean** (runs `web-ext lint`).
 3. **Respect the correctness invariants.** Counting, message delivery, and the
    storage write-chains are subtle. The non-obvious rules are documented in
    [`CLAUDE.md`](./CLAUDE.md) under "Invariants to preserve when editing" — please

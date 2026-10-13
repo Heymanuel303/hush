@@ -67,7 +67,7 @@ Regular Firefox only loads signed extensions permanently. Mozilla signs
 3. Bump `"version"` in [`src/manifest.json`](../src/manifest.json) (Mozilla rejects
    re-signing an existing version), then run:
    ```bash
-   npm run sign
+   pnpm ext:sign
    ```
    The signed `.xpi` is written to `web-ext-artifacts/`.
 4. Install it: open `about:addons` → gear ⚙ → **Install Add-on From File…** and
@@ -76,7 +76,7 @@ Regular Firefox only loads signed extensions permanently. Mozilla signs
 ### Firefox for Android
 
 Firefox for Android installs sideloaded add-ons only through its debug menu.
-Use the signed `.xpi` built in the section above (`npm run sign` →
+Use the signed `.xpi` built in the section above (`pnpm ext:sign` →
 `web-ext-artifacts/`).
 
 1. Copy the signed `.xpi` to your phone.
@@ -125,12 +125,12 @@ touches the DOM, storage, or messaging stays in the three context files
 
 ## Development & testing
 
-You only need **Node 18+** — there is nothing to `npm install`.
+You only need **Node 22** and pnpm (`corepack enable`) — there is nothing to `pnpm install` for the extension.
 
 ```bash
-npm test          # run the unit tests (node --test)
-npm run lint      # web-ext lint (validates the manifest + file references)
-npm start         # launch Firefox with the extension + auto-reload (uses web-ext)
+pnpm ext:test     # run the unit tests (node --test)
+pnpm ext:lint     # web-ext lint (validates the manifest + file references)
+pnpm ext:start    # launch Firefox with the extension + auto-reload (uses web-ext)
 ```
 
 See [CONTRIBUTING.md](../CONTRIBUTING.md) for the project layout, code conventions,
@@ -146,7 +146,7 @@ packs are bundled local data — no network requests are made.
 ## Contributing
 
 Contributions are welcome! Please read [CONTRIBUTING.md](../CONTRIBUTING.md) first.
-Run `npm test` before opening a pull request.
+Run `pnpm ext:test` before opening a pull request.
 
 ## License
 

@@ -1,0 +1,23 @@
+packages:
+  - apps/*
+  - packages/*
+
+# Every dependency with an install script must be listed under allowBuilds: `true` when its
+# build step is needed, `false` plus a one-line reason when it is not. Find candidates with
+# `pnpm ignored-builds` after `pnpm install`; an unlisted script fails the install with
+# ERR_PNPM_IGNORED_BUILDS.
+allowBuilds:
+  # Prisma CLI preinstall check and engine setup.
+  prisma: true
+  # Downloads the Prisma query/schema engines needed by the CLI and client.
+  '@prisma/engines': true
+  # Installs the platform-specific esbuild binary used by Vite and tsup.
+  esbuild: true
+  # Postinstall only prints a donation banner.
+  '@nestjs/core': false
+  # Prebuilt binaries ship as optional dependencies; the script is only a node-gyp fallback.
+  '@parcel/watcher': false
+  # Postinstall only re-checks the prebuilt binary that optional dependencies already install.
+  unrs-resolver: false
+  # Postinstall switches between Vue 2/3 builds; the default build already targets Vue 3.
+  vue-demi: false
