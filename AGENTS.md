@@ -204,7 +204,8 @@ replica; anything that must be shared goes through the database.
 ### Layout
 
 - `src/manifest.json`, `background.js`, `content.js`.
-- `src/lib/words.js` (matching engine, `=` whole-word convention), `lib/format.js`.
+- `src/lib/words.js` (matching engine, `=` whole-word convention), `lib/format.js`,
+  `lib/schedule.js` (quiet hours), `lib/hubconfig.js` (hub config validator).
 - `src/data/packs.js` (`PACKS`), `data/sites.js` (`SITES` + `siteIdForHost`).
 - `src/popup/` — `panel.html` plus per-feature classic scripts and stylesheets sharing one
   global scope. JS load order: `panel-core.js` → `panel-keywords.js` → `panel-packs.js` →
@@ -212,7 +213,8 @@ replica; anything that must be shared goes through the database.
   the custom properties) → `panel-header.css` → `panel-hero.css` → `panel-list.css` →
   `panel-packs.css` → `panel-sites.css` → `panel-misc.css` (last, its reduced-motion rule
   blankets earlier animations).
-- `test/` — `words.test.js`, `format.test.js`, `packs.test.js`, `sites.test.js`.
+- `test/` — `words.test.js`, `format.test.js`, `packs.test.js`, `sites.test.js`,
+  `schedule.test.js`, `hubconfig.test.js` (the last two read `test/fixtures/` JSON with `fs`).
 
 ### Checks and verifying in a container
 
@@ -237,6 +239,14 @@ and `SITES` must stay top-level `const`s.
   convention: `escapeRegex`, `parseWord`, `composeWord`, `compileRule`, `matchesAny`,
   `dedupeWords`, `resolvePackWords`, `buildRules(customWords, packs, enabledPacks, siteWords?)`.
   Never re-implement `=` parsing in a second place.
+- **`src/lib/schedule.js`** — pure, guarded, tested. The single definition of quiet-hour
+  semantics on the extension side (the api's `schedule.ts` mirrors it through the same
+  `test/fixtures/schedule/cases.json`): `isQuiet(quietHours, now)`, `nextBoundary(quietHours, now)`.
+  Hub rules apply inside the windows; no `quietHours` means always. Never throws.
+- **`src/lib/hubconfig.js`** — pure, guarded, tested. `HUB_CAPS` (pinned to
+  `test/fixtures/device-config/caps.json`) and `validateDeviceConfig(obj, siteIds, compile?)`;
+  any violation rejects the whole config so the previous one stays. Uses `compileRule` from the
+  shared scope (load `words.js` first).
 - **`src/content.js`** — `rebuildRules()` compiles the union of custom words, enabled packs'
   words and the current site's per-site words. `currentSite()` delegates to `siteIdForHost`;
   `getSelectors()` returns per-site post-unit selectors; a `MutationObserver` rescans on every
