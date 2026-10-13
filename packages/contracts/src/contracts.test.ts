@@ -39,6 +39,8 @@ describe('DeviceConfig fixtures', () => {
     ['invalid-empty-word.json', ['blockWords', 1]],
     ['invalid-unknown-site.json', ['siteWords']],
     ['invalid-bad-window.json', ['quietHours', 'windows', 0]],
+    ['invalid-bad-timezone.json', ['quietHours', 'timezone']],
+    ['invalid-equal-window.json', ['quietHours', 'windows', 0]],
   ])('%s fails at the expected path', (f, prefix) => {
     const r = DeviceConfig.safeParse(load(f));
     expect(r.success).toBe(false);
@@ -47,7 +49,7 @@ describe('DeviceConfig fixtures', () => {
   });
 
   it('every invalid fixture on disk is covered above', () => {
-    expect(readdirSync(fixtures).filter((f) => f.startsWith('invalid-')).length).toBe(4);
+    expect(readdirSync(fixtures).filter((f) => f.startsWith('invalid-')).length).toBe(6);
   });
 });
 
@@ -122,9 +124,15 @@ describe('schemas', () => {
     const w = { days: [0], start: '00:00', end: '23:59' };
     expect(QuietHours.safeParse({ timezone: 'UTC', windows: [w] }).success).toBe(true);
     expect(QuietHours.safeParse({ timezone: 'UTC', windows: [] }).success).toBe(false);
-    expect(QuietHours.safeParse({ timezone: 'UTC', windows: Array(15).fill(w) }).success).toBe(false);
-    expect(QuietHours.safeParse({ timezone: 'UTC', windows: [{ ...w, days: [] }] }).success).toBe(false);
-    expect(QuietHours.safeParse({ timezone: 'UTC', windows: [{ ...w, end: '24:00' }] }).success).toBe(false);
+    expect(QuietHours.safeParse({ timezone: 'UTC', windows: Array(15).fill(w) }).success).toBe(
+      false,
+    );
+    expect(QuietHours.safeParse({ timezone: 'UTC', windows: [{ ...w, days: [] }] }).success).toBe(
+      false,
+    );
+    expect(
+      QuietHours.safeParse({ timezone: 'UTC', windows: [{ ...w, end: '24:00' }] }).success,
+    ).toBe(false);
   });
   it('pairing code alphabet', () => {
     const base = { profileId: crypto.randomUUID(), expiresAt: '2026-10-13T10:00:00Z' };
@@ -149,8 +157,12 @@ describe('schemas', () => {
     expect(PiholeConnectionPut.safeParse({ ...p, url: 'http://192.168.1.11' }).success).toBe(true);
     expect(PiholeConnectionPut.safeParse({ ...p, url: 'https://pi.hole' }).success).toBe(true);
     expect(PiholeConnectionPut.safeParse({ ...p, url: 'ftp://pi.hole' }).success).toBe(false);
-    expect(PiholeConnectionPut.safeParse({ ...p, url: 'http://a.io/' + 'x'.repeat(200) }).success).toBe(false);
-    expect(PiholeConnectionPut.safeParse({ ...p, url: 'http://a.io', appPassword: '' }).success).toBe(false);
+    expect(
+      PiholeConnectionPut.safeParse({ ...p, url: 'http://a.io/' + 'x'.repeat(200) }).success,
+    ).toBe(false);
+    expect(
+      PiholeConnectionPut.safeParse({ ...p, url: 'http://a.io', appPassword: '' }).success,
+    ).toBe(false);
   });
 });
 
@@ -158,12 +170,14 @@ describe('routes', () => {
   it('has no stats or telemetry route', () => {
     for (const r of Object.values(ROUTES)) expect(r.path).not.toMatch(/stats|telemetry|metrics/);
     // summary is Pi-hole data, not device data
-    expect(Object.values(ROUTES).filter((r) => r.auth !== 'admin').map((r) => r.path).sort()).toEqual([
-      '/api/device/config',
-      '/api/auth/login',
-      '/api/devices/pair',
-      '/api/setup/status',
-    ].sort());
+    expect(
+      Object.values(ROUTES)
+        .filter((r) => r.auth !== 'admin')
+        .map((r) => r.path)
+        .sort(),
+    ).toEqual(
+      ['/api/device/config', '/api/auth/login', '/api/devices/pair', '/api/setup/status'].sort(),
+    );
   });
   it('method+path pairs are unique', () => {
     const keys = Object.values(ROUTES).map((r) => `${r.method} ${r.path}`);
@@ -181,21 +195,29 @@ describe('schedule cases', () => {
     if (!q) return false;
     const parts = Object.fromEntries(
       new Intl.DateTimeFormat('en-US', {
-        timeZone: q.timezone, weekday: 'short', hour: '2-digit', minute: '2-digit', hourCycle: 'h23',
-      }).formatToParts(new Date(now)).map((p) => [p.type, p.value]),
+        timeZone: q.timezone,
+        weekday: 'short',
+        hour: '2-digit',
+        minute: '2-digit',
+        hourCycle: 'h23',
+      })
+        .formatToParts(new Date(now))
+        .map((p) => [p.type, p.value]),
     );
     const day = DAYS.indexOf(parts.weekday);
     const min = Number(parts.hour) * 60 + Number(parts.minute);
     const mins = (t: string) => Number(t.slice(0, 2)) * 60 + Number(t.slice(3));
     return q.windows.some((w) => {
-      const s = mins(w.start), e = mins(w.end);
+      const s = mins(w.start),
+        e = mins(w.end);
       if (s < e) return w.days.includes(day) && min >= s && min < e;
       return (w.days.includes(day) && min >= s) || (w.days.includes((day + 6) % 7) && min < e);
     });
   };
   it('has at least twelve cases that all validate', () => {
     expect(cases.length).toBeGreaterThanOrEqual(12);
-    for (const c of cases) if (c.quietHours) expect(QuietHours.safeParse(c.quietHours).success, c.name).toBe(true);
+    for (const c of cases)
+      if (c.quietHours) expect(QuietHours.safeParse(c.quietHours).success, c.name).toBe(true);
   });
   it.each(cases.map((c) => [c.name, c] as const))('%s', (_n, c) => {
     expect(active(c.quietHours, c.now)).toBe(c.expected);
