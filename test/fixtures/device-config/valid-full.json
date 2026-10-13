@@ -1,0 +1,25 @@
+{
+  "version": 7,
+  "profileName": "Teen",
+  "locked": true,
+  "blockWords": ["spoiler", "=cat", "plot twist"],
+  "enabledPacks": ["Spoilers", "Homework Help"],
+  "packs": [
+    { "name": "Spoilers", "words": ["spoiler", "spoilers", "leaked", "=ending", "plot twist"] },
+    { "name": "Homework Help", "words": ["essay mill", "=cheat"] }
+  ],
+  "siteWords": {
+    "Reddit": ["r/all"],
+    "X": ["@someone"],
+    "YouTube": ["shorts", "=live"],
+    "Google": ["pinterest"]
+  },
+  "siteOptions": { "ytHomeRedirect": true },
+  "quietHours": {
+    "timezone": "Europe/Brussels",
+    "windows": [
+      { "days": [1, 2, 3, 4, 5], "start": "21:00", "end": "07:00" },
+      { "days": [0, 6], "start": "22:30", "end": "09:00" }
+    ]
+  }
+}

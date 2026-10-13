@@ -1,0 +1,14 @@
+{
+  "version": 1,
+  "profileName": "Kitchen laptop",
+  "locked": false,
+  "blockWords": [
+    "ok",
+    ""
+  ],
+  "enabledPacks": [],
+  "packs": [],
+  "siteWords": {},
+  "siteOptions": {},
+  "quietHours": null
+}

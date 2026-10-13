@@ -1,0 +1,9 @@
+{
+  "maxWords": 500,
+  "maxWordLength": 64,
+  "maxSiteWords": 200,
+  "maxPacks": 50,
+  "maxPackWords": 200,
+  "maxNameLength": 40,
+  "maxWindows": 14
+}

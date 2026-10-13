@@ -1,0 +1,15 @@
+{
+  "version": 1,
+  "profileName": "Kitchen laptop",
+  "locked": false,
+  "blockWords": [],
+  "enabledPacks": [],
+  "packs": [],
+  "siteWords": {
+    "Facebook": [
+      "x"
+    ]
+  },
+  "siteOptions": {},
+  "quietHours": null
+}

@@ -1,0 +1,304 @@
+[
+  {
+    "name": "plain window, inside",
+    "quietHours": {
+      "timezone": "UTC",
+      "windows": [
+        {
+          "days": [
+            1
+          ],
+          "start": "09:00",
+          "end": "17:00"
+        }
+      ]
+    },
+    "now": "2026-10-12T12:00:00+00:00",
+    "expected": true
+  },
+  {
+    "name": "plain window, before start",
+    "quietHours": {
+      "timezone": "UTC",
+      "windows": [
+        {
+          "days": [
+            1
+          ],
+          "start": "09:00",
+          "end": "17:00"
+        }
+      ]
+    },
+    "now": "2026-10-12T08:59:00+00:00",
+    "expected": false
+  },
+  {
+    "name": "plain window, after end",
+    "quietHours": {
+      "timezone": "UTC",
+      "windows": [
+        {
+          "days": [
+            1
+          ],
+          "start": "09:00",
+          "end": "17:00"
+        }
+      ]
+    },
+    "now": "2026-10-12T17:30:00+00:00",
+    "expected": false
+  },
+  {
+    "name": "start minute is inclusive",
+    "quietHours": {
+      "timezone": "UTC",
+      "windows": [
+        {
+          "days": [
+            1
+          ],
+          "start": "09:00",
+          "end": "17:00"
+        }
+      ]
+    },
+    "now": "2026-10-12T09:00:00+00:00",
+    "expected": true
+  },
+  {
+    "name": "end minute is exclusive",
+    "quietHours": {
+      "timezone": "UTC",
+      "windows": [
+        {
+          "days": [
+            1
+          ],
+          "start": "09:00",
+          "end": "17:00"
+        }
+      ]
+    },
+    "now": "2026-10-12T17:00:00+00:00",
+    "expected": false
+  },
+  {
+    "name": "last minute before end",
+    "quietHours": {
+      "timezone": "UTC",
+      "windows": [
+        {
+          "days": [
+            1
+          ],
+          "start": "09:00",
+          "end": "17:00"
+        }
+      ]
+    },
+    "now": "2026-10-12T16:59:00+00:00",
+    "expected": true
+  },
+  {
+    "name": "day not listed",
+    "quietHours": {
+      "timezone": "UTC",
+      "windows": [
+        {
+          "days": [
+            1
+          ],
+          "start": "09:00",
+          "end": "17:00"
+        }
+      ]
+    },
+    "now": "2026-10-13T12:00:00+00:00",
+    "expected": false
+  },
+  {
+    "name": "crossing midnight, evening side",
+    "quietHours": {
+      "timezone": "UTC",
+      "windows": [
+        {
+          "days": [
+            1
+          ],
+          "start": "22:00",
+          "end": "06:00"
+        }
+      ]
+    },
+    "now": "2026-10-12T23:30:00+00:00",
+    "expected": true
+  },
+  {
+    "name": "crossing midnight, morning side (next day, listed day is previous)",
+    "quietHours": {
+      "timezone": "UTC",
+      "windows": [
+        {
+          "days": [
+            1
+          ],
+          "start": "22:00",
+          "end": "06:00"
+        }
+      ]
+    },
+    "now": "2026-10-13T05:59:00+00:00",
+    "expected": true
+  },
+  {
+    "name": "crossing midnight, morning side of the listed day itself is outside",
+    "quietHours": {
+      "timezone": "UTC",
+      "windows": [
+        {
+          "days": [
+            1
+          ],
+          "start": "22:00",
+          "end": "06:00"
+        }
+      ]
+    },
+    "now": "2026-10-12T05:00:00+00:00",
+    "expected": false
+  },
+  {
+    "name": "crossing midnight, end exclusive next day",
+    "quietHours": {
+      "timezone": "UTC",
+      "windows": [
+        {
+          "days": [
+            1
+          ],
+          "start": "22:00",
+          "end": "06:00"
+        }
+      ]
+    },
+    "now": "2026-10-13T06:00:00+00:00",
+    "expected": false
+  },
+  {
+    "name": "crossing midnight, midday outside",
+    "quietHours": {
+      "timezone": "UTC",
+      "windows": [
+        {
+          "days": [
+            1
+          ],
+          "start": "22:00",
+          "end": "06:00"
+        }
+      ]
+    },
+    "now": "2026-10-12T12:00:00+00:00",
+    "expected": false
+  },
+  {
+    "name": "timezone: UTC Sunday is Monday 09:30 locally (NZDT +13)",
+    "quietHours": {
+      "timezone": "Pacific/Auckland",
+      "windows": [
+        {
+          "days": [
+            1
+          ],
+          "start": "09:00",
+          "end": "17:00"
+        }
+      ]
+    },
+    "now": "2026-10-11T20:30:00+00:00",
+    "expected": true
+  },
+  {
+    "name": "timezone: UTC Monday 12:00 is Tuesday locally, day not listed",
+    "quietHours": {
+      "timezone": "Pacific/Auckland",
+      "windows": [
+        {
+          "days": [
+            1
+          ],
+          "start": "09:00",
+          "end": "17:00"
+        }
+      ]
+    },
+    "now": "2026-10-12T12:00:00+00:00",
+    "expected": false
+  },
+  {
+    "name": "offset in now is converted: Monday 12:00 UTC from a +02:00 string",
+    "quietHours": {
+      "timezone": "UTC",
+      "windows": [
+        {
+          "days": [
+            1
+          ],
+          "start": "09:00",
+          "end": "17:00"
+        }
+      ]
+    },
+    "now": "2026-10-12T14:00:00+02:00",
+    "expected": true
+  },
+  {
+    "name": "timezone west of UTC: UTC Tuesday 02:00 is Monday 22:00 in New York, inside crossing window",
+    "quietHours": {
+      "timezone": "America/New_York",
+      "windows": [
+        {
+          "days": [
+            1
+          ],
+          "start": "22:00",
+          "end": "06:00"
+        }
+      ]
+    },
+    "now": "2026-10-13T02:00:00+00:00",
+    "expected": true
+  },
+  {
+    "name": "null quietHours: no window active",
+    "quietHours": null,
+    "now": "2026-10-12T12:00:00+00:00",
+    "expected": false
+  },
+  {
+    "name": "multiple windows, second matches",
+    "quietHours": {
+      "timezone": "UTC",
+      "windows": [
+        {
+          "days": [
+            1
+          ],
+          "start": "06:00",
+          "end": "07:00"
+        },
+        {
+          "days": [
+            1
+          ],
+          "start": "20:00",
+          "end": "21:00"
+        }
+      ]
+    },
+    "now": "2026-10-12T20:30:00+00:00",
+    "expected": true
+  }
+]

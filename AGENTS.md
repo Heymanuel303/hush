@@ -116,6 +116,12 @@ Then apply the migrations: `pnpm --filter api exec prisma migrate deploy`.
   `test/*.e2e-spec.ts` (through HTTP); both run in `pnpm test`.
 - **A contract schema:** `packages/contracts/src/<area>.ts`, re-exported from `src/index.ts`, with
   a `*.test.ts` next to it. Export the schema and its `z.infer` type under the same name.
+- **A contract (request/response body or route):** the Zod schema in `packages/contracts/src/<area>.ts`
+  (shape and length caps only, never parse the `=` prefix), the route in `ROUTES` in
+  `src/routes.ts`, and a case in the area's test. Controllers validate with `@ZodBody(Schema)` /
+  `@ZodQuery(Schema)` from `apps/api/src/common/zod.pipe.ts`. Shared fixtures live under
+  `test/fixtures/` (`device-config/`, `schedule/`); the extension tests read the same files.
+  Constants mirrored from `src/` (packs, site ids, option keys) are pinned by tests: change both.
 - **A Prisma migration:** edit `apps/api/prisma/schema.prisma`, then
   `pnpm --filter api exec prisma migrate dev --name <change>` with `DATABASE_URL` set; commit the
   generated `prisma/migrations/` folder.
