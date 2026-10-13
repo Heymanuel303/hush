@@ -1,0 +1,51 @@
+! Title: hush — strict mode
+! Description: Hard-block whole pages (not just hide) for the phone: Shorts, Reels, TikTok, Explore/Discover feeds, autoplay video. uBO shows a "blocked" interstitial instead of the page.
+! Expires: 1 day
+!
+! uBlock Origin filter list — NOT part of the extension (lives outside src/).
+! These use the $document modifier: uBO refuses to load the page at all, so the
+! page's JS never downloads or runs. Much more effective than hiding on a phone.
+! A "blocked by uBO" page with a click-through appears instead. uBO has no
+! password: anyone can disable it. See README.md in this folder for real safeguards.
+
+! ── YouTube ─────────────────────────────────────
+! Shorts: never load a /shorts/ URL
+||youtube.com/shorts/$document
+||m.youtube.com/shorts/$document
+! Trending / Explore feeds
+||youtube.com/feed/trending$document
+||youtube.com/feed/explore$document
+! Home page itself — uncomment to refuse "/" entirely. Use a bookmark to
+! https://www.youtube.com/feed/subscriptions as your entry point instead.
+! |https://www.youtube.com/^$document
+! |https://m.youtube.com/^$document
+
+! ── Instagram ───────────────────────────────────
+||instagram.com/reels/$document
+||instagram.com/reel/$document
+||instagram.com/explore/$document
+
+! ── TikTok: block the whole site ────────────────
+||tiktok.com^$document
+||tiktokv.com^
+||tiktokcdn.com^
+
+! ── Facebook Reels / Watch ──────────────────────
+||facebook.com/reel/$document
+||facebook.com/watch/$document
+
+! ── Reddit r/popular, r/all ─────────────────────
+||reddit.com/r/popular$document
+||reddit.com/r/all$document
+
+! ── X Explore / trends ──────────────────────────
+||x.com/explore$document
+||twitter.com/explore$document
+
+! ── Autoplay ────────────────────────────────────
+! Can't be done with filters: a preview stream and a tapped video come from the
+! same host. Use instead:
+!   YouTube → Settings → Playback → "Inline playback" off
+!   Firefox → Settings → Site permissions → Autoplay → "Block audio and video"
+!   uBO → Settings → "Block media elements larger than … KB" (stops big video
+!   loads until you click them; set 50–100 KB on mobile data)

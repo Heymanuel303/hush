@@ -1,0 +1,43 @@
+{
+  "name": "uBlock0@raymondhill.net",
+  "description": "uBlock Origin baseline from github.com/Heymanuel303/hush (browser/ublock/). Installed by setup.sh into <firefox home>/.mozilla/managed-storage/. Edit the repo copy, re-run setup.sh, restart Firefox.",
+  "type": "storage",
+  "data": {
+    "userSettings": [
+      ["webrtcIPAddressHidden", "true"],
+      ["prefetchingDisabled", "true"],
+      ["hyperlinkAuditingDisabled", "true"],
+      ["cnameUncloakEnabled", "true"],
+      ["largeMediaSize", "50"],
+      ["showIconBadge", "true"],
+      ["tooltipsDisabled", "false"]
+    ],
+    "toOverwrite": {
+      "filterLists": [
+        "user-filters",
+        "ublock-filters",
+        "ublock-badware",
+        "ublock-privacy",
+        "ublock-unbreak",
+        "ublock-quick-fixes",
+        "easylist",
+        "easyprivacy",
+        "urlhaus-1",
+        "plowe-0",
+        "ublock-annoyances",
+        "easylist-annoyances",
+        "ublock-cookies-easylist",
+        "fanboy-cookiemonster",
+        "adguard-mobile-app-banners",
+        "easylist-newsletters",
+        "easylist-notifications",
+        "fanboy-ai-suggestions",
+        "DEU-0",
+        "FRA-0",
+        "https://raw.githubusercontent.com/Heymanuel303/hush/main/filters/youtube-cleanup.txt",
+        "https://raw.githubusercontent.com/Heymanuel303/hush/main/filters/social-cleanup.txt",
+        "https://raw.githubusercontent.com/Heymanuel303/hush/main/filters/strict-mode.txt"
+      ]
+    }
+  }
+}

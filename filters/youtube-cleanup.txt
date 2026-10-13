@@ -1,0 +1,43 @@
+! Title: hush — YouTube cleanup
+! Description: Hide Shorts, home-feed recommendations, related videos and sidebar clutter. Search results are left intact.
+! Expires: 1 day
+!
+! uBlock Origin filter list — NOT part of the extension (lives outside src/).
+! Use: uBO Dashboard → My filters → paste, or Filter lists → Import → raw URL of this file.
+! When something reappears: right-click it → "Block element…" and update the selector here.
+
+! ── Shorts ─────────────────────────────────────
+youtube.com##ytd-rich-shelf-renderer[is-shorts]
+youtube.com##ytd-rich-section-renderer:has(ytd-rich-shelf-renderer[is-shorts])
+youtube.com##ytd-reel-shelf-renderer
+youtube.com##grid-shelf-view-model
+youtube.com##ytd-video-renderer:has(a[href^="/shorts/"])
+youtube.com##ytd-guide-entry-renderer:has(a[title="Shorts"])
+youtube.com##ytd-mini-guide-entry-renderer[aria-label="Shorts"]
+youtube.com##yt-tab-shape[tab-title="Shorts"]
+
+! ── Home page recommendations (search still works) ──
+youtube.com##ytd-browse[page-subtype="home"] ytd-rich-grid-renderer
+youtube.com##ytd-browse[page-subtype="home"] #chips-wrapper
+! Home is empty with the rules above, so drop its nav entries (English UI labels).
+! uBO can't redirect "/" → use a /feed/subscriptions bookmark as your entry point.
+youtube.com##ytd-guide-entry-renderer:has(a[title="Home"])
+youtube.com##ytd-mini-guide-entry-renderer[aria-label="Home"]
+
+! ── Watch page: related videos, end screens ─────
+youtube.com##ytd-watch-flexy #related
+youtube.com##.ytp-endscreen-content
+youtube.com##.ytp-ce-element
+! Uncomment to hide comments too:
+! youtube.com##ytd-watch-flexy #comments
+
+! ── Left sidebar cleanup ───────────────────────
+youtube.com##ytd-guide-section-renderer:has(#guide-section-title:has-text(/Explore|More from YouTube/))
+youtube.com##ytd-guide-renderer #footer
+
+! ── Mobile (m.youtube.com, Firefox Android) ────
+m.youtube.com##ytm-reel-shelf-renderer
+m.youtube.com##ytm-rich-section-renderer:has(ytm-reel-shelf-renderer)
+m.youtube.com##ytm-pivot-bar-item-renderer:has(.pivot-shorts)
+m.youtube.com##ytm-pivot-bar-item-renderer:has(.pivot-w2w)
+m.youtube.com##ytm-browse:has(ytm-feed-filter-chip-bar-renderer) ytm-rich-grid-renderer

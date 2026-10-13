@@ -1,0 +1,24 @@
+{
+  "name": "word-block@emmanueljanssens.dev",
+  "description": "Hush defaults from github.com/Heymanuel303/hush (browser/hush/). Copied into Hush's storage.local ONCE, the first time Hush starts without a word list of its own. Installed by setup.sh only when Hush is present in the profile.",
+  "type": "storage",
+  "data": {
+    "blockWords": [
+      "giveaway",
+      "sponsored",
+      "=ai",
+      "clickbait"
+    ],
+    "enabledPacks": [
+      "Search Spam"
+    ],
+    "siteWords": {
+      "Reddit": ["r/popular", "AMA"],
+      "X": ["trending"],
+      "YouTube": ["#shorts", "reaction"],
+      "Google": ["pinterest"]
+    },
+    "ytHomeRedirect": true,
+    "advanced": false
+  }
+}

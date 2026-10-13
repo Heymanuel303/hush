@@ -1,0 +1,107 @@
+! Title: hush — social cleanup
+! Description: Strip recommendation feeds, trends, upsells and "you might also like" clutter from Reddit, X, Instagram, Facebook and Google. Search and the things you deliberately follow are left alone.
+! Expires: 1 day
+!
+! uBlock Origin filter list — NOT part of the extension (lives outside src/).
+! Use: uBO Dashboard → Filter lists → Import → raw URL of this file (or paste into My filters).
+! UNTESTED starting point: sites rename markup constantly. When something reappears,
+! right-click it → "Block element…" and update the selector here.
+! Rules that match on visible text (:has-text) assume an English UI.
+
+! ═══════════════════════════════════════════════
+! Reddit (new web UI, www + sh)
+! ═══════════════════════════════════════════════
+! Ads and promoted posts
+reddit.com##shreddit-ad-post
+reddit.com##shreddit-comments-page-ad
+reddit.com##shreddit-post[promoted]
+! NSFW posts — hide entirely instead of the blurred "click to reveal" card
+reddit.com##shreddit-post[nsfw]
+! Right rail: "Popular communities", "Trending", premium upsell
+reddit.com###right-sidebar-container
+! Left nav: r/popular, r/all, Explore
+reddit.com##left-nav-top-section a[href="/r/popular/"]
+reddit.com##left-nav-top-section a[href="/r/all/"]
+reddit.com##left-nav-top-section a[href="/explore/"]
+! "Recommended for you" / "Similar posts" injected between your own subs' posts
+reddit.com##shreddit-feed [data-testid="recommended-posts"]
+reddit.com##shreddit-post-similar-posts
+! Comments page: "More posts you may like"
+reddit.com##shreddit-post-page-recommendations
+! Old Reddit
+old.reddit.com##.promotedlink
+old.reddit.com##.side .premium-banner-outer
+old.reddit.com##.thing.over18
+
+! ═══════════════════════════════════════════════
+! X / Twitter
+! ═══════════════════════════════════════════════
+! Right column: Trends, Who to follow, Premium upsell
+x.com,twitter.com##[data-testid="sidebarColumn"]
+! Promoted posts
+x.com,twitter.com##[data-testid="placementTracking"]
+! Injected timeline modules: Who to follow, Discover more, Trending now
+x.com,twitter.com##[data-testid="cellInnerDiv"]:has([data-testid="UserCell"])
+x.com,twitter.com##[data-testid="cellInnerDiv"]:has([data-testid="trend"])
+x.com,twitter.com##[data-testid="cellInnerDiv"]:has(h2:has-text(/Discover more|You might like/))
+! "For you" tab — leaves "Following" (X remembers the last tab you used)
+x.com,twitter.com##[data-testid="primaryColumn"] [role="tablist"] > div:first-child
+! Grok, Premium, Explore, Communities, Jobs, verified-orgs nav entries
+x.com,twitter.com##a[href="/i/grok"]
+x.com,twitter.com##button[aria-label="Grok actions"]
+x.com,twitter.com##[data-testid="GrokDrawer"]
+x.com,twitter.com##a[href="/i/premium_sign_up"]
+x.com,twitter.com##a[href="/explore"]
+x.com,twitter.com##a[href="/i/communitynotes"]
+x.com,twitter.com##a[href="/jobs"]
+x.com,twitter.com##a[href="/i/verified-orgs-signup"]
+! "Subscribe to Premium" / "Get verified" cards inside the feed
+x.com,twitter.com##[data-testid="cellInnerDiv"]:has(a[href="/i/premium_sign_up"])
+
+! ═══════════════════════════════════════════════
+! Instagram (web)
+! ═══════════════════════════════════════════════
+! Reels and Explore entries in the nav
+instagram.com##a[href="/reels/"]
+instagram.com##a[href="/explore/"]
+! Sponsored posts and "Suggested for you" (text-based; fragile)
+instagram.com##article:has(span:has-text(/^Sponsored$/))
+instagram.com##article:has(span:has-text(/^Suggested for you$/))
+! Right column: suggested accounts, footer links
+instagram.com##main > div > div > div:has(> div a[href*="/explore/people/"])
+! "Get the app" / login-wall upsells
+instagram.com##div:has(> a[href*="apps.apple.com"])
+instagram.com##div:has(> a[href*="play.google.com"])
+
+! ═══════════════════════════════════════════════
+! Facebook (web) — sponsored posts are obfuscated; the default lists handle most.
+! ═══════════════════════════════════════════════
+facebook.com##[data-pagelet="RightRail"]
+facebook.com##a[href="/reel/"]
+facebook.com##a[href="/watch/"]
+facebook.com##a[href="/marketplace/"]
+facebook.com##a[href="/gaming/play/"]
+facebook.com##[aria-label="Reels"]
+facebook.com##[aria-label="Stories"]
+! "People you may know" / "Suggested for you" modules in the feed
+facebook.com##div[role="feed"] > div:has(span:has-text(/^People you may know$|^Suggested for you$/))
+
+! ═══════════════════════════════════════════════
+! Google Search
+! ═══════════════════════════════════════════════
+! AI Overview
+google.*##div:has(> div > h1:has-text(/AI Overview/))
+google.*##div:has(> h1:has-text(/AI Overview/))
+! People also ask
+google.*##div[data-initq]
+! "Short videos" / "Videos" / "Discussions and forums" carousels
+google.*##div:has(> div > div > h2:has-text(/^Short videos$/))
+google.*##div:has(> div > div > h2:has-text(/^Discussions and forums$/))
+! "People also search for" appended under results
+google.*##div:has(> div > div > div > span:has-text(/^People also search for$/))
+! Discover feed on the mobile homepage (English UI: shows below the search box)
+google.*##div[data-async-context*="discover"]
+! Ads at top/bottom of results
+google.*###tads
+google.*###bottomads
+google.*##div[data-text-ad]

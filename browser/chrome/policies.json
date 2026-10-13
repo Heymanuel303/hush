@@ -1,0 +1,39 @@
+{
+  "__comment": [
+    "Chrome/Chromium managed policy — same intent as ../firefox/policies.json (locked device).",
+    "Install: /etc/opt/chrome/policies/managed/hush.json (Chromium: /etc/chromium/policies/managed/). Check: chrome://policy.",
+    "Chrome has dropped MV2, so uBlock Origin (cjpalhdlnbpafiamejdnhcphjbkeiagm) may refuse to load;",
+    "uBO Lite (ddkjiahejlhfcafbddmgiahcphecmpfh) does NOT support custom filter-list URLs, so on Chrome",
+    "the repo lists can't be pinned. Firefox is the browser this repo is built around.",
+    "Hush isn't on the Chrome Web Store; a force-install needs a hosted .crx + update.xml.",
+    "Hush's storage.managed also needs a managed_schema in its manifest on Chrome, which it doesn't ship — the Hush defaults below are Firefox-only for now."
+  ],
+  "DnsOverHttpsMode": "off",
+  "IncognitoModeAvailability": 1,
+  "AutoplayAllowed": false,
+  "DeveloperToolsAvailability": 2,
+  "ExtensionInstallBlocklist": ["*"],
+  "ExtensionSettings": {
+    "cjpalhdlnbpafiamejdnhcphjbkeiagm": {
+      "installation_mode": "force_installed",
+      "update_url": "https://clients2.google.com/service/update2/crx"
+    }
+  },
+  "3rdparty": {
+    "extensions": {
+      "cjpalhdlnbpafiamejdnhcphjbkeiagm": {
+        "disableDashboard": true,
+        "toOverwrite": {
+          "filterLists": [
+            "user-filters", "ublock-filters", "ublock-badware", "ublock-privacy",
+            "ublock-unbreak", "ublock-quick-fixes", "easylist", "easyprivacy",
+            "urlhaus-1", "plowe-0", "ublock-annoyances", "easylist-annoyances",
+            "https://raw.githubusercontent.com/Heymanuel303/hush/main/filters/youtube-cleanup.txt",
+            "https://raw.githubusercontent.com/Heymanuel303/hush/main/filters/social-cleanup.txt",
+            "https://raw.githubusercontent.com/Heymanuel303/hush/main/filters/strict-mode.txt"
+          ]
+        }
+      }
+    }
+  }
+}

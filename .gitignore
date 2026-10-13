@@ -25,3 +25,6 @@ Thumbs.db
 .vscode/
 *.swp
 *~
+
+# --- Browser captures (HAR files are huge and may contain cookies) ---
+*.har
