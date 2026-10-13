@@ -53,9 +53,37 @@ advToggle.addEventListener("click", () => {
 // The curated site list comes from data/sites.js (the single source of truth,
 // shared with content.js). Guard with typeof in case it's ever absent.
 const SITE_LIST = (typeof SITES !== "undefined" && Array.isArray(SITES)) ? SITES : [];
-// siteId → { ul, count, input, addBtn } so a word add/remove repaints just that
-// site without rebuilding the whole section (which would collapse open blocks).
+// siteId → { ul, count, input, addBtn, opts } so a word add/remove repaints just
+// that site without rebuilding the whole section (which would collapse open blocks).
 const siteRefs = {};
+
+// Per-site behaviour switches, shown as checkboxes at the top of that site's
+// block. Each is an independent boolean storage key (like `enabled`/`advanced`):
+// a plain set, no read-modify-write, so it needs no write chain or echo counter.
+// content.js reads the same key and reacts live. Add an entry here + handle the
+// key in content.js to add another switch.
+const SITE_OPTIONS = {
+  YouTube: [
+    {
+      key: "ytHomeRedirect",
+      label: "Open Subscriptions instead of the home page",
+      title: "Sends youtube.com/ (and the logo) to your Subscriptions feed",
+    },
+  ],
+};
+
+// Every option storage key across all sites; panel.js reads + watches these.
+const SITE_OPTION_KEYS = Object.values(SITE_OPTIONS).flat().map(o => o.key);
+
+// Sync every option checkbox from the in-memory siteOptions state.
+function paintSiteOptions() {
+  for (const ref of Object.values(siteRefs)) {
+    for (const [key, box] of Object.entries(ref.opts)) {
+      box.checked = siteOptions[key] === true;
+      box.disabled = !enabledState;
+    }
+  }
+}
 
 function siteWordsFor(id) {
   return Array.isArray(siteWords[id]) ? siteWords[id] : [];
@@ -178,6 +206,28 @@ function buildSiteBlock(site) {
   body.className = "site-body";
   body.hidden = true;
 
+  // Behaviour switches for this site, if any (see SITE_OPTIONS).
+  const opts = {};
+  for (const opt of SITE_OPTIONS[site.id] || []) {
+    const row = document.createElement("label");
+    row.className = "site-option";
+    row.title = opt.title;
+    const box = document.createElement("input");
+    box.type = "checkbox";
+    box.checked = siteOptions[opt.key] === true;
+    box.disabled = !enabledState;
+    box.addEventListener("change", () => {
+      siteOptions[opt.key] = box.checked;
+      api.storage.local.set({ [opt.key]: box.checked });
+    });
+    const text = document.createElement("span");
+    text.textContent = opt.label;
+    row.appendChild(box);
+    row.appendChild(text);
+    body.appendChild(row);
+    opts[opt.key] = box;
+  }
+
   const addRow = document.createElement("div");
   addRow.className = "site-add";
   const input = document.createElement("input");
@@ -227,7 +277,7 @@ function buildSiteBlock(site) {
     input.focus();
   });
 
-  siteRefs[site.id] = { ul, count, input, addBtn };
+  siteRefs[site.id] = { ul, count, input, addBtn, opts };
   paintSite(site.id);
   return wrap;
 }

@@ -36,7 +36,7 @@ function setControlsDisabled(disabled) {
   packsListEl.querySelectorAll(".pack").forEach(b => { b.disabled = disabled; });
   // Per-site editor: gate adding/editing while paused, just like the main list.
   // The collapse toggles stay operable so the lists can still be viewed.
-  sitesListEl.querySelectorAll(".site-input, .site-add-btn, .remove, .mode")
+  sitesListEl.querySelectorAll(".site-input, .site-add-btn, .site-option input, .remove, .mode")
     .forEach(b => { b.disabled = disabled; });
 }
 function tabLabelForState(enabled) {
@@ -130,6 +130,12 @@ api.storage.onChanged.addListener((changes, area) => {
   if (changes.lifetimeHidden && !resetArmed) showTotal();
   if (changes.enabled) applyEnabledUI(changes.enabled.newValue !== false);
   if (changes.advanced) applyAdvancedUI(changes.advanced.newValue === true);
+  // Per-site option switches (SITE_OPTIONS in panel-sites.js): plain booleans, so
+  // an echo of our own write is harmless — it just re-checks the same box.
+  for (const key of SITE_OPTION_KEYS) {
+    if (changes[key]) siteOptions[key] = changes[key].newValue === true;
+  }
+  if (SITE_OPTION_KEYS.some(k => changes[k])) paintSiteOptions();
   if (changes.siteWords) {
     if (pendingSiteEchoes > 0) {
       pendingSiteEchoes--; // echo of our own write; local state is authoritative
@@ -179,10 +185,12 @@ async function maybeShowOnboarding() {
   } catch {
     if (/Android/i.test(navigator.userAgent)) document.documentElement.classList.add("mobile");
   }
-  const { enabled, enabledPacks: ep, advanced, siteWords: sw } =
-    await api.storage.local.get(["enabled", "enabledPacks", "advanced", "siteWords"]);
+  const stored = await api.storage.local.get(
+    ["enabled", "enabledPacks", "advanced", "siteWords", ...SITE_OPTION_KEYS]);
+  const { enabled, enabledPacks: ep, advanced, siteWords: sw } = stored;
   enabledPacks = ep || [];
   siteWords = sw || {};
+  for (const key of SITE_OPTION_KEYS) siteOptions[key] = stored[key] === true;
   renderPacks(); // build pack buttons first so applyEnabledUI → setControlsDisabled can sync their disabled state
   renderSites(); // build the per-site editor too (hidden until advanced) for the same reason
   if (enabledPacks.length) togglePacks(true); // reveal active toggles on open

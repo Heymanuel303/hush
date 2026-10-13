@@ -12,6 +12,7 @@ const api = typeof browser !== "undefined" ? browser : chrome;
 let blockWords = [];   // compiled rules ({needle, re}); see buildRules in lib/words.js
 let enabled = true;
 let hiddenCount = 0;   // posts currently hidden on this tab (drives the badge)
+let ytHomeRedirect = false; // YouTube only: send "/" to /feed/subscriptions (opt-in)
 
 const HOST = location.hostname;
 
@@ -181,6 +182,24 @@ function scan() {
   if (hiddenCount !== before || newlyCounted) report(newlyCounted);
 }
 
+// YouTube home → Subscriptions (opt-in, `ytHomeRedirect` in storage). Runs on
+// the initial load and again on every in-page navigation (handleRouteChange), so
+// clicking the YouTube logo lands on Subscriptions too — the site is an SPA and a
+// network-level redirect would miss that. location.replace keeps "/" out of the
+// history so Back doesn't bounce straight into the redirect again. Paused (the
+// on/off toggle) means Hush does nothing, including this.
+// Only the main app. Sibling hosts that share the "youtube.com" site id have
+// their own "/" home with no /feed/subscriptions (music.youtube.com bounces back
+// to "/", which would loop forever), so match exact hosts, not the site id.
+const YT_HOME_TARGET = "/feed/subscriptions";
+const YT_HOME_HOSTS = new Set(["www.youtube.com", "youtube.com", "m.youtube.com"]);
+function maybeRedirectHome() {
+  if (!enabled || !ytHomeRedirect) return false;
+  if (!YT_HOME_HOSTS.has(HOST) || location.pathname !== "/") return false;
+  location.replace(YT_HOME_TARGET);
+  return true;
+}
+
 // Reddit/X/YouTube navigate client-side (no document reload), so the badge
 // would otherwise carry the previous feed's count. Detect a URL change inside
 // the observer's scan tick (SPA navigations always mutate the DOM) and treat it
@@ -191,6 +210,7 @@ function scan() {
 let lastUrl = location.href;
 function handleRouteChange() {
   lastUrl = location.href;
+  if (maybeRedirectHome()) return; // leaving this page; the new load starts fresh
   selectors = getSelectors(); // re-evaluate per URL (e.g. Google's web vs Images/News vertical)
   document.querySelectorAll("[data-kb-hidden]").forEach(el => {
     el.style.display = "";
@@ -248,12 +268,14 @@ api.runtime.onMessage.addListener((msg) => {
 });
 
 // Load saved state, then start watching.
-api.storage.local.get(["blockWords", "enabled", "enabledPacks", "siteWords"]).then(res => {
+api.storage.local.get(["blockWords", "enabled", "enabledPacks", "siteWords", "ytHomeRedirect"]).then(res => {
   customWords = res.blockWords || [];
   enabledPacks = res.enabledPacks || [];
   siteWords = res.siteWords || {};
   rebuildRules();
   enabled = res.enabled !== false; // default ON
+  ytHomeRedirect = res.ytHomeRedirect === true; // default OFF
+  if (maybeRedirectHome()) return; // navigating away; don't bother scanning
   report(0); // clear any stale badge from a previous page
   scan();
   observer.observe(document.documentElement, { childList: true, subtree: true });
@@ -273,6 +295,7 @@ api.storage.onChanged.addListener((changes, area) => {
       unhideAll(); // bring everything back when paused
       report(0);
     } else {
+      if (maybeRedirectHome()) return; // un-paused on the YouTube home page
       scan();
     }
   }
@@ -299,5 +322,10 @@ api.storage.onChanged.addListener((changes, area) => {
     unhideAll();    // re-hide from scratch with the new per-site words
     scan();
     report(0);
+  }
+
+  if (changes.ytHomeRedirect) {
+    ytHomeRedirect = changes.ytHomeRedirect.newValue === true;
+    maybeRedirectHome(); // turning it on while sitting on the home page applies immediately
   }
 });

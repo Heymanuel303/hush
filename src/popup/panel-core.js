@@ -40,3 +40,4 @@ let enabledState = true; // mirrors the on/off toggle for newly built rows
 let enabledPacks = []; // names of starter packs currently toggled on
 let advancedState = false; // mirrors the advanced-mode toggle
 let siteWords = {}; // { siteId: [raw, ...] }, mirrors the siteWords storage key
+let siteOptions = {}; // { storageKey: bool }, mirrors each per-site option's storage key (see SITE_OPTIONS)
