@@ -1,0 +1,128 @@
+# Platform layout: every app joins the shared external `apps` network. The platform's
+# PostgreSQL is the host `db`, reachable only over `apps`, and Caddy proxies the public
+# hostname to hush-web:80 (see the platform's deploy/platform/README.md). No service
+# publishes a host port, so any number of apps run side by side: on a developer machine
+# the same platform serves http://hush.localhost. Without a platform, .env sets
+# COMPOSE_FILE=docker-compose.yml:docker-compose.local.yml and the overlay adds a
+# `postgres` service, a throwaway `apps` network and a host port for the web container.
+name: hush
+
+x-api-environment: &api-environment
+  NODE_ENV: production
+  PORT: "3000"
+  # API_DATABASE_URL in .env is the app's role and database on the platform's `db` host;
+  # the overlay replaces DATABASE_URL with its own postgres service.
+  DATABASE_URL: ${API_DATABASE_URL:-postgres://postgres:postgres@postgres:5432/hush}
+  # Required, no default: compose refuses to start without it.
+  SESSION_SECRET: ${SESSION_SECRET:?Set SESSION_SECRET in .env (openssl rand -base64 32)}
+  PUBLIC_WEB_URL: ${PUBLIC_WEB_URL:-http://hush.localhost}
+  COOKIE_SECURE: ${COOKIE_SECURE:-false}
+
+x-api-healthcheck: &api-healthcheck
+  # 127.0.0.1, never localhost: node may resolve localhost to ::1 where nothing listens.
+  test:
+    [
+      "CMD",
+      "node",
+      "-e",
+      "fetch('http://127.0.0.1:3000/api/health').then((r) => process.exit(r.ok ? 0 : 1), () => process.exit(1))",
+    ]
+  interval: 5s
+  timeout: 5s
+  retries: 12
+  start_period: 20s
+
+services:
+  # Asks the platform's provision service to create the app's role and database
+  # when they are missing (it never changes an existing password), then exits;
+  # migrate waits on it. The overlay replaces the command locally, where the
+  # overlay's postgres already owns the database.
+  db-init:
+    build:
+      context: .
+      dockerfile: apps/api/Dockerfile
+    image: hush-api
+    command: ["node", "/db-init.mjs"]
+    restart: "no"
+    environment:
+      # Same default as the x-api-environment anchor, duplicated on purpose: the
+      # anchor is not reused here so PLATFORM_PROVISION_TOKEN stays out of the api
+      # containers and db-init needs no SESSION_SECRET.
+      DATABASE_URL: ${API_DATABASE_URL:-postgres://postgres:postgres@postgres:5432/hush}
+      # The platform's provision service on the shared `apps` network.
+      PLATFORM_PROVISION_URL: ${PLATFORM_PROVISION_URL:-http://platform-provision:8080}
+      # Empty default so the base file still loads locally; on the platform the
+      # script fails loudly when it is empty.
+      PLATFORM_PROVISION_TOKEN: ${PLATFORM_PROVISION_TOKEN:-}
+    # Bind mount: the api runtime image holds only the pnpm-deployed api, so the
+    # script rides in from the repository instead of a place in the image.
+    volumes: ["./scripts/db-init.mjs:/db-init.mjs:ro"]
+    networks: [default, apps]
+
+  # Applies the Prisma migrations once per `docker compose up`, then exits; the api
+  # containers never migrate, so several replicas can start at once.
+  migrate:
+    build:
+      context: .
+      dockerfile: apps/api/Dockerfile
+    image: hush-api
+    command: ["./node_modules/.bin/prisma", "migrate", "deploy"]
+    restart: "no"
+    depends_on:
+      db-init:
+        condition: service_completed_successfully
+    environment: *api-environment
+    # `apps` reaches the platform's PostgreSQL host `db` in production.
+    networks: [default, apps]
+
+  api:
+    build:
+      context: .
+      dockerfile: apps/api/Dockerfile
+    image: hush-api
+    restart: unless-stopped
+    depends_on:
+      migrate:
+        condition: service_completed_successfully
+    # API_REPLICAS=2 in .env runs two api containers; nginx in web spreads requests over them.
+    deploy:
+      replicas: ${API_REPLICAS:-1}
+    environment: *api-environment
+    healthcheck: *api-healthcheck
+    # No published port: the web container proxies /api/ to this service.
+    networks:
+      default: {}
+      apps:
+        # The alias is prefixed because a bare `api` name is ambiguous between apps on the
+        # shared network: every app's api would answer to it.
+        aliases: [hush-api]
+
+  web:
+    build:
+      context: .
+      dockerfile: apps/web/Dockerfile
+      args:
+        VITE_API_BASE: ${VITE_API_BASE:-/api}
+    restart: unless-stopped
+    # No published port: Caddy reaches this container as hush-web:80 over `apps`
+    # (locally at http://hush.localhost). The overlay publishes it on WEB_PORT.
+    environment:
+      # The nginx template proxies /api/ here; must match the api alias on `apps`.
+      API_UPSTREAM: http://hush-api:3000
+    depends_on:
+      api:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "wget", "-q", "-O", "/dev/null", "http://127.0.0.1/"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+    networks:
+      default: {}
+      apps:
+        aliases: [hush-web]
+
+networks:
+  # Created by the platform (docker network create apps); the overlay replaces it locally.
+  apps:
+    external: true

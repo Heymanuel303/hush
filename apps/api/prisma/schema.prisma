@@ -1,0 +1,12 @@
+// Hush Household Hub schema. The connection URL lives in prisma.config.ts (Prisma 7 reads
+// DATABASE_URL there, not here). Models land with the schema ticket.
+
+generator client {
+  provider     = "prisma-client"
+  output       = "../src/generated/prisma"
+  moduleFormat = "esm"
+}
+
+datasource db {
+  provider = "postgresql"
+}

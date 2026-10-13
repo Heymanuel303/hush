@@ -1,0 +1,57 @@
+# Overlay for a machine without the platform (and the docker-smoke workflow), selected by
+# COMPOSE_FILE=docker-compose.yml:docker-compose.local.yml in .env: adds PostgreSQL,
+# replaces the shared external `apps` network with a throwaway one and publishes the web
+# container on a host port, since no Caddy fronts it. Never used in production or on a
+# machine that runs the platform, where the base file alone is the whole stack.
+services:
+  postgres:
+    image: postgres:17
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: hush
+    # Published for `pnpm dev`, the Prisma CLI and the tests on the host (DATABASE_URL in .env).
+    ports:
+      - "${POSTGRES_PORT:-5432}:5432"
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -h 127.0.0.1 -U postgres"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  # Locally there is nothing to provision: the overlay's postgres already owns the
+  # hush database through POSTGRES_DB, so the command is replaced with a no-op
+  # (explicitly, never with !override). DATABASE_URL points at that postgres whatever
+  # API_DATABASE_URL in .env says, so a copied .env.example works unchanged.
+  db-init:
+    command: ["node", "-e", "console.log('db-init: local overlay, nothing to provision')"]
+    environment:
+      DATABASE_URL: postgres://postgres:postgres@postgres:5432/hush
+
+  migrate:
+    depends_on:
+      postgres:
+        condition: service_healthy
+    environment:
+      DATABASE_URL: postgres://postgres:postgres@postgres:5432/hush
+
+  api:
+    environment:
+      DATABASE_URL: postgres://postgres:postgres@postgres:5432/hush
+
+  web:
+    # Host port of the web container; the Vite dev server keeps its own port.
+    ports:
+      - "${WEB_PORT:-8080}:80"
+
+networks:
+  # Overrides `external: true` from docker-compose.yml. An empty mapping (`apps: {}`) would
+  # merge with the base file and keep external: true, so the flag is set explicitly.
+  apps:
+    external: false
+
+volumes:
+  postgres-data: {}
