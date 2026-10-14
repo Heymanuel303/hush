@@ -91,6 +91,9 @@ serve the same app at <http://hush.localhost>.
 | `DATABASE_URL`             | `postgres://hush:<password>@localhost:5432/hush` | PostgreSQL for `pnpm dev` and Prisma on the host: the same role through the platform's host port (not read by the containers) |
 | `VITE_API_BASE`            | `/api`                                           | prefix of every api call from the web app (build arg of the web image)                                                        |
 | `SESSION_SECRET`           | _(required)_                                     | signs the session cookie; compose refuses to start without it                                                                 |
+| `ADMIN_EMAIL`              | _(required in production)_                       | email of the single admin account; synced to the database at every api start (dev default `admin@hush.local`)                 |
+| `ADMIN_PASSWORD`           | _(required in production)_                       | password of the admin; re-hashed on start when it changes (dev default `hush-dev-password`)                                   |
+| `HUB_NAME`                 | `Hush Hub`                                       | name of the hub, returned to devices when they pair                                                                           |
 | `PUBLIC_WEB_URL`           | `http://hush.localhost`                          | public origin of the web app (with `pnpm dev`: `http://localhost:5173`)                                                       |
 | `COOKIE_SECURE`            | `false`                                          | `true` behind HTTPS so the session cookie gets `Secure`                                                                       |
 | `PORT`                     | `3000`                                           | port the api listens on outside Docker (the containers always use 3000)                                                       |

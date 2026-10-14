@@ -123,6 +123,11 @@ in `beforeEach` (it also removes the built-in packs, which return on the next ap
   imported in `app.module.ts`; `.js` suffixes on relative imports (ESM). Validate bodies with the
   Zod schema from `contracts`, never class-validator. Tests as `*.spec.ts` (unit) and
   `test/*.e2e-spec.ts` (through HTTP); both run in `pnpm test`.
+- **A protected controller:** `@UseGuards(AdminGuard)` (from `src/auth/admin.guard.js`) on the
+  controller or route, `AuthModule` imported in your feature module, and `@CurrentAdmin()` for the
+  signed-in admin. Unauthenticated calls get 401 `unauthenticated`. Only `GET /api/health`,
+  `GET /api/setup/status`, `POST /api/devices/pair` and `GET /api/device/config` skip the guard.
+  Env is read once through `APP_CONFIG` (`src/config/config.ts`), never `process.env` in services.
 - **A contract schema:** `packages/contracts/src/<area>.ts`, re-exported from `src/index.ts`, with
   a `*.test.ts` next to it. Export the schema and its `z.infer` type under the same name.
 - **A contract (request/response body or route):** the Zod schema in `packages/contracts/src/<area>.ts`
@@ -175,7 +180,11 @@ replica; anything that must be shared goes through the database.
 
 - The pairing rate limit is in memory, per replica.
 - Pairing codes, device tokens, profile versions and kid-mode state live in PostgreSQL.
-- The admin session is a signed cookie; there is no server-side session state.
+- The admin session is the stateless signed cookie `hush_session` (HMAC with `SESSION_SECRET`,
+  7 days); there is no server-side session state, so any replica validates any cookie.
+- The login rate limit (10 attempts per minute per client IP, then 429) is in memory, per replica.
+  The client IP is the first `X-Forwarded-For` entry: Caddy overwrites the header with the real
+  peer, and nginx appends the Caddy address after it (the last entry is the same for everyone).
 - Kid-mode schedules run only in the `worker` service, gated by `WORKER_ENABLED`.
 - Each api or worker process holds its own Pi-hole session id.
 
