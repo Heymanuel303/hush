@@ -7,6 +7,8 @@ const baseURL = process.env.E2E_BASE_URL ?? 'http://localhost:5173';
 export default defineConfig({
   testDir: './e2e',
   fullyParallel: true,
+  // The hub has one Pi-hole connection; the desktop and mobile runs of e2e/pihole.spec.ts share it.
+  workers: 1,
   forbidOnly: !!process.env.CI,
   retries: process.env.CI ? 2 : 0,
   // The html report is what ci.yml uploads when a run fails.

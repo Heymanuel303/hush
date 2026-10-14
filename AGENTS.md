@@ -75,8 +75,9 @@ apps/web/                 Vue single-page app (Vite)
   src/components/ui/      shadcn-vue primitives (CLI-generated, restyled once to the direction)
   src/components/layout/  AppShell.vue (header, nav, gutters), HushMark.vue
   src/components/state/   EmptyState, LoadingState, ErrorState
+  src/components/pihole/  PiholeConnectionForm (shared by the Pi-hole screen and the setup wizard)
   src/lib/                api.ts (typed fetch client), utils.ts
-  src/stores/             Pinia stores (auth)
+  src/stores/             Pinia stores (auth, pihole)
   src/router/             route table + the global auth guard
   src/views/              one <Name>View.vue per route (SignInView, stubs for the rest)
   src/components/layout/  also PageHeader.vue (title, description, action slot)
