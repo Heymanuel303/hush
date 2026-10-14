@@ -33,6 +33,8 @@ The hub's `apps/`, `packages/`, `e2e/` and `scripts/` form the pnpm workspace. T
   never land in the repository.
 - A locked profile makes the popup read-only. The Devices screen says that a device without
   the `policies.json` force-install can remove the extension.
+- Every `RuleSet` write goes through `ProfileVersionService` inside a transaction; never write
+  `RuleSet` elsewhere.
 - No pricing claims in any copy.
 - The extension gets no new runtime dependency and fetches only from the hub the user named.
 
@@ -59,7 +61,8 @@ apps/api/                 NestJS API, every route under the global prefix /api
   src/health/             GET /api/health (from the starter kit)
   src/prisma/             global PrismaModule + PrismaService (driver adapter, DATABASE_URL)
   src/packs/              PacksSeed: upserts the built-in packs on bootstrap
-  src/profiles/           ProfileVersionService (the one Profile.version bump, used inside RuleSet transactions)
+  src/profiles/           profiles API (If-Match rule-set writes) + ProfileVersionService (the one Profile.version bump)
+  src/templates/          TEMPLATES constant (young-kid, teen, calm-adult), served by GET /api/templates
   src/generated/          Prisma client output (git-ignored, `pnpm --filter api generate`)
   prisma/                 schema.prisma and migrations/; prisma.config.ts reads DATABASE_URL
   test/                   db.ts harness (createTestApp, resetDb), schema.spec.ts, *.e2e-spec.ts

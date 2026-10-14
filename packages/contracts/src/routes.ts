@@ -18,7 +18,6 @@ import {
   PiholeTestResult,
 } from './pihole.js';
 import {
-  Profile,
   ProfileCreate,
   ProfilePatch,
   ProfileWithRules,
@@ -56,7 +55,7 @@ export const ROUTES = {
   setupStatus: { method: 'GET', path: '/api/setup/status', auth: 'public', status: 200, response: SetupStatus },
   hubStatus: { method: 'GET', path: '/api/hub/status', auth: 'admin', status: 200, response: HubStatus },
 
-  listProfiles: { method: 'GET', path: '/api/profiles', auth: 'admin', status: 200, response: z.array(Profile) },
+  listProfiles: { method: 'GET', path: '/api/profiles', auth: 'admin', status: 200, response: z.array(ProfileWithRules) },
   createProfile: { method: 'POST', path: '/api/profiles', auth: 'admin', status: 201, request: ProfileCreate, response: ProfileWithRules },
   getProfile: { method: 'GET', path: '/api/profiles/:id', auth: 'admin', status: 200, response: ProfileWithRules },
   patchProfile: { method: 'PATCH', path: '/api/profiles/:id', auth: 'admin', status: 200, request: ProfilePatch, response: ProfileWithRules },
