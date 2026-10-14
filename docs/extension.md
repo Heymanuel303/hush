@@ -115,7 +115,8 @@ src/
 ├── content.js           # injected into sites: hides matching posts, reports counts
 ├── popup/               # toolbar popup (html / css / js)
 ├── lib/                 # shared, testable logic: matching engine, formatters,
-│                        #   schedule.js (quiet hours), hubconfig.js (hub config validator)
+│                        #   schedule.js (quiet hours), hubconfig.js (hub config validator),
+│                        #   hubsync.js (hub sync decision table)
 └── data/                # local data: packs.js (starter packs) + sites.js (site registry)
 test/                    # node --test unit tests
 ```
@@ -137,6 +138,20 @@ pnpm ext:start    # launch Firefox with the extension + auto-reload (uses web-ex
 See [CONTRIBUTING.md](../CONTRIBUTING.md) for the project layout, code conventions,
 how to fix selectors when a site changes its markup, and the correctness
 invariants to respect.
+
+## Minimum browser version
+
+Firefox (desktop and Android) needs **128** or newer: `optional_host_permissions`, which the
+hub connection uses to ask for the hub's origin at connect time, is honoured from 128 (ignored
+with a warning on 115 ESR), and so is its prompt UI on Android. 128 is an ESR.
+
+## Household hub
+
+When paired with a hub, the background fetches the profile's config from the hub origin you
+named (on a 15-minute alarm and on wake) and stores it; the host permission is requested per
+hub at connect time, never at install. A hub with a self-signed certificate cannot be used
+(`fetch` has no override): use plain HTTP on the tailnet or `tailscale serve` HTTPS.
+Config is only downloaded, nothing is uploaded.
 
 ## Privacy
 
