@@ -2,6 +2,8 @@ import { z } from 'zod';
 
 const DEV_ADMIN_EMAIL = 'admin@hush.local';
 const DEV_ADMIN_PASSWORD = 'hush-dev-password';
+// 32 bytes, fixed, public: only ever used outside production (with a warning).
+const DEV_ENCRYPTION_KEY = 'aHVzaC1kZXYtZW5jcnlwdGlvbi1rZXktMzJieXRlcyE=';
 const DEV_SESSION_SECRET = 'hush-dev-session-secret-not-for-production';
 
 /** Empty strings (an unset `${VAR:-}` in compose) count as missing. */
@@ -14,6 +16,8 @@ const Env = z.object({
   HUB_NAME: optional,
   SESSION_SECRET: optional,
   COOKIE_SECURE: optional,
+  HUB_ENCRYPTION_KEY: optional,
+  PIHOLE_TLS_INSECURE: optional,
 });
 
 export interface AppConfig {
@@ -23,6 +27,10 @@ export interface AppConfig {
   hubName: string;
   sessionSecret: string;
   cookieSecure: boolean;
+  /** 32-byte AES-256-GCM key for secrets at rest. */
+  encryptionKey: Buffer;
+  /** Accept self-signed HTTPS certificates from Pi-hole (that client only). */
+  piholeTlsInsecure: boolean;
 }
 
 export const APP_CONFIG = Symbol('APP_CONFIG');
@@ -43,19 +51,24 @@ export function loadConfig(
   const e = parsed.data;
   const production = e.NODE_ENV === 'production';
   if (production) {
-    const missing = (['ADMIN_EMAIL', 'ADMIN_PASSWORD', 'SESSION_SECRET'] as const).filter(
+    const missing: string[] = (['ADMIN_EMAIL', 'ADMIN_PASSWORD', 'SESSION_SECRET'] as const).filter(
       (k) => !e[k],
     );
+    if (!e.HUB_ENCRYPTION_KEY) missing.push('HUB_ENCRYPTION_KEY');
     if (missing.length > 0) {
       throw new Error(`Missing required environment in production: ${missing.join(', ')}`);
     }
   } else {
-    const defaulted = (['ADMIN_EMAIL', 'ADMIN_PASSWORD', 'SESSION_SECRET'] as const).filter(
+    const defaulted: string[] = (['ADMIN_EMAIL', 'ADMIN_PASSWORD', 'SESSION_SECRET', 'HUB_ENCRYPTION_KEY'] as const).filter(
       (k) => !e[k],
     );
     if (defaulted.length > 0) {
       warn(`${defaulted.join(', ')} not set: using development defaults. Do not use in production.`);
     }
+  }
+  const key = Buffer.from(e.HUB_ENCRYPTION_KEY ?? DEV_ENCRYPTION_KEY, 'base64');
+  if (key.length !== 32) {
+    throw new Error('Invalid environment: HUB_ENCRYPTION_KEY (must be 32 bytes, base64)');
   }
   return {
     production,
@@ -64,5 +77,7 @@ export function loadConfig(
     hubName: e.HUB_NAME ?? 'Hush Hub',
     sessionSecret: e.SESSION_SECRET ?? DEV_SESSION_SECRET,
     cookieSecure: e.COOKIE_SECURE === 'true',
+    encryptionKey: key,
+    piholeTlsInsecure: e.PIHOLE_TLS_INSECURE === 'true',
   };
 }
