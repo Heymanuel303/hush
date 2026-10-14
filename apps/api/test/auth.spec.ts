@@ -1,6 +1,7 @@
 import type { INestApplication } from '@nestjs/common';
 import { ErrorBody } from 'contracts';
 import request from 'supertest';
+import { AdminService } from '../src/auth/admin.service.js';
 import { hashPassword, verifyPassword } from '../src/auth/password.js';
 import { SESSION_COOKIE, SESSION_TTL_SECONDS, signSession } from '../src/auth/session.js';
 import { loadConfig } from '../src/config/config.js';
@@ -48,6 +49,24 @@ afterEach(async () => {
 });
 
 describe('admin sync on boot', () => {
+  it('lets two processes bootstrap an empty database at once: one admin row, both resolve', async () => {
+    const prisma = prismaOf(app);
+    await prisma.admin.deleteMany();
+    const admins = app.get(AdminService);
+    await expect(
+      Promise.all([admins.onApplicationBootstrap(), admins.onApplicationBootstrap()]),
+    ).resolves.toBeDefined();
+    expect(await prisma.admin.count()).toBe(1);
+  });
+
+  it('still rejects when creating the admin fails for any other reason', async () => {
+    const prisma = prismaOf(app);
+    await prisma.admin.deleteMany();
+    const create = vi.spyOn(prisma.admin, 'create').mockRejectedValueOnce(new Error('connection lost'));
+    await expect(app.get(AdminService).onApplicationBootstrap()).rejects.toThrow('connection lost');
+    create.mockRestore();
+  });
+
   it('creates the admin from env, hashed, and reports it configured', async () => {
     const rows = await prismaOf(app).admin.findMany();
     expect(rows).toHaveLength(1);

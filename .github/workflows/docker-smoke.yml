@@ -55,7 +55,7 @@ jobs:
           code=$(curl -s -o /dev/null -w '%{http_code}' http://127.0.0.1:8080/api/device/config)
           test "$code" = 401
       - name: Worker is running and healthy
-        run: docker compose ps worker | grep -q 'healthy'
+        run: docker compose ps worker | grep -q '(healthy)'
       - name: Logs
         if: failure()
         run: |
