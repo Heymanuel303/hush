@@ -3,7 +3,7 @@
 const test = require("node:test");
 const assert = require("node:assert/strict");
 
-const { formatNumber, formatDuration } = require("../src/lib/format.js");
+const { formatNumber, formatDuration, formatAgo } = require("../src/lib/format.js");
 
 test("formatNumber coerces and formats integers", () => {
   // Avoid asserting locale-specific thousands separators; check the safe cases.
@@ -37,4 +37,12 @@ test("formatDuration shows days (and hours) at and beyond a day", () => {
   assert.equal(formatDuration(86400), "1d");
   assert.equal(formatDuration(90000), "1d 1h");
   assert.equal(formatDuration(172800), "2d");
+});
+
+test("formatAgo reads as relative time", () => {
+  const now = 1_000_000_000;
+  assert.equal(formatAgo(now - 5_000, now), "just now");
+  assert.equal(formatAgo(now + 5_000, now), "just now");
+  assert.equal(formatAgo(now - 5 * 60_000, now), "5m ago");
+  assert.equal(formatAgo(now - 2 * 3600_000, now), "2h ago");
 });

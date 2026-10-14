@@ -94,6 +94,9 @@ html.mobile .packs-toggle, /* panel-packs.css */
 html.mobile .site-input, /* 32px — panel-sites.css */
 html.mobile .site-add-btn, /* 32px — panel-sites.css */
 html.mobile .site-toggle, /* panel-sites.css */
+html.mobile .hub-toggle, /* panel-hub.css */
+html.mobile .hub-field input, /* panel-hub.css */
+html.mobile .hub-btn, /* panel-hub.css */
 html.mobile .adv-toggle, /* 24px pill — panel-header.css */
 html.mobile .onboard-x, /* panel-list.css */
 html.mobile .toast #undo /* panel-misc.css */ {

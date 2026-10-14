@@ -243,9 +243,9 @@ replica; anything that must be shared goes through the database.
 - `src/data/packs.js` (`PACKS`), `data/sites.js` (`SITES` + `siteIdForHost`).
 - `src/popup/` — `panel.html` plus per-feature classic scripts and stylesheets sharing one
   global scope. JS load order: `panel-core.js` → `panel-keywords.js` → `panel-packs.js` →
-  `panel-sites.js` → `panel.js` (entry, **always last**). CSS: `panel-theme.css` (first, defines
-  the custom properties) → `panel-header.css` → `panel-hero.css` → `panel-list.css` →
-  `panel-packs.css` → `panel-sites.css` → `panel-misc.css` (last, its reduced-motion rule
+  `panel-sites.js` → `panel-hub.js` → `panel.js` (entry, **always last**). CSS: `panel-theme.css`
+  (first, defines the custom properties) → `panel-header.css` → `panel-hero.css` →
+  `panel-list.css` → `panel-packs.css` → `panel-sites.css` → `panel-hub.css` → `panel-misc.css` (last, its reduced-motion rule
   blankets earlier animations).
 - `test/` — `words.test.js`, `format.test.js`, `packs.test.js`, `sites.test.js`,
   `schedule.test.js`, `hubconfig.test.js` (the last two read `test/fixtures/` JSON with `fs`).
@@ -314,6 +314,18 @@ and `SITES` must stay top-level `const`s.
   file owns its write chain; `panel.js` owns the toggle, stats, onboarding, the **single**
   `storage.onChanged` listener and the `init()` IIFE. Top-level code may only refer to
   earlier-loaded files.
+- **Hub section and locked UI** (`panel-hub.js` / `panel-hub.css`): a collapsible "Household hub"
+  section, shown only in advanced mode below the per-site editor: connect form (address, code,
+  device label), connected status, Sync now, Disconnect (arm/confirm), and the line "Hush
+  downloads rules from this hub. It never sends what you read or hide." The Connect click calls
+  `permissions.request` **synchronously** before any `await` (Chrome requires it) and then sends
+  `hubPair`. `hub`/`hubConfig`/`hubStatus` are read-only in the popup (no echo counter);
+  `hubState`/`hubConfigState`/`hubStatusState`/`lockedState` live in `panel-core.js`. When
+  `hubConfig.locked`, `body.locked` + `setLockedUI` disable every editing control through
+  `controlsOff()` (`!enabledState || lockedState`; use it, never bare `!enabledState`) and show
+  "Managed by <hub>". Disconnect is disabled while locked and `hubDisconnect` refuses in
+  `background.js` (a locked device is released by revoking it on the hub). A revoked status shows a no-Undo toast once per `revokedAt` (the popup's
+  only hub-related write is `hubRevokedSeen`). The site pill adds "· managed" from `getCount`.
 - **Starter packs** are persistent toggles (`enabledPacks`); their words are never listed among
   custom words. A pack's `name` is its stable id.
 - **Advanced mode** (`advanced`) recolours the panel via `--adv*` / `--accent*` and reveals the
