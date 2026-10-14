@@ -7,8 +7,8 @@ Three layers, versioned together:
 | ------------------ | --------------------------------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------- |
 | **Browser**        | uBlock Origin with a fixed baseline + the **Hush** extension (hides Reddit/X/YouTube/Google posts by keyword) with default words  | [`browser/`](browser/README.md), [`filters/`](filters/README.md), [`src/`](docs/extension.md) |
 | **Network**        | Tailscale tailnet, every device resolving DNS through a Pi-hole on the home server                                                | [`infra/`](infra/README.md)                                                                   |
-| **Household Hub**  | Self-hosted console on the home server: profiles, browser pairing, Pi-hole kid mode; every paired Hush pulls its profile's config | [`apps/`](#household-hub), [`packages/`](packages/contracts)                                  |
-| **Locked devices** | Firefox policy + un-stoppable Tailscale for a kid PC; Pi-hole kid mode (draft)                                                    | [`browser/firefox/`](browser/firefox/policies.json), [`infra/tailscale/`](infra/tailscale/)   |
+| **Household Hub**  | Self-hosted console on the home server: profiles, browser pairing, Pi-hole kid mode; every paired Hush pulls its profile's config | [`docs/hub.md`](docs/hub.md), [`apps/`](#household-hub)                                       |
+| **Locked devices** | Firefox policy + un-stoppable Tailscale for a kid PC; Pi-hole kid mode through the hub                                            | [`browser/firefox/`](browser/firefox/policies.json), [`infra/tailscale/`](infra/tailscale/)   |
 
 ## New Linux machine
 
@@ -41,7 +41,7 @@ e2e/                Playwright specs for the hub
 scripts/            db-init and the design lint
 src/                the Hush extension (Firefox + Chrome, MV3, no build step)
 test/               node --test unit tests for src/lib and src/data
-docs/               extension docs and plans
+docs/               extension docs, hub operator guide, listing copy, plans
 ```
 
 ## Household Hub
@@ -52,7 +52,8 @@ tailnet, defines profiles (words, starter packs, per-site words, site options, q
 locked flag) and pairs each browser running Hush with a six-letter code. Every paired Hush pulls
 its profile's config; nothing flows back: the hub has no stats endpoint and the extension fetches
 only from the hub the user named. Kid mode moves a device's Tailscale IP into the Pi-hole Kid
-group through the Pi-hole v6 API. Conventions for working on it are in [AGENTS.md](AGENTS.md).
+group through the Pi-hole v6 API. Install, pairing, kid mode and backup: [docs/hub.md](docs/hub.md).
+Conventions for working on it are in [AGENTS.md](AGENTS.md).
 
 ## Prerequisites
 
@@ -95,7 +96,7 @@ serve the same app at <http://hush.localhost>.
 | `ADMIN_PASSWORD`           | _(required in production)_                       | password of the admin; re-hashed on start when it changes (dev default `hush-dev-password`)                                   |
 | `HUB_ENCRYPTION_KEY`       | _(required in production)_                       | 32 random bytes, base64 (`openssl rand -base64 32`): encrypts the Pi-hole app password at rest; dev uses a fixed key (warned) |
 | `PIHOLE_TLS_INSECURE`      | `false`                                          | `true` accepts Pi-hole's self-signed HTTPS certificate, for the Pi-hole connection only                                       |
-| `WORKER_ENABLED`           | `false`                                          | `true` only on the `worker` service: runs the kid-mode schedule loop (every 60 s); the api replicas keep `false`             |
+| `WORKER_ENABLED`           | `false`                                          | `true` only on the `worker` service: runs the kid-mode schedule loop (every 60 s); the api replicas keep `false`              |
 | `HUB_NAME`                 | `Hush Hub`                                       | name of the hub, returned to devices when they pair                                                                           |
 | `PUBLIC_WEB_URL`           | `http://hush.localhost`                          | public origin of the web app (with `pnpm dev`: `http://localhost:5173`)                                                       |
 | `COOKIE_SECURE`            | `false`                                          | `true` behind HTTPS so the session cookie gets `Secure`                                                                       |
@@ -162,8 +163,11 @@ web container on <http://localhost:8080> (`WEB_PORT`). The `docker-smoke` workfl
 
 Hides posts on **Reddit**, tweets on **X**, videos on **YouTube** and results on
 **Google Search** whose text contains a word you choose. Whole-word mode,
-starter packs, per-site words, hidden-post counter, light/dark, nothing leaves
-the browser. Full docs, install and Android notes: [docs/extension.md](docs/extension.md).
+starter packs, per-site words, hidden-post counter, light/dark, and an optional
+household hub. The extension fetches only from a hub the user named, config only,
+never user data; `data_collection_permissions` stays `none` because nothing is
+uploaded. Full docs, install and Android notes: [docs/extension.md](docs/extension.md);
+store listing copy: [docs/listing.md](docs/listing.md).
 
 ```bash
 pnpm ext:test     # unit tests (Node 22, nothing to install)

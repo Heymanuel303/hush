@@ -77,6 +77,15 @@ starting point: replace `blockWords`, `enabledPacks` (names from
 `src/data/packs.js`), `siteWords` (keys from `src/data/sites.js`: `Reddit`,
 `X`, `YouTube`, `Google`) with your own. Keys Hush doesn't know are ignored.
 
+### Managed storage and the hub
+
+Managed storage seeds a machine **once**: it gives a fresh Hush its starting words and then
+never touches them again. The [Household Hub](../docs/hub.md) manages devices
+**continuously**: a paired Hush pulls its profile every 15 minutes, on any browser including
+Firefox for Android, which has no managed storage. The two coexist: seed a machine first with
+`./setup.sh`, pair it to the hub later. The hub's rules are added on top of the seeded words and
+never overwrite them.
+
 ## Locked device (kid PC)
 
 `sudo ./setup.sh --locked` installs [`firefox/policies.json`](firefox/policies.json)

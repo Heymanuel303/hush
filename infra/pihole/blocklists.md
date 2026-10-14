@@ -1,5 +1,7 @@
 # Pi-hole blocklists
 
+> Moving a client into the `Kid` group is now done by the Household Hub ([`docs/hub.md`](../../docs/hub.md#kid-mode)).
+
 State of the live Pi-hole (v6, `192.168.1.11`) on 2026-09-24, plus what to add
 for a `Kid` group. Manage through the admin UI (*Lists*, *Groups*, *Clients*) or
 the REST API — the container has no `sqlite3`. Reload with

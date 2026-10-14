@@ -15,12 +15,20 @@ pulls its profile's config. Around both live the pieces that reproduce the setup
 machine: `setup.sh`, the uBlock Origin config and filter lists (`browser/`, `filters/`) and
 the home-server docs (`infra/`), which are docs and config only.
 
+**Hub.** The operator guide (install over the tailnet, environment, pairing, locked profiles,
+quiet hours, Pi-hole and kid mode, backup, troubleshooting) is [`docs/hub.md`](docs/hub.md); the
+AMO / Web Store listing copy is [`docs/listing.md`](docs/listing.md).
+
 The hub's `apps/`, `packages/`, `e2e/` and `scripts/` form the pnpm workspace. The extension
 (`src/`, `test/`) stays **outside** it: dependency-free, no build step, tested by
 `pnpm ext:test` without any `pnpm install`.
 
 ## Product rules
 
+- **Privacy line.** The extension fetches only from a hub the user named, config only, never user
+  data. `data_collection_permissions` stays `none` because nothing is uploaded; if AMO review
+  disagrees, the declaration changes to the honest minimum and the copy says so. This sentence
+  reads the same here, in `docs/extension.md` and in `docs/listing.md`.
 - Config flows down, nothing flows up. No API route accepts device data except
   `POST /api/devices/pair` and the `GET /api/device/config` request whose arrival sets
   `lastSeenAt`. There is no stats endpoint, ever.
@@ -37,7 +45,8 @@ The hub's `apps/`, `packages/`, `e2e/` and `scripts/` form the pnpm workspace. T
 - Every `RuleSet` write goes through `ProfileVersionService` inside a transaction; never write
   `RuleSet` elsewhere.
 - A hub with no profiles opens on /setup: the router guard reads `GET /api/hub/status` (hub store) on "/" and after sign-in. /setup stays reachable from "Setup guide" in the shell.
-- No pricing claims in any copy.
+- No price claims in any copy, docs included (a self-host licence is decided only after the
+  survey).
 - The extension gets no new runtime dependency and fetches only from the hub the user named.
 
 ## Stack
@@ -188,7 +197,7 @@ in `beforeEach` (it also removes the built-in packs, which return on the next ap
 - Use the theme tokens; never ad-hoc colors or inline styles.
 - Every screen handles its loading, empty and error states.
 - Every screen works at 375px and at 1280px wide.
-- Public marketing pages (landing, pricing, anything a visitor sees before signing up) are
+- Public marketing pages (landing, anything a visitor sees before signing up) are
   the exception: custom section components under `apps/web/src/marketing` with their own
   layout, not held to the `components/ui` rule. They keep the theme's colour and font tokens
   so site and app read as one brand, and must not look assembled from a kit.
@@ -264,7 +273,8 @@ replica; anything that must be shared goes through the database.
   imports from `apps/` or `packages/`. `pnpm ext:test` and `pnpm ext:lint` work before any
   `pnpm install`; the root `package.json` sets no `"type"` because the tests are CommonJS.
 - Manifest V3. The background is declared as both `service_worker` (Chrome) and `scripts`
-  (Firefox); each browser reads its own key. Firefox `strict_min_version` is 115.
+  (Firefox); each browser reads its own key. Firefox `strict_min_version` is 128
+  (desktop and Android): `optional_host_permissions`, used for the hub origin, is ignored on 115.
 - Formatting: `.editorconfig` (2 spaces, LF). Prettier ignores `src/`, `test/` and the config
   folders; there is no JS linter for the extension, so match the surrounding style.
 - Files in `src/lib/` and `src/data/` end with a
@@ -415,3 +425,7 @@ All three contexts react live to `storage.onChanged`.
   that site (`paintSite`). In `content.js` only the current site's slice is folded into the rules.
 - **No new runtime dependencies.** The only remote fetch the extension may make is to the hub
   the user named; nothing else.
+- **Privacy line** (verbatim, see Product rules): The extension fetches only from a hub the user named, config only, never user
+  data. `data_collection_permissions` stays `none` because nothing is uploaded; if AMO review
+  disagrees, the declaration changes to the honest minimum and the copy says so. This sentence
+  reads the same here, in `docs/extension.md` and in `docs/listing.md`.
