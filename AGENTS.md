@@ -32,8 +32,8 @@ The hub's `apps/`, `packages/`, `e2e/` and `scripts/` form the pnpm workspace. T
 - One admin account, configured from env. The Pi-hole secret is encrypted at rest
   (`SecretsService`, AES-256-GCM with `HUB_ENCRYPTION_KEY`) and never returned by any route
   (`hasSecret` only). Secrets never land in the repository.
-- A locked profile makes the popup read-only. The Devices screen says that a device without
-  the `policies.json` force-install can remove the extension.
+- A locked profile makes the popup read-only. The Devices screen always shows, verbatim and not
+  dismissible: "The hub manages what Hush hides. It cannot stop someone removing or disabling Hush on a device that is not force-installed by a browser policy. For a locked device see browser/firefox/policies.json in the repository." The Devices screen shows no hidden-post count, only Pi-hole's own.
 - Every `RuleSet` write goes through `ProfileVersionService` inside a transaction; never write
   `RuleSet` elsewhere.
 - No pricing claims in any copy.
@@ -76,12 +76,13 @@ apps/web/                 Vue single-page app (Vite)
   src/components/layout/  AppShell.vue (header, nav, gutters), HushMark.vue
   src/components/state/   EmptyState, LoadingState, ErrorState
   src/components/pihole/  PiholeConnectionForm (shared by the Pi-hole screen and the setup wizard)
+  src/components/devices/ PairDeviceDialog (shared with the setup wizard), DeviceActions, DeviceActionDialog, DeviceKidControl
   src/components/words/   WordListEditor.vue: the only word editor in the web app (reuse it, never write a second)
   src/components/packs/   PackEditorDialog.vue (create/edit a household pack)
   src/components/profiles/ CreateProfileDialog.vue (name, template, locked; routes to the editor)
   src/components/schedule/ ScheduleEditor.vue (quiet hours v-model; shared with the Devices screen)
   src/lib/                api.ts (typed fetch client), utils.ts
-  src/stores/             Pinia stores (auth, packs, profiles, pihole)
+  src/stores/             Pinia stores (auth, packs, profiles, pihole, devices)
   src/router/             route table + the global auth guard
   src/views/              one <Name>View.vue per route (SignInView, stubs for the rest)
   src/components/layout/  also PageHeader.vue (title, description, action slot)
