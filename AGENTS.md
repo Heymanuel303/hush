@@ -246,7 +246,8 @@ and `SITES` must stay top-level `const`s.
 
 - **`src/lib/words.js`** — single source of truth for matching and the `=` whole-word
   convention: `escapeRegex`, `parseWord`, `composeWord`, `compileRule`, `matchesAny`,
-  `dedupeWords`, `resolvePackWords`, `buildRules(customWords, packs, enabledPacks, siteWords?)`.
+  `dedupeWords`, `resolvePackWords`, `buildRules(customWords, packs, enabledPacks, siteWords?, hub?)`
+  (`hub` = `{blockWords, packs, enabledPacks, siteWords}`, the hub profile's slice with its own packs).
   Never re-implement `=` parsing in a second place.
 - **`src/lib/schedule.js`** — pure, guarded, tested. The single definition of quiet-hour
   semantics on the extension side (the api's `schedule.ts` mirrors it through the same
@@ -256,8 +257,15 @@ and `SITES` must stay top-level `const`s.
   `test/fixtures/device-config/caps.json`) and `validateDeviceConfig(obj, siteIds, compile?)`;
   any violation rejects the whole config so the previous one stays. Uses `compileRule` from the
   shared scope (load `words.js` first).
-- **`src/content.js`** — `rebuildRules()` compiles the union of custom words, enabled packs'
-  words and the current site's per-site words. `currentSite()` delegates to `siteIdForHost`;
+- **`src/content.js`** — `rebuildRules()` compiles the union of **four sources**: custom words,
+  enabled packs' words, the current site's per-site words and the hub profile (`hubConfig`;
+  never written into the three local keys; hub packs use their own words, not `PACKS`).
+  Quiet hours: hub rules (and hub `siteOptions`) apply only while `hubActive` = no `quietHours`
+  or `isQuiet(...)`; local rules always. A single timeout at `nextBoundary` re-runs
+  rebuild/unhide/scan/report so an edge applies without reload. Locked rule: when `hub.locked`,
+  hub rules apply even if `enabled` is false; local rules and an unlocked hub still follow
+  `enabled`. `ytHomeRedirect` = local || hub option (exact-host guard kept). `getCount` also
+  replies `managed` (hub present). `currentSite()` delegates to `siteIdForHost`;
   `getSelectors()` returns per-site post-unit selectors; a `MutationObserver` rescans on every
   DOM change. Reports hidden counts to the background. `maybeRedirectHome()` implements
   `ytHomeRedirect`.

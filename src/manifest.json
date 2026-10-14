@@ -83,6 +83,7 @@
             "run_at": "document_idle",
             "js": [
                 "lib/words.js",
+                "lib/schedule.js",
                 "data/packs.js",
                 "data/sites.js",
                 "content.js"

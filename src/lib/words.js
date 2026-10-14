@@ -98,11 +98,21 @@ function resolvePackWords(packs, enabledPacks) {
 // every enabled pack, and any per-site words for the current site (advanced
 // mode): dedupe the raw union, then compile each survivor. `siteWords` is an
 // optional raw-word array; omitting it preserves the original three-source union.
-function buildRules(customWords, packs, enabledPacks, siteWords) {
+// The optional 5th `hub` argument is the fourth source, the hub profile's slice:
+// `{blockWords, packs, enabledPacks, siteWords}` where `packs` are the hub's OWN
+// packs (carrying their words; the local `packs` are not consulted for them) and
+// `siteWords` is already the current site's raw array. It joins the same dedupe,
+// so a word present locally and on the hub compiles once.
+function buildRules(customWords, packs, enabledPacks, siteWords, hub) {
   const raw = dedupeWords([
     ...(customWords || []),
     ...resolvePackWords(packs, enabledPacks),
     ...(siteWords || []),
+    ...(hub ? [
+      ...(hub.blockWords || []),
+      ...resolvePackWords(hub.packs, hub.enabledPacks),
+      ...(hub.siteWords || []),
+    ] : []),
   ]);
   return raw.map(compileRule).filter(Boolean);
 }
