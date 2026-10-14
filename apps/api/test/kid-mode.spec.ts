@@ -40,10 +40,13 @@ const schoolDay: QuietHours = {
 };
 
 /** Rebuilds the app on the same data (no truncate) with the given env; the session cookie stays valid. */
-async function restart(env: Record<string, string>) {
+async function restart(env: Record<string, string>, nowIso?: string) {
   await app.close();
   process.env = { ...process.env, ...env };
-  app = await createTestApp();
+  // The clock is installed before bootstrap so the start-up pass already sees the fake time.
+  app = await createTestApp(
+    nowIso ? (b) => b.overrideProvider(KID_MODE_CLOCK).useValue({ now: () => new Date(nowIso) }) : undefined,
+  );
 }
 
 async function boot(env: Record<string, string> = {}) {
@@ -289,10 +292,11 @@ describe('KidModeWorker', () => {
     await connect();
     const id = await makeDevice();
     await putKid(id, false, schoolDay).expect(200);
-    await restart({ WORKER_ENABLED: 'true' });
-    const clock = app.get<KidModeClock>(KID_MODE_CLOCK);
-    clock.now = () => new Date('2026-10-12T10:00:00Z');
-    await app.get(KidModeWorker).tick(); // joins the bootstrap pass or runs a clean one
-    expect((await row(id)).kidModeState).toBe('kid');
+    await restart({ WORKER_ENABLED: 'true' }, '2026-10-12T10:00:00Z');
+    // No tick() from the test: only the bootstrap pass can have moved the device.
+    await vi.waitFor(async () => expect((await row(id)).kidModeState).toBe('kid'));
+    expect(writes()).toBe(1);
+    await new Promise((r) => setTimeout(r, 300));
+    expect(writes()).toBe(1);
   });
 });
