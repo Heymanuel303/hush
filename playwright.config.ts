@@ -9,6 +9,8 @@ export default defineConfig({
   // Deviation from the starter kit: one admin sign-in shared by specs (see e2e/global-setup.ts).
   globalSetup: './e2e/global-setup.ts',
   fullyParallel: true,
+  // The hub has one Pi-hole connection; the desktop and mobile runs of e2e/pihole.spec.ts share it.
+  workers: 1,
   forbidOnly: !!process.env.CI,
   retries: process.env.CI ? 2 : 0,
   // The html report is what ci.yml uploads when a run fails.

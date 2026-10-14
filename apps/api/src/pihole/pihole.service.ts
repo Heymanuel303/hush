@@ -73,7 +73,18 @@ export class PiholeService implements OnApplicationShutdown {
     await this.drop();
   }
 
-  async test(): Promise<PiholeTestResult> {
+  /** With `input` that differs from the saved connection, checks those values with a throwaway client and records nothing. */
+  async test(input?: PiholeConnectionPut): Promise<PiholeTestResult> {
+    const stored = input ? await this.prisma.piholeConnection.findUnique({ where: { id: 1 } }) : null;
+    // The body describes the saved connection (same address and group, no new password): that is a
+    // check of the stored connection, so its outcome is recorded for the status card.
+    const sameAsStored =
+      !!input &&
+      !!stored &&
+      !input.appPassword &&
+      normalizeUrl(input.url) === stored.url &&
+      input.kidGroupName === stored.kidGroupName;
+    if (input && !sameAsStored) return this.testUnsaved(input, stored);
     const row = await this.row();
     try {
       const client = this.clientFor(row);
@@ -85,6 +96,27 @@ export class PiholeService implements OnApplicationShutdown {
       const message = errorMessage(e);
       await this.record(message);
       return { ok: false, error: message };
+    }
+  }
+
+  private async testUnsaved(input: PiholeConnectionPut, existing: Row | null): Promise<PiholeTestResult> {
+    const url = normalizeUrl(input.url);
+    // The stored password is only ever sent to the stored address.
+    const secretEnc = input.appPassword || existing?.url !== url ? null : existing.secretEnc;
+    if (!input.appPassword && !secretEnc) return { ok: false, error: 'An app password is required.' };
+    const client = new PiholeClient({
+      url,
+      password: input.appPassword ?? this.secrets.decrypt(secretEnc!),
+      tlsInsecure: this.config.piholeTlsInsecure,
+    });
+    try {
+      const version = await client.version();
+      const groups = await client.groups();
+      return { ok: true, version, groups };
+    } catch (e) {
+      return { ok: false, error: errorMessage(e) };
+    } finally {
+      await client.close();
     }
   }
 
