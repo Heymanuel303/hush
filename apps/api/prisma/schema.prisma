@@ -1,5 +1,5 @@
 // Hush Household Hub schema. The connection URL lives in prisma.config.ts (Prisma 7 reads
-// DATABASE_URL there, not here). Models land with the schema ticket.
+// DATABASE_URL there, not here).
 
 generator client {
   provider     = "prisma-client"
@@ -9,4 +9,88 @@ generator client {
 
 datasource db {
   provider = "postgresql"
+}
+
+model Admin {
+  id           String   @id @default(uuid()) @db.Uuid
+  email        String   @unique
+  passwordHash String
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+}
+
+// Profile.version is bumped in the same transaction as every RuleSet write (enforced in the
+// services, not by the database). The device ETag is `profileId:version`.
+model Profile {
+  id           String        @id @default(uuid()) @db.Uuid
+  name         String
+  locked       Boolean       @default(false)
+  version      Int           @default(1)
+  createdAt    DateTime      @default(now())
+  updatedAt    DateTime      @updatedAt
+  rules        RuleSet?
+  devices      Device[]
+  pairingCodes PairingCode[]
+}
+
+model RuleSet {
+  profileId    String   @id @db.Uuid
+  profile      Profile  @relation(fields: [profileId], references: [id], onDelete: Cascade)
+  blockWords   String[]
+  enabledPacks String[]
+  siteWords    Json
+  siteOptions  Json
+  quietHours   Json?
+}
+
+model Pack {
+  id        String   @id @default(uuid()) @db.Uuid
+  name      String   @unique
+  words     String[]
+  builtIn   Boolean  @default(false)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model Device {
+  id                   String    @id @default(uuid()) @db.Uuid
+  profileId            String    @db.Uuid
+  profile              Profile   @relation(fields: [profileId], references: [id], onDelete: Restrict)
+  label                String
+  browser              String?
+  tokenHash            String    @unique
+  pairedAt             DateTime  @default(now())
+  lastSeenAt           DateTime?
+  revokedAt            DateTime?
+  tailscaleIp          String?
+  kidModeEnabled       Boolean   @default(false)
+  kidModeSchedule      Json?
+  kidModeState         String    @default("unknown")
+  kidModeLastAppliedAt DateTime?
+  kidModeLastError     String?
+
+  @@index([profileId])
+  @@index([revokedAt])
+}
+
+model PairingCode {
+  code       String    @id
+  profileId  String    @db.Uuid
+  profile    Profile   @relation(fields: [profileId], references: [id], onDelete: Cascade)
+  expiresAt  DateTime
+  consumedAt DateTime?
+  createdAt  DateTime  @default(now())
+
+  @@index([expiresAt])
+}
+
+// A single row: the services always use id 1.
+model PiholeConnection {
+  id            Int       @id @default(1)
+  url           String
+  secretEnc     String
+  kidGroupName  String    @default("Kid")
+  lastCheckedAt DateTime?
+  lastError     String?
+  updatedAt     DateTime  @updatedAt
 }

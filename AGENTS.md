@@ -57,8 +57,11 @@ Playwright is baked into the agent container with its Chromium; never bump it al
 ```
 apps/api/                 NestJS API, every route under the global prefix /api
   src/health/             GET /api/health (from the starter kit)
+  src/prisma/             global PrismaModule + PrismaService (driver adapter, DATABASE_URL)
+  src/packs/              PacksSeed: upserts the built-in packs on bootstrap
   src/generated/          Prisma client output (git-ignored, `pnpm --filter api generate`)
   prisma/                 schema.prisma and migrations/; prisma.config.ts reads DATABASE_URL
+  test/                   db.ts harness (createTestApp, resetDb), schema.spec.ts, *.e2e-spec.ts
 apps/web/                 Vue single-page app (Vite)
   src/assets/theme.css    every design token (light + dark), imported once in main.ts
   src/components/ui/      shadcn-vue primitives (CLI-generated, restyled once to the direction)
@@ -106,7 +109,13 @@ The api `build`, `dev`, `typecheck` and `test` scripts run `prisma generate` fir
   the role and database), with `DATABASE_URL` from `.env`. Without the platform, the overlay's
   `docker compose up -d postgres`.
 
-Then apply the migrations: `pnpm --filter api exec prisma migrate deploy`.
+Then apply the migrations: `pnpm --filter api exec prisma migrate deploy` (the api `pretest`
+script does this itself when `DATABASE_URL` is set; without it, specs that touch the database fail).
+
+The API test harness is `apps/api/test/db.ts`: `createTestApp()` builds the Nest app with the
+`/api` prefix and shutdown hooks, `resetDb(prisma)` truncates every table (`RESTART IDENTITY CASCADE`)
+so each spec starts clean. Specs share one database, so vitest runs files serially; call `resetDb`
+in `beforeEach` (it also removes the built-in packs, which return on the next app boot).
 
 ## How to add
 
