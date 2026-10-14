@@ -145,9 +145,11 @@ describe('POST /api/auth/login', () => {
     await login(EMAIL, PASSWORD, '10.8.8.8').expect(200);
   });
 
-  it('trusts only the last X-Forwarded-For entry (a spoofed first hop does not evade the limit)', async () => {
-    for (let i = 0; i < 10; i++) await login(EMAIL, 'bad', `1.1.1.${i}, 10.7.7.7`).expect(401);
-    await login(EMAIL, 'bad', '2.2.2.2, 10.7.7.7').expect(429);
+  it('buckets by the first X-Forwarded-For entry, not the shared proxy hop', async () => {
+    for (let i = 0; i < 10; i++) await login(EMAIL, 'bad', '1.1.1.1, 10.7.7.7').expect(401);
+    await login(EMAIL, 'bad', '1.1.1.1, 10.7.7.7').expect(429);
+    // another client behind the same proxy has its own bucket
+    await login(EMAIL, PASSWORD, '2.2.2.2, 10.7.7.7').expect(200);
   });
 });
 

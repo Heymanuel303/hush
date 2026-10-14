@@ -24,15 +24,16 @@ import { LoginRateLimiter } from './login-rate-limiter.js';
 import { SESSION_COOKIE, SESSION_TTL_SECONDS, signSession } from './session.js';
 
 /**
- * Client IP behind the web container's nginx. nginx appends the address it saw
- * (`$proxy_add_x_forwarded_for`), so only the last entry, written by that one trusted hop, is
- * believed; earlier entries are client-supplied.
+ * Client IP behind Caddy and the web container's nginx. Caddy's reverse_proxy replaces any
+ * client-supplied `X-Forwarded-For` with the real peer address, and nginx then appends Caddy's
+ * address, so the first entry is the client and later ones are proxies (the last is always the
+ * same proxy, which would put every client in one rate-limit bucket).
  */
 export function clientIp(req: Request): string {
   const forwarded = req.headers['x-forwarded-for'];
   const header = Array.isArray(forwarded) ? forwarded.join(',') : forwarded;
-  const last = header?.split(',').pop()?.trim();
-  return last || req.socket.remoteAddress || 'unknown';
+  const first = header?.split(',')[0]?.trim();
+  return first || req.socket.remoteAddress || 'unknown';
 }
 
 @Controller()

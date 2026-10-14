@@ -183,7 +183,8 @@ replica; anything that must be shared goes through the database.
 - The admin session is the stateless signed cookie `hush_session` (HMAC with `SESSION_SECRET`,
   7 days); there is no server-side session state, so any replica validates any cookie.
 - The login rate limit (10 attempts per minute per client IP, then 429) is in memory, per replica.
-  The client IP is the last `X-Forwarded-For` entry, the one nginx appended.
+  The client IP is the first `X-Forwarded-For` entry: Caddy overwrites the header with the real
+  peer, and nginx appends the Caddy address after it (the last entry is the same for everyone).
 - Kid-mode schedules run only in the `worker` service, gated by `WORKER_ENABLED`.
 - Each api or worker process holds its own Pi-hole session id.
 
