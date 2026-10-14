@@ -59,6 +59,7 @@ apps/api/                 NestJS API, every route under the global prefix /api
   src/health/             GET /api/health (from the starter kit)
   src/prisma/             global PrismaModule + PrismaService (driver adapter, DATABASE_URL)
   src/packs/              PacksSeed: upserts the built-in packs on bootstrap
+  src/profiles/           ProfileVersionService (the one Profile.version bump, used inside RuleSet transactions)
   src/generated/          Prisma client output (git-ignored, `pnpm --filter api generate`)
   prisma/                 schema.prisma and migrations/; prisma.config.ts reads DATABASE_URL
   test/                   db.ts harness (createTestApp, resetDb), schema.spec.ts, *.e2e-spec.ts
@@ -122,7 +123,12 @@ in `beforeEach` (it also removes the built-in packs, which return on the next ap
 - **A Nest feature module:** `apps/api/src/<feature>/` with module, controller and service,
   imported in `app.module.ts`; `.js` suffixes on relative imports (ESM). Validate bodies with the
   Zod schema from `contracts`, never class-validator. Tests as `*.spec.ts` (unit) and
-  `test/*.e2e-spec.ts` (through HTTP); both run in `pnpm test`.
+  `test/*.e2e-spec.ts` (through HTTP); both run in `pnpm test`. Reference: `src/packs/`
+  (`packs.module.ts` imports `AuthModule`; `packs.controller.ts` has `@UseGuards(AdminGuard)`,
+  `@ZodBody(PackCreate)` and `@Param(new ZodPipe(IdParam))`; `packs.service.ts` throws Nest
+  exceptions with `{ error, message }` bodies; `test/packs.spec.ts` logs in and goes through HTTP).
+  Any write to a `RuleSet` runs in `prisma.$transaction` and calls `ProfileVersionService`
+  (`src/profiles/profile-version.service.ts`) with the transaction client to bump `Profile.version`.
 - **A protected controller:** `@UseGuards(AdminGuard)` (from `src/auth/admin.guard.js`) on the
   controller or route, `AuthModule` imported in your feature module, and `@CurrentAdmin()` for the
   signed-in admin. Unauthenticated calls get 401 `unauthenticated`. Only `GET /api/health`,
