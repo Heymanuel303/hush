@@ -48,6 +48,12 @@ test('create a household pack, rename it, delete it', async () => {
   await dialog.getByRole('button', { name: 'Save' }).click();
   const row = page.getByRole('row', { name: new RegExp(name) });
   await expect(row).toContainText('Household');
+  // Toasts use the app typeface, not sonner's system stack.
+  const toaster = page.locator('[data-sonner-toaster]');
+  await expect(page.locator('[data-sonner-toast]').first()).toBeVisible();
+  expect(await toaster.evaluate((el) => getComputedStyle(el).fontFamily)).toContain(
+    'IBM Plex Sans',
+  );
   await expect(row).toContainText('soup, stew, bread');
 
   await page.getByRole('button', { name: `Actions for ${name}` }).click();
