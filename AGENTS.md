@@ -76,8 +76,10 @@ apps/web/                 Vue single-page app (Vite)
   src/components/layout/  AppShell.vue (header, nav, gutters), HushMark.vue
   src/components/state/   EmptyState, LoadingState, ErrorState
   src/components/pihole/  PiholeConnectionForm (shared by the Pi-hole screen and the setup wizard)
+  src/components/words/   WordListEditor.vue: the only word editor in the web app (reuse it, never write a second)
+  src/components/packs/   PackEditorDialog.vue (create/edit a household pack)
   src/lib/                api.ts (typed fetch client), utils.ts
-  src/stores/             Pinia stores (auth, pihole)
+  src/stores/             Pinia stores (auth, packs, pihole)
   src/router/             route table + the global auth guard
   src/views/              one <Name>View.vue per route (SignInView, stubs for the rest)
   src/components/layout/  also PageHeader.vue (title, description, action slot)
@@ -170,6 +172,11 @@ in `beforeEach` (it also removes the built-in packs, which return on the next ap
   syntax), types from `contracts`, all fetches through the store.
 - **A shadcn-vue primitive:** `cd apps/web && npx shadcn-vue@2 add <name>`, then restyle it to the
   Design direction (typeface, 6px radius, 36px height, no blur) in the same change.
+- **A scheduled job:** a provider in the module that owns it, started from `onApplicationBootstrap`
+  only when `config.workerEnabled` (`WORKER_ENABLED=true`, the `worker` service), never on the api
+  replicas. Read time through an injectable clock (reference: `src/kid-mode/kid-mode.worker.ts`,
+  `KID_MODE_CLOCK`) and expose a `tick()` so tests drive it with a fake clock instead of timers.
+  The pass never throws: log, store the error on the row, retry next tick.
 
 ## Design rules
 

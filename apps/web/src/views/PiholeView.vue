@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, onMounted, ref, watch } from 'vue'
+import { computed, onMounted, ref } from 'vue'
 import { Unplug } from '@lucide/vue'
 import PageHeader from '@/components/layout/PageHeader.vue'
 import PiholeConnectionForm from '@/components/pihole/PiholeConnectionForm.vue'
@@ -56,11 +56,6 @@ async function disconnect() {
     disconnecting.value = false
   }
 }
-
-// A first save from "not connected" turns the page into the connected one: fetch the numbers.
-watch(connected, (now, before) => {
-  if (now && !before && !store.summary) void store.loadSummary()
-})
 
 onMounted(init)
 </script>

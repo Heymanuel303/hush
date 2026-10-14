@@ -38,6 +38,20 @@ describe('PiholeConnectionForm', () => {
     expect(sentBody()).toMatchObject({ appPassword: 'secret' })
   })
 
+  it('keeps what the user typed after a test re-reads the connection', async () => {
+    const store = usePiholeStore()
+    store.connection = { url: 'http://pi.local', kidGroupName: 'Kid', hasSecret: true }
+    fetchMock
+      .mockResolvedValueOnce(json(200, { ok: false, error: 'pihole_unreachable' }))
+      .mockResolvedValueOnce(json(200, { url: 'http://pi.local', kidGroupName: 'Kid', hasSecret: true }))
+    const wrapper = mount(PiholeConnectionForm)
+    await wrapper.get('#pihole-url').setValue('http://other.local')
+    await wrapper.findAll('button').find((b) => b.text() === 'Test connection')!.trigger('click')
+    await flushPromises()
+    expect(sentBody()).toMatchObject({ url: 'http://other.local' })
+    expect((wrapper.get('#pihole-url').element as HTMLInputElement).value).toBe('http://other.local')
+  })
+
   it('requires a password while nothing is stored', async () => {
     const wrapper = mount(PiholeConnectionForm)
     await wrapper.get('#pihole-url').setValue('http://pi.local')

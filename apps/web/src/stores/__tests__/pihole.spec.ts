@@ -58,4 +58,18 @@ describe('pihole store', () => {
     expect(store.connection).toBeNull()
     expect(store.summary).toBeNull()
   })
+
+  it('save() refreshes the summary for the new connection', async () => {
+    const conn = { url: 'http://pi.local', kidGroupName: 'Children', hasSecret: true }
+    const summary = {
+      queries: { total: 10, blocked: 4, percentBlocked: 40 },
+      topClients: [],
+    }
+    fetchMock.mockResolvedValueOnce(json(200, conn)).mockResolvedValueOnce(json(200, summary))
+    const store = usePiholeStore()
+    store.summary = { queries: { total: 1, blocked: 0, percentBlocked: 0 }, topClients: [] }
+    await store.save({ url: conn.url, kidGroupName: 'Children' })
+    expect(String(fetchMock.mock.calls[1]?.[0])).toContain('/api/pihole/summary')
+    expect(store.summary?.queries.total).toBe(10)
+  })
 })

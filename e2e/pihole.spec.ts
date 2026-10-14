@@ -47,14 +47,13 @@ test('connect, test, save, see the summary, reject a wrong password, disconnect'
 
   await page.getByLabel('URL').fill(pihole.url);
   await page.getByLabel('App password').fill(PIHOLE_PASSWORD);
-  // CONTRACT GAP: POST /api/pihole/test ignores its body and checks the stored connection, so the
-  // connection is saved first and tested after (see the ticket report).
-  await page.getByRole('button', { name: 'Save', exact: true }).click();
+  // Test before anything is saved.
   await page.getByRole('button', { name: 'Test connection' }).click();
   const groups = page.getByRole('list', { name: 'Groups' });
   await expect(groups.getByText('Default')).toBeVisible();
   await expect(groups.getByText('Kid')).toBeVisible();
   await page.screenshot({ path: `${SHOTS}/pihole-tested-${info.project.name}.png`, fullPage: true });
+  await page.getByRole('button', { name: 'Save', exact: true }).click();
 
   await expect(page.getByText('Pi-hole traffic')).toBeVisible();
   await expect(page.getByRole('cell', { name: '100.64.0.7' })).toBeVisible();
@@ -77,10 +76,7 @@ test('connect, test, save, see the summary, reject a wrong password, disconnect'
   // A wrong password is reported by the test, not silently stored as working.
   await page.getByLabel('URL').fill(pihole.url);
   await page.getByLabel('App password').fill('nope');
-  await page.getByRole('button', { name: 'Save', exact: true }).click();
   await page.getByRole('button', { name: 'Test connection' }).click();
   await expect(page.getByText('Connection failed')).toBeVisible();
-  await page.getByRole('button', { name: 'Disconnect', exact: true }).click();
-  await page.getByRole('dialog').getByRole('button', { name: 'Disconnect' }).click();
   await expect(page.getByText('Not connected')).toBeVisible();
 });

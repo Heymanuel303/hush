@@ -10,7 +10,7 @@ const DAY_MS = 24 * 60 * 60_000;
 
 type DeviceRow = Awaited<ReturnType<PrismaService['device']['findUniqueOrThrow']>>;
 
-const toDevice = (r: DeviceRow): Device => ({
+export const toDevice = (r: DeviceRow): Device => ({
   id: r.id,
   profileId: r.profileId,
   label: r.label,

@@ -73,7 +73,9 @@ export class PiholeService implements OnApplicationShutdown {
     await this.drop();
   }
 
-  async test(): Promise<PiholeTestResult> {
+  /** With `input`, checks those unsaved values with a throwaway client and records nothing. */
+  async test(input?: PiholeConnectionPut): Promise<PiholeTestResult> {
+    if (input) return this.testUnsaved(input);
     const row = await this.row();
     try {
       const client = this.clientFor(row);
@@ -85,6 +87,26 @@ export class PiholeService implements OnApplicationShutdown {
       const message = errorMessage(e);
       await this.record(message);
       return { ok: false, error: message };
+    }
+  }
+
+  private async testUnsaved(input: PiholeConnectionPut): Promise<PiholeTestResult> {
+    const existing = await this.prisma.piholeConnection.findUnique({ where: { id: 1 } });
+    const secretEnc = input.appPassword ? null : (existing?.secretEnc ?? null);
+    if (!input.appPassword && !secretEnc) return { ok: false, error: 'An app password is required.' };
+    const client = new PiholeClient({
+      url: normalizeUrl(input.url),
+      password: input.appPassword ?? this.secrets.decrypt(secretEnc!),
+      tlsInsecure: this.config.piholeTlsInsecure,
+    });
+    try {
+      const version = await client.version();
+      const groups = await client.groups();
+      return { ok: true, version, groups };
+    } catch (e) {
+      return { ok: false, error: errorMessage(e) };
+    } finally {
+      await client.close();
     }
   }
 

@@ -23,11 +23,12 @@ const result = ref<PiholeTestResult | null>(null)
 const failure = ref<string | null>(null)
 const helpOpen = ref(false)
 
-// The connection arrives after the first render on a reload: prefill once it does.
+// The connection arrives after the first render on a reload: prefill once it does. Later
+// replacements (a test re-reads it) must not overwrite what the user is typing.
 watch(
   () => store.connection,
-  (c) => {
-    if (!c) return
+  (c, before) => {
+    if (!c || before) return
     url.value = c.url
     kidGroupName.value = c.kidGroupName
   },

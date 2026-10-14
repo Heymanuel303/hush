@@ -44,9 +44,14 @@ export const usePiholeStore = defineStore('pihole', () => {
   async function save(body: PiholeConnectionPut): Promise<void> {
     connection.value = await api.pihole.put(body)
     summary.value = null
+    // A new URL, password or kid group changes what the numbers describe: fetch them again.
+    await loadSummary()
   }
 
-  /** The api records the check on the connection, so re-read it for "last checked" / "last error". */
+  /**
+   * Tests the values in the body (saved or not). When the api re-reads the stored connection it
+   * records the check there, so refresh it for "last checked" / "last error".
+   */
   async function test(body: PiholeConnectionPut): Promise<PiholeTestResult> {
     const result = await api.pihole.test(body)
     try {
