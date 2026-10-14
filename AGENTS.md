@@ -323,7 +323,8 @@ and `SITES` must stay top-level `const`s.
   `hubState`/`hubConfigState`/`hubStatusState`/`lockedState` live in `panel-core.js`. When
   `hubConfig.locked`, `body.locked` + `setLockedUI` disable every editing control through
   `controlsOff()` (`!enabledState || lockedState`; use it, never bare `!enabledState`) and show
-  "Managed by <hub>". A revoked status shows a no-Undo toast once per `revokedAt` (the popup's
+  "Managed by <hub>". Disconnect is disabled while locked and `hubDisconnect` refuses in
+  `background.js` (a locked device is released by revoking it on the hub). A revoked status shows a no-Undo toast once per `revokedAt` (the popup's
   only hub-related write is `hubRevokedSeen`). The site pill adds "· managed" from `getCount`.
 - **Starter packs** are persistent toggles (`enabledPacks`); their words are never listed among
   custom words. A pack's `name` is its stable id.

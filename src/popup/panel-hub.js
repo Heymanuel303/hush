@@ -166,6 +166,7 @@ hubSyncBtn.addEventListener("click", async () => {
 let disconnectArmed = false;
 let disconnectTimer;
 hubDisconnectBtn.addEventListener("click", async () => {
+  if (lockedState) return; // a locked device is released by revoking it on the hub
   if (!disconnectArmed) {
     disconnectArmed = true;
     hubDisconnectBtn.classList.add("confirm");
@@ -194,6 +195,8 @@ function setLockedUI(locked) {
   lockedState = locked;
   document.body.classList.toggle("locked", locked);
   lockBannerEl.hidden = !locked;
+  hubDisconnectBtn.disabled = locked;
+  if (locked) disarmDisconnect();
   if (locked) lockTextEl.textContent = `Managed by ${hubDisplayName()}`;
   applyEnabledUI(enabledState); // re-runs setControlsDisabled
   paintSiteOptions();
@@ -225,7 +228,7 @@ function showNotice(message, onDismiss) {
 
 /* ---------------- state fan-in ---------------- */
 // Called by init and by panel.js's onChanged listener with whichever of the hub
-// keys are present; absent keys mean "removed" only when `full` is true.
+// keys; an absent key means that key was removed.
 function applyHubKeys(s) {
   hubState = s.hub || null;
   hubConfigState = s.hubConfig || null;

@@ -178,7 +178,9 @@ function hubPair({ url, code, label }) {
 
 function hubDisconnect() {
   return onSyncChain(async () => {
-    const { hub } = await api.storage.local.get("hub");
+    const { hub, hubConfig } = await api.storage.local.get(["hub", "hubConfig"]);
+    // Defence in depth: a locked device cannot self-disconnect; revoke it on the hub.
+    if (hubConfig && hubConfig.locked) return { ok: false, error: "locked" };
     await api.alarms.clear(HUB_ALARM);
     await api.storage.local.remove(["hub", "hubConfig", "hubStatus"]);
     if (hub) {
