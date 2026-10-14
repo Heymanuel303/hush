@@ -173,6 +173,11 @@ in `beforeEach` (it also removes the built-in packs, which return on the next ap
   syntax), types from `contracts`, all fetches through the store.
 - **A shadcn-vue primitive:** `cd apps/web && npx shadcn-vue@2 add <name>`, then restyle it to the
   Design direction (typeface, 6px radius, 36px height, no blur) in the same change.
+- **A scheduled job:** a provider in the module that owns it, started from `onApplicationBootstrap`
+  only when `config.workerEnabled` (`WORKER_ENABLED=true`, the `worker` service), never on the api
+  replicas. Read time through an injectable clock (reference: `src/kid-mode/kid-mode.worker.ts`,
+  `KID_MODE_CLOCK`) and expose a `tick()` so tests drive it with a fake clock instead of timers.
+  The pass never throws: log, store the error on the row, retry next tick.
 
 ## Design rules
 
@@ -212,7 +217,9 @@ replica; anything that must be shared goes through the database.
 - The login rate limit (10 attempts per minute per client IP, then 429) is in memory, per replica.
   The client IP is the first `X-Forwarded-For` entry: Caddy overwrites the header with the real
   peer, and nginx appends the Caddy address after it (the last entry is the same for everyone).
-- Kid-mode schedules run only in the `worker` service, gated by `WORKER_ENABLED`.
+- Kid-mode schedules run only in the `worker` service, gated by `WORKER_ENABLED`: exactly one
+  instance, reusing the api image and the `x-api-environment` anchor with `WORKER_ENABLED: "true"`;
+  never add `deploy: replicas` to it and never scale it.
 - Each api or worker process holds its own Pi-hole session id (`PiholeClient`: one sid per
   process, renewed before `validity` runs out, re-authenticated once on 401, `DELETE /api/auth`
   on shutdown and when the stored connection changes). Pi-hole's default of 16 sessions is ample
@@ -232,6 +239,16 @@ replica; anything that must be shared goes through the database.
 - The api is `hush-api` and the web `hush-web` on the shared `apps` network. No service
   publishes a host port: the platform's Caddy serves the web container, locally at
   `http://hush.localhost`. Only the overlay publishes `WEB_PORT`.
+- The `x-api-environment` anchor carries every api variable: `SESSION_SECRET`, `ADMIN_EMAIL`,
+  `ADMIN_PASSWORD` and `HUB_ENCRYPTION_KEY` (required, compose refuses to start without them),
+  `HUB_NAME` (`Hush Hub`), `PIHOLE_TLS_INSECURE` (`false`), `WORKER_ENABLED` (`"false"`),
+  `PUBLIC_WEB_URL`, `COOKIE_SECURE`. The `worker` service overrides only `WORKER_ENABLED`; the
+  overlay sets `DATABASE_URL` for `worker` as for every other service.
+- Backup: the hub's state is the database volume **plus** `HUB_ENCRYPTION_KEY`. The key decrypts the
+  stored Pi-hole app password; a restored database with a different key needs the Pi-hole
+  connection saved again. Keep the key with the backup, never in the repository.
+- `docker-smoke` checks the setup status, an admin login, `GET /api/hub/status`, a 401 on
+  `GET /api/device/config` without a token, and the healthy `worker`.
 - A new environment variable or service lands in `.env.example`, `docker-compose.yml` and the README
   configuration table in the same change.
 

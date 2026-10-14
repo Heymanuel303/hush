@@ -42,6 +42,12 @@ services:
     environment:
       DATABASE_URL: postgres://postgres:postgres@postgres:5432/hush
 
+  # The overlay sets DATABASE_URL per service, so the worker needs its own line too;
+  # without it the worker would use the platform default from the base file.
+  worker:
+    environment:
+      DATABASE_URL: postgres://postgres:postgres@postgres:5432/hush
+
   web:
     # Host port of the web container; the Vite dev server keeps its own port.
     ports:
