@@ -16,14 +16,18 @@ A privacy-setup monorepo. The core is **Hush**, a cross-browser (Firefox + Chrom
 - `test/` — `node --test` unit tests (run with `pnpm ext:test`) for the pure logic in `src/lib/` and `src/data/`
 - `browser/` — `ublock/managed-storage.json` (uBO baseline: settings + filter-list selection) and `hush/managed-storage.json` (Hush default words/packs/site words), both Firefox *managed storage* native manifests that `setup.sh` copies into `<mozilla home>/managed-storage/`; `firefox/policies.json` + `chrome/policies.json` are the **locked-device** enterprise policies (kid PC), not for a personal machine. Key names in the uBO file are verified against uBO's `storage.js` (`userSettings` = `[name, "string"]` pairs, `toOverwrite.filterLists`, `toAdd.trustedSiteDirectives`).
 - `filters/` — uBlock Origin filter lists (`youtube-cleanup`, `social-cleanup`, `strict-mode`), referenced by raw GitHub URL from the uBO config. Not shipped.
-- `infra/` — home server (`192.168.1.11`, ssh alias `nas`) docs: `README.md` (Tailscale + Pi-hole v6 in Docker, DNS flow), `pihole/` (blocklists, kid-mode draft), `tailscale/` (client hardening scripts). Secrets never go here.
-- `docs/` — `extension.md` (the full extension README; root `README.md` is the repo umbrella) and `plans/`.
+- `infra/` — home server (`192.168.1.11`, ssh alias `nas`) docs: `README.md` (Tailscale + Pi-hole v6 in Docker, DNS flow), `pihole/` (blocklists, SafeSearch CNAMEs; kid mode itself is done by the hub), `tailscale/` (client hardening scripts). Secrets never go here.
+- `docs/` — `extension.md` (the full extension README; root `README.md` is the repo umbrella), `hub.md` (hub operator guide), `listing.md` (AMO / Web Store copy) and `plans/`.
 - `apps/api`, `apps/web`, `packages/contracts`, `e2e/`, `scripts/` — the **Household Hub** pnpm workspace (see below). `src/` and `test/` are **not** part of it.
 - Repo root — `setup.sh` (Linux bootstrap: installs the managed-storage manifests, optional `--locked`/`--tailscale`/`--harden`), `package.json`, `README.md`, `CONTRIBUTING.md`, `LICENSE`, `.gitignore`, this file. `package.json` (the pnpm workspace root; `ext:*` scripts for the extension) is **not** shipped (it's outside `src/`).
 
 The files in `src/lib/` and `src/data/` end with a `if (typeof module !== "undefined" && module.exports) { ... }` guard so they work both as a plain browser `<script>` (the guard is a no-op there) **and** as a `require()`d CommonJS module in the Node tests. This is how the project tests without a build step.
 
 ## Household Hub
+
+**Privacy line** (the same sentence as in `AGENTS.md`, `docs/extension.md` and `docs/listing.md`): the extension fetches only from a hub the user named, config only, never user data. `data_collection_permissions` stays `none` because nothing is uploaded; if AMO review disagrees, the declaration changes to the honest minimum and the copy says so.
+
+The operator guide (install over the tailnet, env, pairing, locked profiles, quiet hours, Pi-hole and kid mode, backup, troubleshooting) is **`docs/hub.md`**; the store listing copy is `docs/listing.md`.
 
 The repo also holds the **Hush Household Hub**, a self-hosted console (NestJS + Prisma on PostgreSQL in `apps/api`, Vue 3 + shadcn-vue in `apps/web`, Zod contracts in `packages/contracts`) that pairs browsers and pushes profile config down to Hush. Its stack, commands, product rules and design direction live in **`AGENTS.md`** — read that before touching anything outside `src/`. The extension never imports from the workspace and stays dependency-free.
 

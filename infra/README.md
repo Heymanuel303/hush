@@ -10,7 +10,6 @@ infra/
 ├── README.md                      this file
 ├── pihole/
 │   ├── blocklists.md              which adlists are on, what to add for a Kid group
-│   ├── kidmode.sh                 on|off|status toggle for one client — DRAFT, see "Kid mode"
 │   └── 06-kidmode-cname.conf      SafeSearch / YouTube Restricted Mode via CNAME
 └── tailscale/
     ├── harden-tailscale.sh        make tailscaled un-stoppable on a client (kid PC)
@@ -136,25 +135,27 @@ one-minute systemd timer that re-enables/starts/`tailscale up`s it, and
 around the system resolver). `unharden-tailscale.sh` reverts all of it. A user
 with sudo can still undo this; it stops casual bypass, not an admin.
 
-## Kid mode (draft)
+## Kid mode
 
-Goal: one client (the shared phone) gets stricter lists + forced SafeSearch /
-YouTube Restricted Mode, toggled from the phone over SSH. The pieces:
+Goal: one client (the shared phone, a kid PC) gets stricter lists, toggled or scheduled without
+SSH. The **Household Hub** does it: it moves the device's Tailscale IP from Pi-hole's Default
+group into a Kid group through the v6 REST API, by hand or on a schedule run by its `worker`.
+Setup, the app password and the Kid group are in [`../docs/hub.md`](../docs/hub.md#kid-mode).
+The old v5 draft script (sqlite3 on `gravity.db`) could not run on this Docker Pi-hole and is
+gone.
 
-- `pihole/blocklists.md` — which lists belong to a `Kid` group.
-- `pihole/06-kidmode-cname.conf` — the CNAME rewrites (device-wide, apps too).
-- `pihole/kidmode.sh` — moves the client between groups and installs/removes
-  the CNAMEs.
+The pieces that stay here:
 
-**Status: written for a bare-metal Pi-hole v5** (it uses `sqlite3` on
-`gravity.db` and `/etc/dnsmasq.d`). On this server it needs porting to the v6
-REST API (`PATCH /api/clients/{ip}` for the group, `PATCH /api/config` for
-`dns.cnameRecords`) — not done yet. The threat-model table and setup order in
-the old draft are still right: whole sites → Pi-hole lists; explicit results →
-CNAME; same-host feeds (Shorts, Reels) → `filters/strict-mode.txt` in the
-browser; keyword posts → Hush. Firefox for Android ignores policies, so on the
-phone the DNS + CNAME layers carry the safety and the browser filters are
-comfort.
+- `pihole/blocklists.md` — which lists belong to the `Kid` group (create it under *Group
+  management* before turning kid mode on; a client in that group gets only its lists).
+- `pihole/06-kidmode-cname.conf` — the SafeSearch / Restricted Mode CNAME rewrites. The hub
+  does **not** touch them: they are a Pi-hole-wide setting (`dns.cnameRecords`), applied to
+  every client, set once by hand if you want them.
+
+The threat model still holds: whole sites → Pi-hole lists; explicit results → CNAME; same-host
+feeds (Shorts, Reels) → `filters/strict-mode.txt` in the browser; keyword posts → Hush. Firefox
+for Android ignores policies, so on the phone the DNS + CNAME layers carry the safety and the
+browser filters are comfort.
 
 ## Known issues (2026-09-24)
 

@@ -141,33 +141,91 @@ invariants to respect.
 
 ## Minimum browser version
 
-Firefox (desktop and Android) needs **128** or newer: `optional_host_permissions`, which the
-hub connection uses to ask for the hub's origin at connect time, is honoured from 128 (ignored
-with a warning on 115 ESR), and so is its prompt UI on Android. 128 is an ESR.
+Firefox (desktop and Android) 128 or newer; see [Firefox 128 minimum](#firefox-128-minimum).
+Chrome: any current release.
 
 ## Household hub
 
-When paired with a hub, the background fetches the profile's config from the hub origin you
-named (on a 15-minute alarm and on wake) and stores it; the host permission is requested per
-hub at connect time, never at install. A hub with a self-signed certificate cannot be used
-(`fetch` has no override): use plain HTTP on the tailnet or `tailscale serve` HTTPS.
-Config is only downloaded, nothing is uploaded.
+Hush can take its rules from a **Household Hub**, a self-hosted console someone in the household
+runs on the home server (operator guide: [`hub.md`](hub.md)). The hub is optional: without one,
+Hush works entirely on its own and makes no network request.
 
-In the popup, turn on **Advanced** and open **Household hub** (below the per-site words): enter
-the hub address, the six-character code and a device name, then Connect. Hush asks for
-permission to reach that hub only at this point. Once connected, the section shows the hub and
-profile, the last sync, and **Sync now** / **Disconnect**. If the profile is **locked**, the
-popup becomes read-only under a "Managed by <hub>" banner (lists stay visible) until the next
-sync unlocks it; a locked device cannot disconnect itself (Disconnect is disabled), so release
-it by revoking the device on the hub. If the hub removes the device, Hush says so and goes back to your own words.
-The section states it plainly: Hush downloads rules from this hub and never sends what you read
-or hide.
+### Connect
+
+1. In the popup, turn on **Advanced** and open **Household hub** (below the per-site words).
+2. Enter the hub address (for example `http://hub.tail1234.ts.net` or
+   `https://hub.tail1234.ts.net`), the six-character code shown by the hub's **Pair device**
+   dialog (it lives ten minutes) and a name for this device, then **Connect**.
+3. The browser asks for permission to reach that one address. This is the only time Hush asks
+   for a host permission, and only for the origin you typed, never at install.
+
+Once connected, the section shows the hub and profile names, the last sync, **Sync now** and
+**Disconnect**. Hush fetches the profile's config on a 15-minute alarm, when the browser
+starts, and whenever the extension wakes more than five minutes after the last attempt, with a
+conditional request so an unchanged profile costs one `304`. An edit on the hub reaches the
+device within one alarm tick, or at once with **Sync now**.
+
+The hub's words, packs, per-site words and site options are added to your own; they never
+appear in, or replace, your own lists. Quiet hours set on the hub are the windows in which the
+hub's rules apply; outside them only your own words count. A profile without quiet hours
+applies all the time.
+
+### Locked profiles
+
+If the profile is **locked**, the popup becomes read-only under a "Managed by <hub>" banner
+(lists stay visible), and the hub's rules apply even when Hush is switched off. A locked device
+cannot disconnect itself: Disconnect is disabled, and the hub releases the device when it is
+revoked there. A lock stops casual edits in the popup; it does not stop someone removing Hush
+unless a browser policy force-installs it (see
+[`browser/firefox/policies.json`](../browser/firefox/policies.json)).
+
+### Offline, invalid and revoked
+
+- **Hub unreachable** (off the tailnet, server down, a 5xx): Hush keeps the last config it
+  received, lock included, and retries on the next tick. The section shows since when it has
+  been offline.
+- **Invalid config** (fails Hush's own validation): the previous config stays in force.
+- **Revoked** (the device was removed on the hub): Hush says so once, drops the hub's rules and
+  goes back to your own words.
+
+### Disconnect
+
+**Disconnect** (press, then confirm) forgets the hub, its token and its rules; your own lists are
+untouched. It is disabled while the profile is locked.
+
+### Firefox 128 minimum
+
+Firefox (desktop and Android) needs **128** or newer. `optional_host_permissions`, which the
+hub connection uses to ask for the hub's origin at connect time, is honoured from 128; on 115
+ESR Firefox ignores it with a warning, so the connection could never get permission. 128 is an
+ESR.
+
+### Android
+
+On Firefox for Android the popup opens as a full page; the Household hub section is the same.
+The permission prompt for the hub address appears from Firefox 128. Phones that leave the house
+keep syncing as long as Tailscale is on, since the hub is reached over the tailnet; off the
+tailnet, Hush keeps the last config (see Offline above).
+
+### Why plain HTTP or Tailscale HTTPS
+
+A hub with a self-signed certificate cannot be used: the extension's `fetch` fails on it and a
+browser extension has no way to accept the certificate. Use one of:
+
+- `http://` on the tailnet: the traffic is already encrypted by WireGuard between your devices;
+- `tailscale serve`, which gives the hub a `https://<machine>.<tailnet>.ts.net` address with a
+  certificate every browser trusts.
 
 ## Privacy
 
-Hush collects nothing and sends nothing anywhere. All state (your word
-list, packs, counts) lives in the browser's local extension storage. Starter
-packs are bundled local data — no network requests are made.
+The extension fetches only from a hub the user named, config only, never user data.
+`data_collection_permissions` stays `none` because nothing is uploaded; if AMO review disagrees,
+the declaration changes to the honest minimum and the copy says so.
+
+All state (your word list, packs, per-site words, counts) lives in the browser's local extension
+storage. Starter packs are bundled local data. Without a hub, Hush makes no network request at
+all; with one, it only downloads its config from the address you entered. Counts never leave
+the device.
 
 ## Contributing
 
