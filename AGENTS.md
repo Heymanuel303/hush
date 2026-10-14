@@ -117,6 +117,8 @@ Run from the repository root (scripts of the root `package.json`).
 | Extension in Firefox | `pnpm ext:start` / `pnpm ext:start:chromium` (needs a desktop) |
 | Signed `.xpi`        | `pnpm ext:sign` (maintainer only, needs `.env`)                |
 
+`e2e/household.spec.ts` (pair, edit, lock, revoke, kid mode, both projects) is the release check and must stay green before a version bump; `e2e/ext-popup.spec.ts` opens the popup from `file://` with a stubbed `chrome.*`.
+
 `node --test test/` fails on Node 22 (it loads `test` as a module); keep the glob form.
 The api `build`, `dev`, `typecheck` and `test` scripts run `prisma generate` first.
 
