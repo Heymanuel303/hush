@@ -35,6 +35,7 @@ export class KidModeWorker implements OnApplicationBootstrap, OnApplicationShutd
 
   onApplicationBootstrap(): void {
     if (!this.config.workerEnabled) return;
+    this.log.log('Kid-mode worker started.');
     void this.tick();
     this.timer = setInterval(() => void this.tick(), TICK_MS);
     this.timer.unref();
