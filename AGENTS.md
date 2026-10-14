@@ -77,8 +77,10 @@ apps/web/                 Vue single-page app (Vite)
   src/components/state/   EmptyState, LoadingState, ErrorState
   src/components/words/   WordListEditor.vue: the only word editor in the web app (reuse it, never write a second)
   src/components/packs/   PackEditorDialog.vue (create/edit a household pack)
+  src/components/profiles/ CreateProfileDialog.vue (name, template, locked; routes to the editor)
+  src/components/schedule/ ScheduleEditor.vue (quiet hours v-model; shared with the Devices screen)
   src/lib/                api.ts (typed fetch client), utils.ts
-  src/stores/             Pinia stores (auth)
+  src/stores/             Pinia stores (auth, packs, profiles)
   src/router/             route table + the global auth guard
   src/views/              one <Name>View.vue per route (SignInView, stubs for the rest)
   src/components/layout/  also PageHeader.vue (title, description, action slot)

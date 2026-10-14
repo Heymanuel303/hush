@@ -1,7 +1,8 @@
 import { expect, test, type Page } from '@playwright/test';
+import { ADMIN_STATE } from './global-setup';
 
-// The login route allows 10 attempts a minute per client, so each project signs in once
-// and its tests share that page.
+// The admin session comes from e2e/global-setup.ts (the login route allows 10 attempts a
+// minute per client); the tests share one page.
 test.describe.configure({ mode: 'serial' });
 
 let page: Page;
@@ -10,12 +11,9 @@ test.beforeAll(async ({ browser, request }) => {
   await expect
     .poll(async () => (await request.get('/api/health')).status(), { timeout: 30_000 })
     .toBe(200);
-  page = await (await browser.newContext(test.info().project.use)).newPage();
-  await page.goto('/signin');
-  await page.getByLabel('Email').fill('admin@hush.local');
-  await page.getByLabel('Password').fill('hush-dev-password');
-  await page.getByRole('button', { name: 'Sign in' }).click();
-  await expect(page).toHaveURL(/\/profiles$/);
+  page = await (
+    await browser.newContext({ ...test.info().project.use, storageState: ADMIN_STATE })
+  ).newPage();
 });
 
 test.afterAll(async () => {

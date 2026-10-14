@@ -6,6 +6,9 @@
     // Extra safety for array and object lookups, but may have false positives.
     "noUncheckedIndexedAccess": true,
 
+    // Deviation from the starter kit: ES2023 libs for Intl.supportedValuesOf (ScheduleEditor).
+    "lib": ["ES2023", "DOM", "DOM.Iterable"],
+
     // Path mapping for cleaner imports.
     "paths": {
       "@/*": ["./src/*"]

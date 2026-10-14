@@ -43,3 +43,4 @@ Thumbs.db
 
 # TypeScript incremental build info (apps/api `nest build`).
 *.tsbuildinfo
+e2e/.auth/
