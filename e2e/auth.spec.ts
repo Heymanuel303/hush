@@ -25,10 +25,12 @@ test('wrong password shows the error alert', async ({ page }) => {
   await expect(page).toHaveURL(/\/signin/);
 });
 
-test('correct credentials land on /profiles and sign-out returns', async ({ page }) => {
+test('correct credentials land on the home page and sign-out returns', async ({ page }) => {
   await page.goto('/signin');
   await signIn(page);
-  await expect(page).toHaveURL(/\/profiles$/);
+  // A hub with no profiles opens on /setup, otherwise on /profiles.
+  await expect(page).toHaveURL(/\/(setup|profiles)$/);
+  await page.goto('/profiles');
   await expect(page.getByRole('heading', { name: 'Profiles', exact: true })).toBeVisible();
 
   await page.getByRole('button', { name: 'Sign out' }).click();
@@ -47,7 +49,7 @@ test('anonymous visit to /devices redirects with next, then returns after sign-i
 test('the nav is reachable on desktop and through the menu on mobile', async ({ page }, info) => {
   await page.goto('/signin');
   await signIn(page);
-  await expect(page).toHaveURL(/\/profiles$/);
+  await expect(page).toHaveURL(/\/(setup|profiles)$/);
 
   if (info.project.name === 'mobile') {
     await page.getByRole('button', { name: 'Open menu' }).click();

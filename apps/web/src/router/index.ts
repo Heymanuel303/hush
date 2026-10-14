@@ -1,5 +1,6 @@
 import { createRouter, createWebHistory } from 'vue-router'
 import { useAuthStore } from '@/stores/auth'
+import { useHubStore } from '@/stores/hub'
 
 declare module 'vue-router' {
   interface RouteMeta {
@@ -12,7 +13,8 @@ declare module 'vue-router' {
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
   routes: [
-    { path: '/', redirect: '/profiles' },
+    // No component: the guard sends "/" to /setup (a hub with no profiles) or /profiles.
+    { path: '/', name: 'home', component: () => import('@/views/NotFoundView.vue') },
     {
       path: '/signin',
       name: 'signin',
@@ -61,13 +63,23 @@ export function installAuthGuard(r: typeof router): void {
     }
     if (to.name === 'signin') {
       if (auth.status !== 'authenticated') return true
-      return safeNext(to.query.next)
+      return to.query.next ? safeNext(to.query.next) : { name: 'home' }
     }
     if (!to.meta.public && auth.status !== 'authenticated') {
       return { name: 'signin', query: { next: to.fullPath } }
     }
+    if (to.name === 'home') return (await needsSetup()) ? { name: 'setup' } : { name: 'profiles' }
     return true
   })
+}
+
+/** A hub with no profiles opens on /setup. If the status cannot be read, the normal landing page wins. */
+async function needsSetup(): Promise<boolean> {
+  try {
+    return (await useHubStore().ensure()).profileCount === 0
+  } catch {
+    return false
+  }
 }
 
 installAuthGuard(router)
