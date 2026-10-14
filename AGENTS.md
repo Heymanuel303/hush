@@ -68,6 +68,8 @@ apps/web/                 Vue single-page app (Vite)
   src/components/ui/      shadcn-vue primitives (CLI-generated, restyled once to the direction)
   src/components/layout/  AppShell.vue (header, nav, gutters), HushMark.vue
   src/components/state/   EmptyState, LoadingState, ErrorState
+  src/components/words/   WordListEditor.vue: the only word editor in the web app (reuse it, never write a second)
+  src/components/packs/   PackEditorDialog.vue (create/edit a household pack)
   src/lib/                api.ts (typed fetch client), utils.ts
   src/stores/             Pinia stores (auth)
   src/router/             route table + the global auth guard
