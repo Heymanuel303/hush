@@ -169,6 +169,11 @@ in `beforeEach` (it also removes the built-in packs, which return on the next ap
   syntax), types from `contracts`, all fetches through the store.
 - **A shadcn-vue primitive:** `cd apps/web && npx shadcn-vue@2 add <name>`, then restyle it to the
   Design direction (typeface, 6px radius, 36px height, no blur) in the same change.
+- **A scheduled job:** a provider in the module that owns it, started from `onApplicationBootstrap`
+  only when `config.workerEnabled` (`WORKER_ENABLED=true`, the `worker` service), never on the api
+  replicas. Read time through an injectable clock (reference: `src/kid-mode/kid-mode.worker.ts`,
+  `KID_MODE_CLOCK`) and expose a `tick()` so tests drive it with a fake clock instead of timers.
+  The pass never throws: log, store the error on the row, retry next tick.
 
 ## Design rules
 
