@@ -90,14 +90,14 @@ function buildRow(initialRaw) {
   // Lock this row's buttons while an inline edit is open, so a mode-toggle write
   // can't race the rename's write. enabledState still has the final say.
   function setRowBusy(busy) {
-    mode.disabled = busy || !enabledState;
-    btn.disabled = busy || !enabledState;
+    mode.disabled = busy || controlsOff();
+    btn.disabled = busy || controlsOff();
   }
 
   syncRaw(raw); // initial label + aria-label
   paintMode();
-  mode.disabled = !enabledState; // operable only while blocking is on
-  btn.disabled = !enabledState;
+  mode.disabled = controlsOff(); // operable only while blocking is on
+  btn.disabled = controlsOff();
 
   mode.addEventListener("click", async () => {
     const cur = parseWord(raw);
@@ -125,7 +125,7 @@ function buildRow(initialRaw) {
 // setRaw (syncRaw) keeps the label/aria in sync; setRowBusy locks the row's
 // other buttons so no second write can race this one.
 function startEdit(span, getRaw, setRaw, setRowBusy) {
-  if (!enabledState) return; // editing is off while blocking is paused
+  if (controlsOff()) return; // editing is off while blocking is paused
   const cur = parseWord(getRaw());
   const input = document.createElement("input");
   input.className = "edit";
@@ -143,7 +143,7 @@ function startEdit(span, getRaw, setRaw, setRowBusy) {
     done = true;
     const text = input.value.trim();
     // Skip the write if blocking was paused mid-edit (no mutations while off).
-    if (save && enabledState && text && text !== cur.text) {
+    if (save && !controlsOff() && text && text !== cur.text) {
       const oldRaw = getRaw();
       const next = composeWord(cur.whole, text);
       let applied = false;
@@ -278,6 +278,8 @@ let toastTimer;
 function stashUndo(snapshot, message) {
   undoSnapshot = snapshot;
   toastMsgEl.textContent = message;
+  undoBtn.hidden = false;
+  toastEl.classList.remove("notice");
   toastEl.hidden = false;
   clearTimeout(toastTimer);
   toastTimer = setTimeout(hideToast, 6000);
@@ -285,6 +287,8 @@ function stashUndo(snapshot, message) {
 function hideToast() {
   clearTimeout(toastTimer);
   toastEl.hidden = true;
+  toastEl.classList.remove("notice");
+  undoBtn.hidden = false;
   undoSnapshot = null;
 }
 undoBtn.addEventListener("click", async () => {

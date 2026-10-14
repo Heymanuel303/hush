@@ -153,6 +153,16 @@ hub at connect time, never at install. A hub with a self-signed certificate cann
 (`fetch` has no override): use plain HTTP on the tailnet or `tailscale serve` HTTPS.
 Config is only downloaded, nothing is uploaded.
 
+In the popup, turn on **Advanced** and open **Household hub** (below the per-site words): enter
+the hub address, the six-character code and a device name, then Connect. Hush asks for
+permission to reach that hub only at this point. Once connected, the section shows the hub and
+profile, the last sync, and **Sync now** / **Disconnect**. If the profile is **locked**, the
+popup becomes read-only under a "Managed by <hub>" banner (lists stay visible) until the next
+sync unlocks it; a locked device cannot disconnect itself (Disconnect is disabled), so release
+it by revoking the device on the hub. If the hub removes the device, Hush says so and goes back to your own words.
+The section states it plainly: Hush downloads rules from this hub and never sends what you read
+or hide.
+
 ## Privacy
 
 Hush collects nothing and sends nothing anywhere. All state (your word

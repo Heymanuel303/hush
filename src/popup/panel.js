@@ -11,6 +11,7 @@
 //   panel-keywords.js  — blocked-words list  (+ blockWords write chain)
 //   panel-packs.js     — starter packs       (+ enabledPacks write chain)
 //   panel-sites.js     — advanced/per-site   (+ siteWords write chain)
+//   panel-hub.js       — household hub section + locked UI (read-only hub keys)
 //   panel.js           — this file: toggle/stats, onboarding, onChanged, init
 // Feature functions reference each other across files; that's safe because every
 // call happens after all scripts have loaded (top-level code only ever refers
@@ -22,12 +23,14 @@ function applyEnabledUI(enabled) {
   toggleEl.checked = enabled;
   toggleLabel.textContent = enabled ? "On" : "Off";
   document.body.classList.toggle("paused", !enabled);
-  setControlsDisabled(!enabled);
+  setControlsDisabled(controlsOff());
   tabLabelForState(enabled);
 }
 // Truly disable operable controls while paused so the dimmed look qualifies for
 // the WCAG inactive-component exemption (the hero stats are non-interactive).
 function setControlsDisabled(disabled) {
+  // The on/off switch itself is only locked by a hub, never by being paused.
+  toggleEl.disabled = lockedState;
   wordEl.disabled = disabled;
   addBtn.disabled = disabled;
   clearBtn.disabled = disabled;
@@ -59,7 +62,7 @@ async function showHiddenCount() {
     const n = res && typeof res.count === "number" ? res.count : 0;
     setTabCount(n);
     if (res && res.site) {
-      siteEl.textContent = res.site;
+      siteEl.textContent = res.managed ? res.site + " · managed" : res.site;
       siteEl.hidden = false;
     } else {
       siteEl.hidden = true;
@@ -136,6 +139,9 @@ api.storage.onChanged.addListener((changes, area) => {
     if (changes[key]) siteOptions[key] = changes[key].newValue === true;
   }
   if (SITE_OPTION_KEYS.some(k => changes[k])) paintSiteOptions();
+  if (changes.hub || changes.hubConfig || changes.hubStatus) {
+    api.storage.local.get(["hub", "hubConfig", "hubStatus"]).then(applyHubKeys);
+  }
   if (changes.siteWords) {
     if (pendingSiteEchoes > 0) {
       pendingSiteEchoes--; // echo of our own write; local state is authoritative
@@ -186,7 +192,8 @@ async function maybeShowOnboarding() {
     if (/Android/i.test(navigator.userAgent)) document.documentElement.classList.add("mobile");
   }
   const stored = await api.storage.local.get(
-    ["enabled", "enabledPacks", "advanced", "siteWords", ...SITE_OPTION_KEYS]);
+    ["enabled", "enabledPacks", "advanced", "siteWords", "hub", "hubConfig", "hubStatus",
+      ...SITE_OPTION_KEYS]);
   const { enabled, enabledPacks: ep, advanced, siteWords: sw } = stored;
   enabledPacks = ep || [];
   siteWords = sw || {};
@@ -194,7 +201,12 @@ async function maybeShowOnboarding() {
   renderPacks(); // build pack buttons first so applyEnabledUI → setControlsDisabled can sync their disabled state
   renderSites(); // build the per-site editor too (hidden until advanced) for the same reason
   if (enabledPacks.length) togglePacks(true); // reveal active toggles on open
+  hubState = stored.hub || null;
+  hubConfigState = stored.hubConfig || null;
+  hubStatusState = stored.hubStatus || null;
+  lockedState = !!(hubConfigState && hubConfigState.locked && hubState);
   applyEnabledUI(enabled !== false);
+  applyHubKeys(stored);
   applyAdvancedUI(advanced === true);
   renderAll(await getWords());
   showTotal();

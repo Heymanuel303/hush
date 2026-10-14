@@ -23,6 +23,13 @@ function formatDuration(totalSeconds) {
   return hr ? `${d}d ${hr}h` : `${d}d`;
 }
 
+// Relative time for "Last sync …": "just now", "5m ago", "2h ago", "3d ago".
+function formatAgo(ts, now = Date.now()) {
+  const s = Math.max(0, Math.round((now - ts) / 1000));
+  if (s < 60) return "just now";
+  return formatDuration(s) + " ago";
+}
+
 if (typeof module !== "undefined" && module.exports) {
-  module.exports = { formatNumber, formatDuration };
+  module.exports = { formatNumber, formatDuration, formatAgo };
 }

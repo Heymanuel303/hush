@@ -33,6 +33,23 @@ const packsListEl = document.getElementById("packsList");
 const advToggle = document.getElementById("advToggle");
 const sitesEl = document.getElementById("sites");
 const sitesListEl = document.getElementById("sitesList");
+const hubEl = document.getElementById("hub");
+const hubToggle = document.getElementById("hubToggle");
+const hubBody = document.getElementById("hubBody");
+const hubDot = document.getElementById("hubDot");
+const hubOffForm = document.getElementById("hubOffForm");
+const hubOnView = document.getElementById("hubOnView");
+const hubUrlEl = document.getElementById("hubUrl");
+const hubCodeEl = document.getElementById("hubCode");
+const hubLabelEl = document.getElementById("hubLabel");
+const hubConnectBtn = document.getElementById("hubConnect");
+const hubErrorEl = document.getElementById("hubError");
+const hubSummaryEl = document.getElementById("hubSummary");
+const hubSyncInfoEl = document.getElementById("hubSyncInfo");
+const hubSyncBtn = document.getElementById("hubSync");
+const hubDisconnectBtn = document.getElementById("hubDisconnect");
+const lockBannerEl = document.getElementById("lockBanner");
+const lockTextEl = document.getElementById("lockText");
 
 // Cross-feature UI state, declared here (loaded first) so every feature file can
 // safely read/write it through the shared global scope without load-order risk.
@@ -41,3 +58,11 @@ let enabledPacks = []; // names of starter packs currently toggled on
 let advancedState = false; // mirrors the advanced-mode toggle
 let siteWords = {}; // { siteId: [raw, ...] }, mirrors the siteWords storage key
 let siteOptions = {}; // { storageKey: bool }, mirrors each per-site option's storage key (see SITE_OPTIONS)
+let hubState = null; // mirrors storage `hub` (read-only here; written by background.js)
+let hubConfigState = null; // mirrors `hubConfig`
+let hubStatusState = null; // mirrors `hubStatus`
+let lockedState = false; // hubConfig.locked: the popup is read-only (see setLockedUI)
+// True when editing controls must be inert: blocking paused, or managed by a locked hub.
+function controlsOff() {
+  return !enabledState || lockedState;
+}
