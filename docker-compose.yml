@@ -17,6 +17,20 @@ x-api-environment: &api-environment
   SESSION_SECRET: ${SESSION_SECRET:?Set SESSION_SECRET in .env (openssl rand -base64 32)}
   PUBLIC_WEB_URL: ${PUBLIC_WEB_URL:-http://hush.localhost}
   COOKIE_SECURE: ${COOKIE_SECURE:-false}
+  # Required, no default: the single admin account, created and kept in sync from these at
+  # every api start (the api refuses to start in production without them).
+  ADMIN_EMAIL: ${ADMIN_EMAIL:?Set ADMIN_EMAIL in .env}
+  ADMIN_PASSWORD: ${ADMIN_PASSWORD:?Set ADMIN_PASSWORD in .env}
+  # Name of this hub, shown to devices when they pair.
+  HUB_NAME: ${HUB_NAME:-Hush Hub}
+  # Required, no default: encrypts the Pi-hole app password at rest (AES-256-GCM). Back it up
+  # with the database volume; without it the stored Pi-hole password is unreadable.
+  HUB_ENCRYPTION_KEY: ${HUB_ENCRYPTION_KEY:?Set HUB_ENCRYPTION_KEY in .env (openssl rand -base64 32)}
+  # Opt-in for Pi-hole v6's self-signed HTTPS certificate, for the Pi-hole connection only.
+  PIHOLE_TLS_INSECURE: ${PIHOLE_TLS_INSECURE:-false}
+  # The kid-mode schedule loop runs only in the `worker` service, so the scaled api
+  # replicas (and migrate) keep it off and a schedule is applied exactly once.
+  WORKER_ENABLED: "false"
 
 x-api-healthcheck: &api-healthcheck
   # 127.0.0.1, never localhost: node may resolve localhost to ::1 where nothing listens.
@@ -96,6 +110,21 @@ services:
         # The alias is prefixed because a bare `api` name is ambiguous between apps on the
         # shared network: every app's api would answer to it.
         aliases: [hush-api]
+
+  # The only process that runs the kid-mode schedule loop: exactly one instance, never
+  # scaled (no `deploy: replicas`). Reuses the api image and anchors; the api image is
+  # built by the api service, so no build section here.
+  worker:
+    image: hush-api
+    restart: unless-stopped
+    depends_on:
+      migrate:
+        condition: service_completed_successfully
+    environment:
+      <<: *api-environment
+      WORKER_ENABLED: "true"
+    healthcheck: *api-healthcheck
+    networks: [default, apps]
 
   web:
     build:

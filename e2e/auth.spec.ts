@@ -29,7 +29,7 @@ test('correct credentials land on /profiles and sign-out returns', async ({ page
   await page.goto('/signin');
   await signIn(page);
   await expect(page).toHaveURL(/\/profiles$/);
-  await expect(page.getByRole('heading', { name: 'Profiles' })).toBeVisible();
+  await expect(page.getByRole('heading', { name: 'Profiles', exact: true })).toBeVisible();
 
   await page.getByRole('button', { name: 'Sign out' }).click();
   await expect(page).toHaveURL(/\/signin/);
@@ -51,15 +51,15 @@ test('the nav is reachable on desktop and through the menu on mobile', async ({ 
 
   if (info.project.name === 'mobile') {
     await page.getByRole('button', { name: 'Open menu' }).click();
-    await page.getByRole('dialog').getByRole('link', { name: 'Devices' }).click();
+    await page.getByRole('dialog').getByRole('link', { name: 'Devices', exact: true }).click();
   } else {
     await expect(page.getByRole('navigation', { name: 'Main' }).first()).toBeVisible();
     await page
       .getByRole('navigation', { name: 'Main' })
       .first()
-      .getByRole('link', { name: 'Devices' })
+      .getByRole('link', { name: 'Devices', exact: true })
       .click();
   }
   await expect(page).toHaveURL(/\/devices$/);
-  await expect(page.getByRole('heading', { name: 'Devices' })).toBeVisible();
+  await expect(page.getByRole('heading', { name: 'Devices', exact: true })).toBeVisible();
 });

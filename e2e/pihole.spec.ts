@@ -1,14 +1,16 @@
 import { expect, test } from '@playwright/test';
+import { ADMIN_STATE } from './global-setup';
 import { startFakePihole } from '../apps/api/test/fake-pihole';
 import type { FakePihole } from '../apps/api/test/fake-pihole';
 
-const PASSWORD = 'hush-dev-password';
 const PIHOLE_PASSWORD = 'app-password';
 const SHOTS = '/tmp/screens';
 
 let pihole: FakePihole;
 
 test.describe.configure({ mode: 'serial' });
+// The admin session comes from e2e/global-setup.ts (the login route is rate limited).
+test.use({ storageState: ADMIN_STATE });
 
 test.beforeAll(async () => {
   pihole = await startFakePihole({ password: PIHOLE_PASSWORD });
@@ -22,17 +24,11 @@ test.afterAll(async () => {
   await pihole.close();
 });
 
-// One test, one sign-in: the login endpoint allows 10 attempts a minute per IP, shared by all specs.
 test('connect, test, save, see the summary, reject a wrong password, disconnect', async ({ page, request }, info) => {
   await expect
     .poll(async () => (await request.get('/api/health')).status(), { timeout: 30_000 })
     .toBe(200);
 
-  await page.goto('/signin');
-  await page.getByLabel('Email').fill('admin@hush.local');
-  await page.getByLabel('Password').fill(PASSWORD);
-  await page.getByRole('button', { name: 'Sign in' }).click();
-  await expect(page).toHaveURL(/\/profiles$/);
   await page.goto('/pihole');
 
   // Leave a clean slate if an earlier run stored a connection.
@@ -67,8 +63,12 @@ test('connect, test, save, see the summary, reject a wrong password, disconnect'
   expect(await page.content()).not.toContain(PIHOLE_PASSWORD);
   await page.screenshot({ path: `${SHOTS}/pihole-connected-${info.project.name}.png`, fullPage: true });
 
+  // A test of the saved values updates the status card.
+  await page.getByRole('button', { name: 'Test connection' }).click();
+  await expect(page.getByText('Connected to Pi-hole')).toBeVisible();
   await page.reload();
   await expect(page.getByText('Pi-hole traffic')).toBeVisible();
+  await expect(page.getByText('Not yet')).toHaveCount(0);
   await page.getByRole('button', { name: 'Disconnect', exact: true }).click();
   await page.getByRole('dialog').getByRole('button', { name: 'Disconnect' }).click();
   await expect(page.getByText('Not connected')).toBeVisible();

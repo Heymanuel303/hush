@@ -236,7 +236,32 @@ describe('POST /api/pihole/test', () => {
     expect(down.body.ok).toBe(false);
     const up = await api('post', '/pihole/test').send({ url: fake.url, kidGroupName: 'Kid' }).expect(200);
     expect(up.body.ok).toBe(true);
+  });
+
+  it('never sends the stored password to a different address', async () => {
+    await connect().expect(200);
+    const other = await startFakePihole({ password: PASSWORD });
+    try {
+      const res = await api('post', '/pihole/test').send({ url: other.url, kidGroupName: 'Kid' }).expect(200);
+      expect(res.body.ok).toBe(false);
+      expect(res.body.error).toMatch(/password is required/i);
+    } finally {
+      await other.close();
+    }
+  });
+
+  it('records the result when the body repeats the saved values', async () => {
+    await connect({ appPassword: PASSWORD }).expect(200);
     expect((await api('get', '/pihole')).body.lastCheckedAt).toBeNull();
+    const ok = await api('post', '/pihole/test').send({ url: fake.url, kidGroupName: 'Kid' }).expect(200);
+    expect(ok.body.ok).toBe(true);
+    const after = (await api('get', '/pihole')).body;
+    expect(after.lastCheckedAt).toBeTruthy();
+    expect(after.lastError).toBeNull();
+    await fake.close();
+    const down = await api('post', '/pihole/test').send({ url: fake.url, kidGroupName: 'Kid' }).expect(200);
+    expect(down.body.ok).toBe(false);
+    expect((await api('get', '/pihole')).body.lastError).toBe(down.body.error);
   });
 
   it('seat limit reached: reports pihole_no_seats advice', async () => {

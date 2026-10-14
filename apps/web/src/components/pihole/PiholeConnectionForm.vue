@@ -76,16 +76,8 @@ const kidPresent = computed(
   () => result.value?.groups?.some((g) => g.name === kidGroupName.value.trim()) ?? false,
 )
 
-const errorText = computed(() => {
-  const code = result.value?.error
-  if (!code) return null
-  if (code === 'pihole_no_seats')
-    return 'Pi-hole has no free sessions. Raise webserver.api.max_sessions in Pi-hole’s configuration, or close sessions held by other tools, then test again.'
-  if (code === 'pihole_auth') return 'Pi-hole rejected the password. Use an app password from its web interface settings.'
-  if (code === 'pihole_unreachable')
-    return 'The hub could not reach Pi-hole at that address. Check the URL and that Pi-hole is running.'
-  return code
-})
+// The api's message already says what to do (it names webserver.api.max_sessions when Pi-hole is out of sessions).
+const errorText = computed(() => result.value?.error ?? null)
 </script>
 
 <template>

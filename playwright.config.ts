@@ -6,6 +6,8 @@ const baseURL = process.env.E2E_BASE_URL ?? 'http://localhost:5173';
 
 export default defineConfig({
   testDir: './e2e',
+  // Deviation from the starter kit: one admin sign-in shared by specs (see e2e/global-setup.ts).
+  globalSetup: './e2e/global-setup.ts',
   fullyParallel: true,
   // The hub has one Pi-hole connection; the desktop and mobile runs of e2e/pihole.spec.ts share it.
   workers: 1,

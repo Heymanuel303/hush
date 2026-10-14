@@ -21,10 +21,17 @@ export class AdminService implements OnApplicationBootstrap {
     const { adminEmail, adminPassword } = this.config;
     const existing = await this.prisma.admin.findFirst({ orderBy: { createdAt: 'asc' } });
     if (!existing) {
-      await this.prisma.admin.create({
-        data: { email: adminEmail, passwordHash: await hashPassword(adminPassword) },
-      });
-      this.log.log('Admin account created from the environment.');
+      try {
+        await this.prisma.admin.create({
+          data: { email: adminEmail, passwordHash: await hashPassword(adminPassword) },
+        });
+        this.log.log('Admin account created from the environment.');
+      } catch (error) {
+        // The api and the worker start together on a fresh database: the other process created
+        // the same row from the same environment between our read and our write.
+        if ((error as { code?: string }).code !== 'P2002') throw error;
+        this.log.log('Admin account created by another process from the same environment.');
+      }
       return;
     }
     const data: { email?: string; passwordHash?: string } = {};

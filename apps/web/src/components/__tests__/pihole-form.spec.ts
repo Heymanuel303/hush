@@ -61,7 +61,7 @@ describe('PiholeConnectionForm', () => {
     expect(test.attributes('disabled')).toBeUndefined()
   })
 
-  it('highlights the kid group and explains pihole_no_seats', async () => {
+  it('highlights the kid group and shows the no-sessions message from the api', async () => {
     const wrapper = mount(PiholeConnectionForm)
     await wrapper.get('#pihole-url').setValue('http://pi.local')
     await wrapper.get('#pihole-password').setValue('x')
@@ -73,7 +73,7 @@ describe('PiholeConnectionForm', () => {
     const badges = wrapper.findAll('[aria-label="Groups"] li')
     expect(badges.map((b) => b.text())).toEqual(['Default', 'Kid'])
 
-    fetchMock.mockResolvedValueOnce(json(200, { ok: false, error: 'pihole_no_seats' }))
+    fetchMock.mockResolvedValueOnce(json(200, { ok: false, error: 'Pi-hole has no free API sessions. Raise webserver.api.max_sessions or free sessions.' }))
     await wrapper.findAll('button').find((b) => b.text() === 'Test connection')!.trigger('click')
     await flushPromises()
     expect(wrapper.text()).toContain('webserver.api.max_sessions')
