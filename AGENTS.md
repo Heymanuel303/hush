@@ -62,6 +62,7 @@ apps/api/                 NestJS API, every route under the global prefix /api
   src/prisma/             global PrismaModule + PrismaService (driver adapter, DATABASE_URL)
   src/packs/              PacksSeed: upserts the built-in packs on bootstrap
   src/profiles/           profiles API (If-Match rule-set writes) + ProfileVersionService (the one Profile.version bump)
+  src/devices/            pairing codes, POST /devices/pair, devices admin, DeviceGuard + GET /device/config (ETag)
   src/templates/          TEMPLATES constant (young-kid, teen, calm-adult), served by GET /api/templates
   src/generated/          Prisma client output (git-ignored, `pnpm --filter api generate`)
   prisma/                 schema.prisma and migrations/; prisma.config.ts reads DATABASE_URL
