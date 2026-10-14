@@ -11,7 +11,7 @@ A privacy-setup monorepo. The core is **Hush**, a cross-browser (Firefox + Chrom
 - `src/` — everything that ships in the extension (the `web-ext` source dir):
   - `manifest.json`, `background.js`, `content.js`
   - `popup/` — `panel.html` plus per-feature classic scripts and stylesheets that share one global scope (see the popup bullet under Architecture). JS: `panel-core.js` (api shim + DOM refs + shared state) → `panel-keywords.js` → `panel-packs.js` → `panel-sites.js` → `panel.js` (entry/init, loaded **last**). CSS: `panel-theme.css` (loaded **first**) → `panel-header.css` → `panel-hero.css` → `panel-list.css` → `panel-packs.css` → `panel-sites.css` → `panel-misc.css`
-  - `lib/` — `words.js` (matching engine + the `=` whole-word convention), `format.js` (number/duration formatting)
+  - `lib/` — `words.js` (matching engine + the `=` whole-word convention), `format.js` (number/duration formatting), `schedule.js` (quiet hours), `hubconfig.js` (hub config validator)
   - `data/` — `packs.js` (starter-pack definitions) + `sites.js` (the curated site registry: `SITES` + `siteIdForHost`)
 - `test/` — `node --test` unit tests (run with `pnpm ext:test`) for the pure logic in `src/lib/` and `src/data/`
 - `browser/` — `ublock/managed-storage.json` (uBO baseline: settings + filter-list selection) and `hush/managed-storage.json` (Hush default words/packs/site words), both Firefox *managed storage* native manifests that `setup.sh` copies into `<mozilla home>/managed-storage/`; `firefox/policies.json` + `chrome/policies.json` are the **locked-device** enterprise policies (kid PC), not for a personal machine. Key names in the uBO file are verified against uBO's `storage.js` (`userSettings` = `[name, "string"]` pairs, `toOverwrite.filterLists`, `toAdd.trustedSiteDirectives`).
@@ -43,6 +43,8 @@ Shared, browser-agnostic logic lives in `src/lib/` and is loaded as plain `<scri
 
 - **`src/lib/words.js`** — the matching engine and **single source of truth** for the `=` whole-word convention: `escapeRegex`, `parseWord`, `composeWord`, `compileRule`, `matchesAny`, `dedupeWords`, `resolvePackWords`, `buildRules`. `buildRules(customWords, packs, enabledPacks, siteWords?)` unions all sources and dedupes; the 4th `siteWords` arg (advanced-mode per-site words) is optional and defaults to none. Both `content.js` and `popup/panel.js` use it, so they can never disagree about what a stored word means.
 - **`src/lib/format.js`** — `formatNumber`, `formatDuration` (popup display only).
+- **`src/lib/schedule.js`** — pure, guarded, tested; the **single definition of quiet-hour semantics** on the extension side (the api's `schedule.ts` mirrors it via `test/fixtures/schedule/cases.json`). `isQuiet(quietHours, now)`, `nextBoundary(quietHours, now)`; hub rules apply inside the windows, no `quietHours` means always; never throws.
+- **`src/lib/hubconfig.js`** — pure, guarded, tested. `HUB_CAPS` (pinned to `test/fixtures/device-config/caps.json`) and `validateDeviceConfig(obj, siteIds, compile?)`: any violation rejects the whole config (arrays over a cap are rejected, not truncated). Needs `compileRule` from `lib/words.js` in scope.
 
 The execution contexts:
 

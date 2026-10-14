@@ -114,7 +114,8 @@ src/
 ├── background.js        # event page: toolbar badge + persisted all-time total
 ├── content.js           # injected into sites: hides matching posts, reports counts
 ├── popup/               # toolbar popup (html / css / js)
-├── lib/                 # shared, testable logic: matching engine + formatters
+├── lib/                 # shared, testable logic: matching engine, formatters,
+│                        #   schedule.js (quiet hours), hubconfig.js (hub config validator)
 └── data/                # local data: packs.js (starter packs) + sites.js (site registry)
 test/                    # node --test unit tests
 ```
