@@ -37,7 +37,7 @@ async function submit() {
   error.value = null
   try {
     await auth.login(email.value, password.value)
-    await router.push(safeNext(route.query.next))
+    await router.push(route.query.next ? safeNext(route.query.next) : '/')
   } catch (e) {
     error.value = messageFor(e)
   } finally {

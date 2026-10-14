@@ -36,6 +36,7 @@ The hub's `apps/`, `packages/`, `e2e/` and `scripts/` form the pnpm workspace. T
   dismissible: "The hub manages what Hush hides. It cannot stop someone removing or disabling Hush on a device that is not force-installed by a browser policy. For a locked device see browser/firefox/policies.json in the repository." The Devices screen shows no hidden-post count, only Pi-hole's own.
 - Every `RuleSet` write goes through `ProfileVersionService` inside a transaction; never write
   `RuleSet` elsewhere.
+- A hub with no profiles opens on /setup: the router guard reads `GET /api/hub/status` (hub store) on "/" and after sign-in. /setup stays reachable from "Setup guide" in the shell.
 - No pricing claims in any copy.
 - The extension gets no new runtime dependency and fetches only from the hub the user named.
 
@@ -76,15 +77,15 @@ apps/web/                 Vue single-page app (Vite)
   src/components/layout/  AppShell.vue (header, nav, gutters), HushMark.vue
   src/components/state/   EmptyState, LoadingState, ErrorState
   src/components/pihole/  PiholeConnectionForm (shared by the Pi-hole screen and the setup wizard)
-  src/components/devices/ PairDeviceDialog (shared with the setup wizard), DeviceActions, DeviceActionDialog, DeviceKidControl
+  src/components/devices/ PairDevicePanel (dialog body, shared with the setup wizard), PairDeviceDialog, DeviceActions, DeviceActionDialog, DeviceKidControl
   src/components/words/   WordListEditor.vue: the only word editor in the web app (reuse it, never write a second)
   src/components/packs/   PackEditorDialog.vue (create/edit a household pack)
-  src/components/profiles/ CreateProfileDialog.vue (name, template, locked; routes to the editor)
+  src/components/profiles/ CreateProfileForm.vue (the form body, shared with the setup wizard), CreateProfileDialog.vue (wraps it; routes to the editor)
   src/components/schedule/ ScheduleEditor.vue (quiet hours v-model; shared with the Devices screen)
   src/lib/                api.ts (typed fetch client), utils.ts
-  src/stores/             Pinia stores (auth, packs, profiles, pihole, devices)
+  src/stores/             Pinia stores (auth, hub, packs, profiles, pihole, devices)
   src/router/             route table + the global auth guard
-  src/views/              one <Name>View.vue per route (SignInView, stubs for the rest)
+  src/views/              one <Name>View.vue per route (SignInView, SetupView.vue = the first-run wizard, stubs for the rest)
   src/components/layout/  also PageHeader.vue (title, description, action slot)
 packages/contracts/       Zod schemas and inferred types shared by api and web
 e2e/                      Playwright specs

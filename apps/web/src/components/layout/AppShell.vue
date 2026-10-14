@@ -19,6 +19,8 @@ const nav = [
   { to: '/packs', label: 'Packs' },
   { to: '/pihole', label: 'Pi-hole' },
 ]
+// Reachable from the account area on wide screens; in the menu sheet on narrow ones.
+const sheetNav = [...nav, { to: '/setup', label: 'Setup guide' }]
 
 const menuOpen = ref(false)
 </script>
@@ -63,7 +65,7 @@ const menuOpen = ref(false)
               </SheetHeader>
               <nav aria-label="Main" class="flex flex-col gap-1 px-4">
                 <RouterLink
-                  v-for="item in nav"
+                  v-for="item in sheetNav"
                   :key="item.to"
                   :to="item.to"
                   class="text-muted-foreground hover:text-foreground hover:bg-muted rounded-md px-3 py-2 text-sm font-medium"
