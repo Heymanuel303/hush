@@ -18,6 +18,7 @@ const Env = z.object({
   COOKIE_SECURE: optional,
   HUB_ENCRYPTION_KEY: optional,
   PIHOLE_TLS_INSECURE: optional,
+  WORKER_ENABLED: optional,
 });
 
 export interface AppConfig {
@@ -31,6 +32,8 @@ export interface AppConfig {
   encryptionKey: Buffer;
   /** Accept self-signed HTTPS certificates from Pi-hole (that client only). */
   piholeTlsInsecure: boolean;
+  /** Run the kid-mode schedule loop in this process (the worker service only). */
+  workerEnabled: boolean;
 }
 
 export const APP_CONFIG = Symbol('APP_CONFIG');
@@ -79,5 +82,6 @@ export function loadConfig(
     cookieSecure: e.COOKIE_SECURE === 'true',
     encryptionKey: key,
     piholeTlsInsecure: e.PIHOLE_TLS_INSECURE === 'true',
+    workerEnabled: e.WORKER_ENABLED === 'true',
   };
 }

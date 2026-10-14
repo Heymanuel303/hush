@@ -13,8 +13,12 @@ import type { PrismaService } from '../src/prisma/prisma.service.js';
 import { PrismaService as Prisma } from '../src/prisma/prisma.service.js';
 
 /** The app as main.ts builds it: global prefix and shutdown hooks (Zod pipes are per-route). */
-export async function createTestApp(): Promise<INestApplication> {
-  const moduleRef = await Test.createTestingModule({ imports: [AppModule] }).compile();
+export async function createTestApp(
+  override?: (builder: ReturnType<typeof Test.createTestingModule>) => void,
+): Promise<INestApplication> {
+  const builder = Test.createTestingModule({ imports: [AppModule] });
+  override?.(builder);
+  const moduleRef = await builder.compile();
   const app = moduleRef.createNestApplication();
   app.setGlobalPrefix('api');
   app.enableShutdownHooks();
