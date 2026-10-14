@@ -87,7 +87,13 @@ watch(
     pairedLabel.value = null
     error.value = ''
     chosen.value = props.profileId ?? ''
-    knownIds = new Set(devices.devices.map((d) => d.id))
+    // Snapshot from a fresh list: the store may still be empty when opened from `?pair=`.
+    try {
+      knownIds = new Set((await devices.refresh()).map((d) => d.id))
+    } catch {
+      knownIds = new Set(devices.devices.map((d) => d.id))
+    }
+    if (!props.open) return
     if (profiles.status === 'idle') await profiles.load()
     if (!chosen.value && profiles.profiles.length === 1) chosen.value = profiles.profiles[0]?.id ?? ''
     if (props.profileId) await makeCode(props.profileId)

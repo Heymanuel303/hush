@@ -15,7 +15,9 @@ test.use({ storageState: ADMIN_STATE });
 test.beforeAll(async () => {
   pihole = await startFakePihole({ password: 'app-password' });
 });
-test.afterAll(async () => {
+test.afterAll(async ({ request }) => {
+  // Leave no connection pointing at the closed fake server for later specs.
+  await request.delete('/api/pihole');
   await pihole.close();
 });
 
