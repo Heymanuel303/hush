@@ -1,0 +1,201 @@
+/* Hush popup — household hub section (advanced mode) + locked banner. */
+
+/* The hub is the parent's area: only shown in advanced mode. */
+.hub {
+  margin-top: 14px;
+  border-top: 1px solid var(--border);
+  padding-top: 8px;
+}
+body:not(.advanced) .hub {
+  display: none;
+}
+.hub-toggle {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  width: 100%;
+  border: none;
+  background: none;
+  cursor: pointer;
+  padding: 4px 2px;
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.6px;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+.hub-toggle:hover {
+  color: var(--accent-strong);
+}
+.hub-toggle:focus-visible,
+.hub-btn:focus-visible,
+.hub-field input:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 1px;
+}
+.hub-title {
+  flex: 1;
+  text-align: left;
+}
+.hub-toggle .chev {
+  flex: none;
+  transition: transform 150ms ease;
+}
+.hub-toggle[aria-expanded="true"] .chev {
+  transform: rotate(180deg);
+}
+.hub-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--accent);
+  flex: none;
+}
+.hub-dot.off {
+  background: var(--muted);
+}
+.hub-dot[hidden],
+.hub-body[hidden],
+.hub-form[hidden],
+.hub-connected[hidden],
+.hub-error[hidden] {
+  display: none;
+}
+.hub-body {
+  padding: 8px 2px 0;
+}
+.hub-lead {
+  margin: 0 0 8px;
+  font-size: 12px;
+  font-weight: 600;
+}
+.hub-field {
+  display: block;
+  margin-bottom: 8px;
+}
+.hub-field span {
+  display: block;
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--muted);
+  margin-bottom: 3px;
+}
+.hub-field input {
+  width: 100%;
+  min-height: 32px;
+  padding: 0 10px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: var(--surface);
+  color: var(--text);
+  font: inherit;
+  font-size: 12px;
+}
+.hub-field input.hub-code {
+  font-family: ui-monospace, "SFMono-Regular", Menlo, Consolas, monospace;
+  font-size: 14px;
+  letter-spacing: 3px;
+  text-transform: uppercase;
+}
+.hub-error {
+  margin: 0 0 8px;
+  font-size: 11px;
+  line-height: 1.45;
+  color: var(--accent-strong);
+}
+.hub-btn {
+  min-height: 32px;
+  padding: 0 14px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: var(--surface);
+  color: var(--text);
+  font: inherit;
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+}
+.hub-btn:hover:not(:disabled) {
+  background: var(--surface-hover);
+}
+.hub-btn:disabled {
+  cursor: default;
+  opacity: 0.5;
+}
+.hub-btn.primary {
+  width: 100%;
+  background: var(--accent);
+  border-color: var(--accent);
+  color: #fff;
+}
+.hub-btn.primary:hover:not(:disabled) {
+  background: var(--accent-strong);
+}
+.hub-btn.confirm {
+  border-color: var(--accent);
+  color: var(--accent-strong);
+}
+.hub-summary {
+  margin: 0 0 2px;
+  font-size: 12px;
+  font-weight: 600;
+  overflow-wrap: anywhere;
+}
+.hub-sync-info {
+  margin: 0 0 10px;
+  font-size: 11px;
+  color: var(--muted);
+  line-height: 1.45;
+}
+.hub-sync-info.warn {
+  color: var(--accent-strong);
+}
+.hub-actions {
+  display: flex;
+  gap: 8px;
+}
+.hub-privacy {
+  margin: 10px 0 0;
+  font-size: 11px;
+  line-height: 1.45;
+  color: var(--muted);
+}
+
+/* ---- locked profile banner ---- */
+.lock-banner {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  margin: -4px 0 12px;
+  padding: 7px 10px;
+  border-radius: 8px;
+  background: var(--accent-soft);
+  color: var(--accent-strong);
+  font-size: 12px;
+  font-weight: 600;
+}
+.lock-banner[hidden] {
+  display: none;
+}
+.lock-banner svg {
+  flex: none;
+}
+.lock-banner span {
+  overflow-wrap: anywhere;
+}
+@media (prefers-color-scheme: dark) {
+  .hub-btn.primary {
+    color: #1a1a1c;
+  }
+}
+
+/* Locked: dim the editing controls like body.paused does (they are truly disabled). */
+body.locked .add-row,
+body.locked .packs,
+body.locked .sites {
+  opacity: 0.45;
+}
+/* Notices (revoked) are sentences, not one-liners: let them wrap. */
+.toast.notice .toast-msg {
+  white-space: normal;
+}

@@ -56,7 +56,7 @@ function paintAllPacks() {
   packsListEl.querySelectorAll(".pack").forEach(paintPack);
 }
 async function togglePack(name) {
-  if (!enabledState) return;
+  if (controlsOff()) return;
   const turningOn = !enabledPacks.includes(name);
   // Optimistic: flip local state + repaint now, reconcile on the storage echo.
   enabledPacks = turningOn
@@ -81,7 +81,7 @@ function renderPacks() {
     b.dataset.packName = pack.name;
     b.dataset.packWords = String(pack.words.length);
     b.dataset.packPreview = pack.words.map(w => w.replace(/^=/, "")).join(", ");
-    b.disabled = !enabledState;
+    b.disabled = controlsOff();
     b.addEventListener("click", () => togglePack(pack.name));
     packsListEl.appendChild(b);
   });

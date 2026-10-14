@@ -80,7 +80,7 @@ function paintSiteOptions() {
   for (const ref of Object.values(siteRefs)) {
     for (const [key, box] of Object.entries(ref.opts)) {
       box.checked = siteOptions[key] === true;
-      box.disabled = !enabledState;
+      box.disabled = controlsOff();
     }
   }
 }
@@ -130,11 +130,11 @@ function buildSiteRow(siteId, initialRaw) {
   }
   label();
   paintMode();
-  mode.disabled = !enabledState;
-  btn.disabled = !enabledState;
+  mode.disabled = controlsOff();
+  btn.disabled = controlsOff();
 
   mode.addEventListener("click", async () => {
-    if (!enabledState) return;
+    if (controlsOff()) return;
     const cur = parseWord(raw);
     const next = composeWord(!cur.whole, cur.text);
     const oldRaw = raw;
@@ -166,7 +166,7 @@ function paintSite(id) {
   ref.count.textContent = words.length ? String(words.length) : "";
   ref.count.classList.toggle("show", words.length > 0);
   // keep newly built rows in step with the on/off state
-  const disabled = !enabledState;
+  const disabled = controlsOff();
   ref.input.disabled = disabled;
   ref.addBtn.disabled = disabled;
   ref.ul.querySelectorAll(".remove, .mode").forEach(b => { b.disabled = disabled; });
@@ -215,7 +215,7 @@ function buildSiteBlock(site) {
     const box = document.createElement("input");
     box.type = "checkbox";
     box.checked = siteOptions[opt.key] === true;
-    box.disabled = !enabledState;
+    box.disabled = controlsOff();
     box.addEventListener("change", () => {
       siteOptions[opt.key] = box.checked;
       api.storage.local.set({ [opt.key]: box.checked });
@@ -257,7 +257,7 @@ function buildSiteBlock(site) {
   });
 
   const doAdd = () => {
-    if (!enabledState) return; // no edits while blocking is paused
+    if (controlsOff()) return; // no edits while blocking is paused
     const val = input.value.trim();
     if (!val) return;
     addSiteWord(site.id, val);
@@ -289,7 +289,7 @@ function renderSites() {
 }
 
 async function addSiteWord(siteId, val) {
-  if (!enabledState) return;
+  if (controlsOff()) return;
   let added = false;
   const result = await queueSiteWrite(prev => {
     const list = (prev[siteId] || []).slice();
@@ -310,7 +310,7 @@ async function addSiteWord(siteId, val) {
 }
 
 async function addManySiteWords(siteId, tokens) {
-  if (!enabledState) return;
+  if (controlsOff()) return;
   const cleaned = (tokens || []).map(t => String(t).trim()).filter(Boolean);
   if (!cleaned.length) return;
   const fresh = [];
@@ -341,7 +341,7 @@ async function addManySiteWords(siteId, tokens) {
 }
 
 async function removeSiteWord(siteId, word, li) {
-  if (!enabledState) return;
+  if (controlsOff()) return;
   li.classList.add("leaving");
   const result = await queueSiteWrite(prev => {
     const list = (prev[siteId] || []).filter(w => w !== word);

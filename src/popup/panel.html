@@ -11,6 +11,7 @@
         <link rel="stylesheet" href="panel-list.css" />
         <link rel="stylesheet" href="panel-packs.css" />
         <link rel="stylesheet" href="panel-sites.css" />
+        <link rel="stylesheet" href="panel-hub.css" />
         <link rel="stylesheet" href="panel-misc.css" />
     </head>
     <body>
@@ -72,6 +73,24 @@
                     </span>
                 </label>
             </div>
+        </div>
+
+        <div class="lock-banner" id="lockBanner" role="status" hidden>
+            <svg
+                width="13"
+                height="13"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2.2"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                aria-hidden="true"
+            >
+                <rect x="5" y="11" width="14" height="9" rx="2"></rect>
+                <path d="M8 11V8a4 4 0 0 1 8 0v3"></path>
+            </svg>
+            <span id="lockText"></span>
         </div>
 
         <div class="onboard" id="onboard" hidden>
@@ -184,6 +203,81 @@
             <div id="sitesList"></div>
         </div>
 
+        <section class="hub" id="hub">
+            <button
+                class="hub-toggle"
+                id="hubToggle"
+                type="button"
+                aria-expanded="false"
+                aria-controls="hubBody"
+            >
+                <span class="hub-dot" id="hubDot" hidden></span>
+                <span class="hub-title">Household hub</span>
+                <svg
+                    class="chev"
+                    width="11"
+                    height="11"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    stroke-width="2.5"
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    aria-hidden="true"
+                >
+                    <polyline points="6 9 12 15 18 9"></polyline>
+                </svg>
+            </button>
+            <div class="hub-body" id="hubBody" hidden>
+                <form class="hub-form" id="hubOffForm" novalidate>
+                    <p class="hub-lead">Connect to a hub</p>
+                    <label class="hub-field">
+                        <span>Hub address</span>
+                        <input
+                            id="hubUrl"
+                            type="url"
+                            inputmode="url"
+                            autocomplete="off"
+                            spellcheck="false"
+                            placeholder="http://hub.<tailnet>.ts.net"
+                        />
+                    </label>
+                    <label class="hub-field">
+                        <span>Code</span>
+                        <input
+                            id="hubCode"
+                            class="hub-code"
+                            type="text"
+                            maxlength="6"
+                            autocomplete="off"
+                            autocapitalize="characters"
+                            spellcheck="false"
+                            placeholder="ABCDEF"
+                        />
+                    </label>
+                    <label class="hub-field">
+                        <span>This device</span>
+                        <input id="hubLabel" type="text" maxlength="60" autocomplete="off" />
+                    </label>
+                    <p class="hub-error" id="hubError" role="alert" hidden></p>
+                    <button class="hub-btn primary" id="hubConnect" type="submit">Connect</button>
+                </form>
+                <div class="hub-connected" id="hubOnView" hidden>
+                    <p class="hub-summary" id="hubSummary"></p>
+                    <p class="hub-sync-info" id="hubSyncInfo" role="status"></p>
+                    <div class="hub-actions">
+                        <button class="hub-btn" id="hubSync" type="button">Sync now</button>
+                        <button class="hub-btn danger" id="hubDisconnect" type="button">
+                            Disconnect
+                        </button>
+                    </div>
+                </div>
+                <p class="hub-privacy">
+                    Hush downloads rules from this hub. It never sends what you read or hide.
+                </p>
+            </div>
+        </section>
+
         <p class="hint">
             Hides matching results on Reddit, X, YouTube &amp; Google. Matching is
             case-insensitive; prefix a word with <strong>=</strong> for
@@ -208,6 +302,7 @@
         <script src="panel-keywords.js"></script>
         <script src="panel-packs.js"></script>
         <script src="panel-sites.js"></script>
+        <script src="panel-hub.js"></script>
         <script src="panel.js"></script>
     </body>
 </html>
