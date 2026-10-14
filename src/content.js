@@ -12,7 +12,8 @@ const api = typeof browser !== "undefined" ? browser : chrome;
 let blockWords = [];   // compiled rules ({needle, re}); see buildRules in lib/words.js
 let enabled = true;
 let hiddenCount = 0;   // posts currently hidden on this tab (drives the badge)
-let ytHomeRedirect = false; // YouTube only: send "/" to /feed/subscriptions (opt-in)
+let localRedirect = false;  // storage `ytHomeRedirect` (opt-in)
+let ytHomeRedirect = false; // combined local || hub flag; YouTube only: send "/" to /feed/subscriptions
 
 const HOST = location.hostname;
 
@@ -163,7 +164,9 @@ function unhideAll() {
 }
 
 function scan() {
-  if (!enabled || !blockWords.length || !selectors.length) return;
+  // `enabled` is folded into blockWords by rebuildRules (a locked hub profile
+  // keeps its rules while paused), so an empty rule set is the off switch.
+  if (!blockWords.length || !selectors.length) return;
   const before = hiddenCount;
   let newlyCounted = 0;
   for (const sel of selectors) {
@@ -194,7 +197,7 @@ function scan() {
 const YT_HOME_TARGET = "/feed/subscriptions";
 const YT_HOME_HOSTS = new Set(["www.youtube.com", "youtube.com", "m.youtube.com"]);
 function maybeRedirectHome() {
-  if (!enabled || !ytHomeRedirect) return false;
+  if (!ytHomeRedirect) return false; // already combined + gated by refreshRedirect()
   if (!YT_HOME_HOSTS.has(HOST) || location.pathname !== "/") return false;
   location.replace(YT_HOME_TARGET);
   return true;
@@ -244,37 +247,96 @@ let customWords = [];
 let enabledPacks = [];
 let siteWords = {}; // { siteId: [raw, ...] }; only this site's slice is applied here
 
+// The hub profile (`hubConfig`, written only by background.js) is a FOURTH source.
+// Its words go through the same engine and are never written into blockWords,
+// enabledPacks or siteWords. Hub rules apply only while hubActive: no quietHours
+// means always, otherwise only inside a window (lib/schedule.js).
+let hub = null;          // last validated DeviceConfig, or null when not paired
+let quietTimer = null;   // single timeout re-armed at the next window edge
+
+function hubActive() {
+  return !!hub && (!hub.quietHours || isQuiet(hub.quietHours, new Date()));
+}
+
+// LOCKED RULE: a locked hub profile keeps filtering even when `enabled` is false in
+// storage (the popup disables the toggle on a locked profile; this is the
+// content-side guarantee). Local rules and an unlocked hub profile follow `enabled`.
+function hubApplies() {
+  return hubActive() && (enabled || hub.locked === true);
+}
+
 // Recompile the active rule set from custom words ∪ enabled-pack words ∪ this
-// site's per-site words. The union, dedupe, and compile all happen in buildRules
-// (lib/words.js); PACKS comes from data/packs.js, loaded just before this file in
-// the same content script (shared isolated-world scope). Guard with typeof in
-// case it's ever absent so matching still works on at least the custom words.
+// site's per-site words ∪ the hub slice. The union, dedupe, and compile all happen
+// in buildRules (lib/words.js); PACKS comes from data/packs.js, loaded just before
+// this file. Guard with typeof in case it's ever absent so matching still works on
+// at least the custom words. Hub packs carry their own words; PACKS isn't consulted.
 function rebuildRules() {
   const packs = (typeof PACKS !== "undefined" && Array.isArray(PACKS)) ? PACKS : [];
   const site = currentSite();
   // Guard against a corrupted/non-array slice so buildRules' spread can't throw
   // and silently disable matching on the page (panel.js guards the same way).
   const mine = (site && Array.isArray(siteWords[site])) ? siteWords[site] : [];
-  blockWords = buildRules(customWords, packs, enabledPacks, mine);
+  const hubSlice = hubApplies() ? {
+    blockWords: hub.blockWords,
+    packs: hub.packs,
+    enabledPacks: hub.enabledPacks,
+    siteWords: (site && hub.siteWords && Array.isArray(hub.siteWords[site])) ? hub.siteWords[site] : [],
+  } : undefined;
+  blockWords = enabled
+    ? buildRules(customWords, packs, enabledPacks, mine, hubSlice)
+    : (hubSlice ? buildRules([], [], [], [], hubSlice) : []);
+  refreshRedirect();
+}
+
+// ytHomeRedirect = local || hub option; local follows `enabled`, hub follows hubApplies.
+function refreshRedirect() {
+  ytHomeRedirect = (enabled && localRedirect) ||
+    (hubApplies() && !!(hub.siteOptions && hub.siteOptions.ytHomeRedirect));
+}
+
+// The standard "rules changed" sequence.
+function reapply() {
+  rebuildRules();
+  unhideAll(); // so removing a word brings content back
+  scan();
+  report(0);
+  armQuietTimer();
+}
+
+// Re-evaluate at the next quiet-hours edge so a window boundary applies without a
+// reload. One timer, cleared on every re-arm / config change.
+function armQuietTimer() {
+  clearTimeout(quietTimer);
+  quietTimer = null;
+  const at = hub && hub.quietHours ? nextBoundary(hub.quietHours, new Date()) : null;
+  if (!at) return;
+  // setTimeout caps near 2^31 ms; a week's windows are always within that.
+  const ms = Math.min(Math.max(at.getTime() - Date.now(), 1000), 2147483647);
+  quietTimer = setTimeout(() => {
+    reapply();
+    maybeRedirectHome();
+  }, ms);
 }
 
 // Let the popup ask how many posts are hidden on this tab, and which site.
 api.runtime.onMessage.addListener((msg) => {
   if (msg && msg.type === "getCount") {
-    return Promise.resolve({ count: hiddenCount, site: currentSite() });
+    return Promise.resolve({ count: hiddenCount, site: currentSite(), managed: !!hub });
   }
   // Return undefined for anything else so we don't claim other listeners'
   // responses (the documented cause of "message port closed" on Firefox).
 });
 
 // Load saved state, then start watching.
-api.storage.local.get(["blockWords", "enabled", "enabledPacks", "siteWords", "ytHomeRedirect"]).then(res => {
+api.storage.local.get(["blockWords", "enabled", "enabledPacks", "siteWords", "ytHomeRedirect", "hubConfig"]).then(res => {
   customWords = res.blockWords || [];
   enabledPacks = res.enabledPacks || [];
   siteWords = res.siteWords || {};
-  rebuildRules();
+  hub = res.hubConfig || null;
   enabled = res.enabled !== false; // default ON
-  ytHomeRedirect = res.ytHomeRedirect === true; // default OFF
+  localRedirect = res.ytHomeRedirect === true; // default OFF
+  rebuildRules(); // after `enabled` and the hub slice are known
+  armQuietTimer();
   if (maybeRedirectHome()) return; // navigating away; don't bother scanning
   report(0); // clear any stale badge from a previous page
   scan();
@@ -291,41 +353,35 @@ api.storage.onChanged.addListener((changes, area) => {
 
   if (changes.enabled) {
     enabled = changes.enabled.newValue !== false;
-    if (!enabled) {
-      unhideAll(); // bring everything back when paused
-      report(0);
-    } else {
-      if (maybeRedirectHome()) return; // un-paused on the YouTube home page
-      scan();
-    }
+    refreshRedirect();
+    if (maybeRedirectHome()) return; // un-paused on the YouTube home page
+    reapply(); // pausing drops local (and unlocked hub) rules; a locked hub keeps its own
   }
 
   if (changes.blockWords) {
     customWords = changes.blockWords.newValue || [];
-    rebuildRules();
-    unhideAll(); // so removing a word brings content back
-    scan();
-    report(0); // refresh the badge after a possible reset (delta handled by scan)
+    reapply();
   }
 
   if (changes.enabledPacks) {
     enabledPacks = changes.enabledPacks.newValue || [];
-    rebuildRules();
-    unhideAll(); // re-hide from scratch with the new pack selection
-    scan();
-    report(0);
+    reapply(); // re-hide from scratch with the new pack selection
   }
 
   if (changes.siteWords) {
     siteWords = changes.siteWords.newValue || {};
-    rebuildRules(); // only this site's slice is folded in (see rebuildRules)
-    unhideAll();    // re-hide from scratch with the new per-site words
-    scan();
-    report(0);
+    reapply(); // only this site's slice is folded in (see rebuildRules)
+  }
+
+  if (changes.hubConfig) {
+    hub = changes.hubConfig.newValue || null; // set, replaced or removed (revoked/disconnected)
+    reapply();
+    maybeRedirectHome();
   }
 
   if (changes.ytHomeRedirect) {
-    ytHomeRedirect = changes.ytHomeRedirect.newValue === true;
+    localRedirect = changes.ytHomeRedirect.newValue === true;
+    refreshRedirect();
     maybeRedirectHome(); // turning it on while sitting on the home page applies immediately
   }
 });

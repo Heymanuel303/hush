@@ -139,3 +139,34 @@ test("buildRules treats an omitted/empty siteWords arg as no per-site words", ()
   assert.deepEqual(a.map(r => r.needle), b.map(r => r.needle));
   assert.deepEqual(a.map(r => r.needle), ["x"]);
 });
+
+test("buildRules hub slice: hub words join the union and compile once", () => {
+  const hub = { blockWords: ["Spoiler", "=cat"], packs: [], enabledPacks: [], siteWords: [] };
+  const rules = buildRules(["spoiler"], [], [], [], hub);
+  assert.deepEqual(rules.map(r => r.needle), ["spoiler", "cat"]);
+  assert.ok(matchesAny("a cat sat", rules));
+  assert.ok(!matchesAny("category", buildRules([], [], [], [], { blockWords: ["=cat"] })));
+});
+
+test("buildRules hub slice: hub pack words come from the hub payload, not local packs", () => {
+  const local = [{ name: "Spoilers", words: ["localonly"] }];
+  const hub = {
+    blockWords: [],
+    packs: [{ name: "Spoilers", words: ["hubonly"] }],
+    enabledPacks: ["Spoilers"],
+    siteWords: [],
+  };
+  // The local pack is NOT enabled locally, so only the hub's words apply.
+  const rules = buildRules([], local, [], [], hub);
+  assert.deepEqual(rules.map(r => r.needle), ["hubonly"]);
+});
+
+test("buildRules hub slice: only the supplied site slice applies", () => {
+  const hub = { siteWords: ["reddit-only"], blockWords: [] };
+  assert.deepEqual(buildRules([], [], [], [], hub).map(r => r.needle), ["reddit-only"]);
+  assert.deepEqual(buildRules([], [], [], [], { blockWords: [], siteWords: [] }), []);
+});
+
+test("buildRules without a hub slice is unchanged", () => {
+  assert.deepEqual(buildRules(["a"], [], [], ["b"]).map(r => r.needle), ["a", "b"]);
+});
