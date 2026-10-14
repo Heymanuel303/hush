@@ -67,7 +67,11 @@ apps/web/                 Vue single-page app (Vite)
   src/components/ui/      shadcn-vue primitives (CLI-generated, restyled once to the direction)
   src/components/layout/  AppShell.vue (header, nav, gutters), HushMark.vue
   src/components/state/   EmptyState, LoadingState, ErrorState
-  src/views/ src/router/ src/stores/
+  src/lib/                api.ts (typed fetch client), utils.ts
+  src/stores/             Pinia stores (auth)
+  src/router/             route table + the global auth guard
+  src/views/              one <Name>View.vue per route (SignInView, stubs for the rest)
+  src/components/layout/  also PageHeader.vue (title, description, action slot)
 packages/contracts/       Zod schemas and inferred types shared by api and web
 e2e/                      Playwright specs
 scripts/                  db-init and the design lint (starter kit)
@@ -142,6 +146,12 @@ in `beforeEach` (it also removes the built-in packs, which return on the next ap
 - **A Vue view with its route:** `apps/web/src/views/<Name>View.vue`, a route in
   `src/router/index.ts`, a nav entry in `AppShell.vue` if it is top level; it renders inside the
   AppShell and handles loading, empty and error with the `components/state` components.
+- **An API call from the web:** a function in `apps/web/src/lib/api.ts` named after the route in
+  `contracts` `ROUTES` (`api.<area>.<verb>`); it parses the response with the contract schema and
+  throws `ApiError {status, error, message, details}` on non-2xx (status 0 = network). Never call
+  `fetch` from a view or store. Edits to a profile's rules pass the version through
+  `api.profiles.putRules(id, version, rules)` (`If-Match`). Views are code-split and public routes
+  (`meta: { public: true }`) render without the AppShell.
 - **A Pinia store:** `apps/web/src/stores/<area>.ts` with `defineStore('<area>', ...)` (setup
   syntax), types from `contracts`, all fetches through the store.
 - **A shadcn-vue primitive:** `cd apps/web && npx shadcn-vue@2 add <name>`, then restyle it to the
