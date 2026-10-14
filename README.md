@@ -93,6 +93,8 @@ serve the same app at <http://hush.localhost>.
 | `SESSION_SECRET`           | _(required)_                                     | signs the session cookie; compose refuses to start without it                                                                 |
 | `ADMIN_EMAIL`              | _(required in production)_                       | email of the single admin account; synced to the database at every api start (dev default `admin@hush.local`)                 |
 | `ADMIN_PASSWORD`           | _(required in production)_                       | password of the admin; re-hashed on start when it changes (dev default `hush-dev-password`)                                   |
+| `HUB_ENCRYPTION_KEY`       | _(required in production)_                       | 32 random bytes, base64 (`openssl rand -base64 32`): encrypts the Pi-hole app password at rest; dev uses a fixed key (warned) |
+| `PIHOLE_TLS_INSECURE`      | `false`                                          | `true` accepts Pi-hole's self-signed HTTPS certificate, for the Pi-hole connection only                                       |
 | `HUB_NAME`                 | `Hush Hub`                                       | name of the hub, returned to devices when they pair                                                                           |
 | `PUBLIC_WEB_URL`           | `http://hush.localhost`                          | public origin of the web app (with `pnpm dev`: `http://localhost:5173`)                                                       |
 | `COOKIE_SECURE`            | `false`                                          | `true` behind HTTPS so the session cookie gets `Secure`                                                                       |

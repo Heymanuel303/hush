@@ -29,8 +29,9 @@ The hub's `apps/`, `packages/`, `e2e/` and `scripts/` form the pnpm workspace. T
   shape and length caps only.
 - `blockWords`, `enabledPacks` and `siteWords` are never folded into one another, on either
   side.
-- One admin account, configured from env. The Pi-hole secret is stored encrypted. Secrets
-  never land in the repository.
+- One admin account, configured from env. The Pi-hole secret is encrypted at rest
+  (`SecretsService`, AES-256-GCM with `HUB_ENCRYPTION_KEY`) and never returned by any route
+  (`hasSecret` only). Secrets never land in the repository.
 - A locked profile makes the popup read-only. The Devices screen says that a device without
   the `policies.json` force-install can remove the extension.
 - Every `RuleSet` write goes through `ProfileVersionService` inside a transaction; never write
@@ -63,10 +64,12 @@ apps/api/                 NestJS API, every route under the global prefix /api
   src/packs/              PacksSeed: upserts the built-in packs on bootstrap
   src/profiles/           profiles API (If-Match rule-set writes) + ProfileVersionService (the one Profile.version bump)
   src/devices/            pairing codes, POST /devices/pair, devices admin, DeviceGuard + GET /device/config (ETag)
+  src/pihole/             Pi-hole connection routes, PiholeClient (one session per process), summary cache
+  src/common/             Zod pipes, SecretsService (encrypt/decrypt with HUB_ENCRYPTION_KEY)
   src/templates/          TEMPLATES constant (young-kid, teen, calm-adult), served by GET /api/templates
   src/generated/          Prisma client output (git-ignored, `pnpm --filter api generate`)
   prisma/                 schema.prisma and migrations/; prisma.config.ts reads DATABASE_URL
-  test/                   db.ts harness (createTestApp, resetDb), schema.spec.ts, *.e2e-spec.ts
+  test/                   db.ts harness (createTestApp, resetDb), fake-pihole.ts (startFakePihole), schema.spec.ts, *.e2e-spec.ts
 apps/web/                 Vue single-page app (Vite)
   src/assets/theme.css    every design token (light + dark), imported once in main.ts
   src/components/ui/      shadcn-vue primitives (CLI-generated, restyled once to the direction)
@@ -206,7 +209,12 @@ replica; anything that must be shared goes through the database.
   The client IP is the first `X-Forwarded-For` entry: Caddy overwrites the header with the real
   peer, and nginx appends the Caddy address after it (the last entry is the same for everyone).
 - Kid-mode schedules run only in the `worker` service, gated by `WORKER_ENABLED`.
-- Each api or worker process holds its own Pi-hole session id.
+- Each api or worker process holds its own Pi-hole session id (`PiholeClient`: one sid per
+  process, renewed before `validity` runs out, re-authenticated once on 401, `DELETE /api/auth`
+  on shutdown and when the stored connection changes). Pi-hole's default of 16 sessions is ample
+  for api + worker; a 429 surfaces as `pihole_no_seats`.
+- The `GET /api/pihole/summary` result is cached in memory for 30 s per replica, and dropped when
+  the connection changes.
 
 ## Deployment
 
