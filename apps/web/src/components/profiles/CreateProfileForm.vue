@@ -5,6 +5,7 @@ import { CAPS, TemplateId } from 'contracts'
 import type { ProfileWithRules } from 'contracts'
 import { ApiError } from '@/lib/api'
 import { useProfilesStore } from '@/stores/profiles'
+import ErrorState from '@/components/state/ErrorState.vue'
 import { Button } from '@/components/ui/button'
 import { Checkbox } from '@/components/ui/checkbox'
 import { Input } from '@/components/ui/input'
@@ -29,13 +30,21 @@ const saving = ref(false)
 
 const template = computed(() => store.templates.find((t) => t.id === choice.value))
 
-onMounted(async () => {
+const loadingTemplates = ref(true)
+
+async function loadTemplates() {
+  loadError.value = ''
+  loadingTemplates.value = true
   try {
     await store.loadTemplates()
   } catch (e) {
     loadError.value = e instanceof ApiError ? e.message : 'Templates could not be loaded.'
+  } finally {
+    loadingTemplates.value = false
   }
-})
+}
+
+onMounted(loadTemplates)
 
 watch(choice, () => {
   locked.value = template.value?.locked ?? false
@@ -87,7 +96,7 @@ async function submit() {
 
     <div class="flex min-w-0 flex-col gap-1.5">
       <Label for="profile-template">Template</Label>
-      <Select v-model="choice">
+      <Select v-model="choice" :disabled="loadingTemplates">
         <SelectTrigger id="profile-template" class="w-full">
           <SelectValue />
         </SelectTrigger>
@@ -101,7 +110,12 @@ async function submit() {
       <p class="text-muted-foreground text-sm">
         {{ template ? template.description : 'No words, packs or schedule.' }}
       </p>
-      <p v-if="loadError" role="alert" class="text-destructive text-sm">{{ loadError }}</p>
+      <p v-if="loadingTemplates" role="status" class="text-muted-foreground text-sm">Loading templates…</p>
+      <ErrorState v-if="loadError" title="Templates did not load" :message="loadError">
+        <template #retry>
+          <Button type="button" variant="outline" size="sm" @click="loadTemplates">Try again</Button>
+        </template>
+      </ErrorState>
     </div>
 
     <div class="flex items-center gap-2">

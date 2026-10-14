@@ -2,6 +2,7 @@
 import { computed, onBeforeUnmount, onMounted, ref } from 'vue'
 import { Check, Copy, LoaderCircle } from '@lucide/vue'
 import type { PairingCode } from 'contracts'
+import ErrorState from '@/components/state/ErrorState.vue'
 import { Button } from '@/components/ui/button'
 import { Label } from '@/components/ui/label'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
@@ -101,10 +102,18 @@ onBeforeUnmount(stopTimers)
 <template>
   <div class="flex min-w-0 flex-col gap-4">
     <p class="text-muted-foreground text-sm">
-      {{ code ? `The device will follow ${profileName ?? 'the chosen profile'}.` : 'Choose the profile this browser should follow.' }}
+      {{ code ? `The device will follow ${profileName ?? 'the chosen profile'}.` : profileId ? '' : 'Choose the profile this browser should follow.' }}
     </p>
+    <div v-if="!code && profileId" class="flex min-w-0 flex-col gap-4">
+      <ErrorState v-if="error" title="No code yet" :message="error">
+        <template #retry>
+          <Button type="button" variant="outline" size="sm" :disabled="creating" @click="makeCode(profileId)">Try again</Button>
+        </template>
+      </ErrorState>
+      <p v-else role="status" class="text-muted-foreground text-sm">Making the pairing code…</p>
+    </div>
     <form
-      v-if="!code"
+      v-else-if="!code"
       class="flex min-w-0 flex-col gap-4"
       novalidate
       @submit.prevent="chosen && makeCode(chosen)"
