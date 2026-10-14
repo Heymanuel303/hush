@@ -261,8 +261,20 @@ and `SITES` must stay top-level `const`s.
   `getSelectors()` returns per-site post-unit selectors; a `MutationObserver` rescans on every
   DOM change. Reports hidden counts to the background. `maybeRedirectHome()` implements
   `ytHomeRedirect`.
-- **`src/background.js`** — non-persistent event page. Owns the per-tab badge and the persisted
-  all-time total. Loads no lib. `seedFromManaged()` copies `storage.managed` defaults into
+- **`src/lib/hubsync.js`** — pure, guarded, tested. `decideSync({status, body, etag, previous, now, siteIds, validate?})`
+  → `{hubConfig, hubStatus, clearHub}`: the hub failure table. 200 valid → store config + etag;
+  200 invalid → keep previous, `invalid`; 304 → `lastSync` only; 401 → drop `hub`+`hubConfig`,
+  `revoked` (device falls back to local config); network/5xx → keep everything, `offline`
+  (`offlineSince` set once). A failure never clears `locked` or the config.
+- **`src/background.js`** — non-persistent event page. Owns the per-tab badge, the persisted
+  all-time total and the **hub client**: the only place that talks to the hub and the only writer
+  of the hub keys (on its own serialized `syncChain`, beside `writeChain`). Messages `hubPair`,
+  `hubSync`, `hubDisconnect`; sync runs on the 15-minute `hub-sync` alarm, on `onInstalled`/
+  `onStartup`, and on any wake when `hubStatus.lastAttempt` is older than 5 minutes (10 s fetch
+  timeout, conditional GET with `If-None-Match`). Loads `lib/words.js`, `hubconfig.js`,
+  `hubsync.js`, `data/sites.js` (Firefox `background.scripts`; Chrome `importScripts`).
+  The extension fetches only from the hub origin the user named, config only, never uploads.
+  `seedFromManaged()` copies `storage.managed` defaults into
   `storage.local` once, only when `blockWords` is undefined and `seededFromManaged` is unset.
 - **`src/popup/`** — toggle, counts with a time-saved estimate, keyword editor, starter packs and
   advanced mode. `panel-core.js` holds the shim, DOM refs and shared state `let`s; each feature
@@ -279,7 +291,7 @@ and `SITES` must stay top-level `const`s.
 
 State in `storage.local`: `blockWords` (custom words only), `enabledPacks` (default `[]`),
 `siteWords` (`{siteId: [raw,...]}`, default `{}`), `enabled` (default ON), `advanced` (default
-OFF), `ytHomeRedirect` (default OFF), `lifetimeHidden`, `seenOnboarding`, `seededFromManaged`.
+OFF), `ytHomeRedirect` (default OFF), `lifetimeHidden`, `seenOnboarding`, `seededFromManaged`, plus the hub keys: `hub` (`{url, deviceId, token, profileName, hubName, pairedAt}`), `hubConfig` (last validated `DeviceConfig` + `etag`) and `hubStatus` (`{lastSync, lastAttempt, error: null|'offline'|'invalid'|'revoked', offlineSince, revokedAt}`) — **written only by `background.js`** on `syncChain`; the popup and content script only read them.
 All three contexts react live to `storage.onChanged`.
 
 ### How to add work

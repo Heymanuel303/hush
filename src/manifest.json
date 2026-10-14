@@ -5,7 +5,11 @@
     "description": "Hide Reddit posts, X tweets, YouTube videos, and Google results that mention words you choose.",
     "permissions": [
         "storage",
-        "tabs"
+        "tabs",
+        "alarms"
+    ],
+    "optional_host_permissions": [
+        "*://*/*"
     ],
     "action": {
         "default_popup": "popup/panel.html",
@@ -14,6 +18,10 @@
     "background": {
         "service_worker": "background.js",
         "scripts": [
+            "lib/words.js",
+            "lib/hubconfig.js",
+            "lib/hubsync.js",
+            "data/sites.js",
             "background.js"
         ]
     },
@@ -84,7 +92,7 @@
     "browser_specific_settings": {
         "gecko": {
             "id": "word-block@emmanueljanssens.dev",
-            "strict_min_version": "115.0",
+            "strict_min_version": "128.0",
             "data_collection_permissions": {
                 "required": [
                     "none"
@@ -92,7 +100,7 @@
             }
         },
         "gecko_android": {
-            "strict_min_version": "120.0"
+            "strict_min_version": "128.0"
         }
     }
 }
