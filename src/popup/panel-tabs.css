@@ -21,11 +21,11 @@
   top: 0;
   z-index: 2;
   display: flex;
-  gap: 2px;
+  gap: 4px;
   /* Span the body's 16px padding so scrolled content never shows beside the bar. */
   margin: 0 -16px 12px;
   padding: 8px 16px;
-  background: var(--bg);
+  background: var(--surface);
   border-bottom: 1px solid transparent;
 }
 .tabs.stuck {
@@ -41,8 +41,8 @@
   height: 32px;
   padding: 0 4px;
   border: 1px solid transparent;
-  border-radius: 6px;
-  background: var(--surface);
+  border-radius: var(--r);
+  background: transparent;
   color: var(--muted);
   font: inherit;
   font-size: 13px;
@@ -77,11 +77,15 @@ html.mobile [role="tab"] {
   display: none;
 }
 .tab-dot[data-state="synced"] {
-  background: var(--accent);
+  background: var(--ok);
+}
+.tab-dot[data-state="offline"],
+.tab-dot[data-state="invalid"] {
+  background: var(--warn);
 }
 .tab-dot[data-state="revoked"] {
   background: transparent;
-  border: 1.5px solid var(--muted);
+  border: 2px solid var(--bad);
 }
 
 /* Inside the tab label the hidden state text stays inline (zero-size text) so the
