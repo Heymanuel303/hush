@@ -16,7 +16,7 @@ function hubDisplayName() {
 }
 
 /* ---------------- paint ---------------- */
-// One paint for every state; CSS keys off `data-hub-state` on the panel.
+// One paint for every state; `data-hub-state` on the panel names it (visibility is toggled here).
 function hubStateName() {
   const err = hubStatusState && hubStatusState.error;
   if (!hubState) {
@@ -57,22 +57,23 @@ function paintHub() {
   const line = syncInfoText();
   hubSyncInfoEl.textContent = line;
   hubSyncInfoEl.hidden = !line;
-  hubSyncInfoEl.classList.toggle("warn", state === "offline" || state === "invalid");
+  hubSyncInfoEl.classList.toggle("warn", !!st.error && st.error !== "revoked");
   hubDisconnectBtn.hidden = lockedState;
   hubLockedNoteEl.hidden = !lockedState;
 }
 let quietTimer;
-function timeOnly(d) {
-  return d.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
+function timeOnly(d, timeZone) {
+  return d.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit", timeZone });
 }
 function quietText(now = new Date()) {
   const q = hubConfigState && hubConfigState.quietHours;
   if (!q || !q.windows || !q.windows.length) return { text: "Hub rules apply all day", next: null };
   const next = nextBoundary(q, now);
   if (!next) return { text: "Hub rules apply all day", next: null };
-  const tz = q.timezone && q.timezone !== Intl.DateTimeFormat().resolvedOptions().timeZone
-    ? ` (${q.timezone})` : "";
-  const t = timeOnly(next) + tz;
+  // The zone label and the clock time must agree: name the profile's zone only when
+  // the time is shown in it.
+  const foreign = q.timezone && q.timezone !== Intl.DateTimeFormat().resolvedOptions().timeZone;
+  const t = foreign ? `${timeOnly(next, q.timezone)} (${q.timezone})` : timeOnly(next);
   return {
     text: isQuiet(q, now) ? `Hub rules apply now, until ${t}` : `Hub rules start at ${t}`,
     next,

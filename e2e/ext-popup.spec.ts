@@ -15,7 +15,7 @@ const CFG = {
 // 2026-10-12 is a Monday; a UTC window 09:00-17:00 on Mondays (cases.json "plain window").
 const WINDOW = { timezone: 'UTC', windows: [{ days: [1], start: '09:00', end: '17:00' }] };
 
-async function open(page: Page, seed: Seed, now?: string) {
+async function open(page: Page, seed: Seed, now?: string, clickTab = true) {
   await page.addInitScript(
     ([seedJson, nowIso]) => {
       if (nowIso) {
@@ -57,7 +57,7 @@ async function open(page: Page, seed: Seed, now?: string) {
     [JSON.stringify(seed), now ?? null],
   );
   await page.goto(POPUP);
-  await page.locator('#tab-household').click();
+  if (clickTab) await page.locator('#tab-household').click();
 }
 
 const PRIVACY = 'Hush downloads rules from this hub. It never sends what you read or hide.';
@@ -164,7 +164,8 @@ test('sync sends hubSync; disconnect needs a second press', async ({ page }) => 
 });
 
 test('a locked hub profile renders the popup read-only', async ({ page }) => {
-  await open(page, { blockWords: ['local'], hub: HUB, hubConfig: { ...CFG, locked: true, blockWords: ['prank'] }, hubStatus: synced });
+  await open(page, { blockWords: ['local'], hub: HUB, hubConfig: { ...CFG, locked: true, blockWords: ['prank'] }, hubStatus: synced }, undefined, false);
+  await expect(page.locator('#tab-household')).toHaveAttribute('aria-selected', 'true');
   await expect(page.locator('#lockBanner')).toContainText('Managed by Home hub');
   await expect(page.locator('#word')).toBeDisabled();
   await expect(page.locator('#toggle')).toBeDisabled();
@@ -172,6 +173,22 @@ test('a locked hub profile renders the popup read-only', async ({ page }) => {
   await expect(page.locator('#hubDisconnect')).toBeHidden();
   await expect(page.locator('#hubLockedNote')).toHaveText('To release this browser, revoke it on the hub.');
   await expect(page.locator('#hubSync')).toBeEnabled();
+});
+
+test('locked and offline keeps the warn style', async ({ page }) => {
+  await open(page, { hub: HUB, hubConfig: { ...CFG, locked: true }, hubStatus: { ...synced, error: 'offline' } });
+  await expect(page.locator('#panel-household')).toHaveAttribute('data-hub-state', 'locked');
+  await expect(page.locator('#hubSyncInfo')).toHaveClass(/warn/);
+});
+
+test.describe('profile in another time zone', () => {
+  test.use({ timezoneId: 'Europe/London', locale: 'en-US' });
+  test('quiet-hours time is shown in the profile zone it names', async ({ page }) => {
+    // Mon 18:00Z = 14:00 in New York (EDT); the window ends 17:00 there.
+    const q = { timezone: 'America/New_York', windows: [{ days: [1], start: '09:00', end: '17:00' }] };
+    await open(page, { hub: HUB, hubConfig: { ...CFG, quietHours: q }, hubStatus: synced }, '2026-10-12T18:00:00+00:00');
+    await expect(page.locator('#hubQuiet')).toHaveText('Hub rules apply now, until 05:00 PM (America/New_York)');
+  });
 });
 
 test('screenshots of every state', async ({ page }) => {
