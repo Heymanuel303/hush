@@ -32,12 +32,12 @@ works.
 **Starter packs.** Switch on a ready-made bundle (Spoilers, Politics, Crypto, Sports, Celebrity,
 Search Spam). Packs are on/off switches; their words never clutter your own list.
 
-**Advanced mode.** The Advanced switch reveals a per-site editor: words added there apply on one
-site only (Reddit, X, YouTube or Google), on top of your list and packs. The YouTube block can
-also open your Subscriptions feed instead of the home page.
+**Sites.** The Sites tab holds a per-site editor: words added there apply on one site only
+(Reddit, X, YouTube or Google), on top of your list and packs. The YouTube block can also open
+your Subscriptions feed instead of the home page.
 
 **Household hub (optional).** If someone in your household runs the self-hosted Hush Household
-Hub on a home server, you can connect Hush to it from the Advanced view with a six-character
+Hub on a home server, open the **Household** tab to connect Hush to it with a six-character
 code. Hush then downloads that profile's words and settings from the hub address you entered,
 every 15 minutes. A profile can be locked, which makes the popup read-only. Without a hub, Hush
 works entirely on its own; nothing about the hub is required.
