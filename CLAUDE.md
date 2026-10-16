@@ -11,6 +11,7 @@ A privacy-setup monorepo. The core is **Hush**, a cross-browser (Firefox + Chrom
 - `src/` — everything that ships in the extension (the `web-ext` source dir):
   - `manifest.json`, `background.js`, `content.js`
   - `popup/` — `panel.html` plus per-feature classic scripts and stylesheets that share one global scope (see the popup bullet under Architecture). JS: `panel-core.js` (api shim + DOM refs + shared state) → `panel-keywords.js` → `panel-packs.js` → `panel-sites.js` → `panel-hub.js` (hub section + locked UI) → `panel.js` (entry/init, loaded **last**). CSS: `panel-theme.css` (loaded **first**) → `panel-header.css` → `panel-hero.css` → `panel-list.css` → `panel-packs.css` → `panel-sites.css` → `panel-hub.css` → `panel-misc.css`
+  - `popup/fonts/` — bundled Atkinson Hyperlegible Next (OFL-1.1, licence alongside)
   - `lib/` — `words.js` (matching engine + the `=` whole-word convention), `format.js` (number/duration formatting), `schedule.js` (quiet hours), `hubconfig.js` (hub config validator)
   - `data/` — `packs.js` (starter-pack definitions) + `sites.js` (the curated site registry: `SITES` + `siteIdForHost`)
 - `test/` — `node --test` unit tests (run with `pnpm ext:test`) for the pure logic in `src/lib/` and `src/data/`
