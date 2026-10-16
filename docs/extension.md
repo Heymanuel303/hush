@@ -25,13 +25,14 @@ bundler, no runtime dependencies, and nothing ever leaves your browser.
 - **Starter packs** — toggle on a curated bundle (Spoilers, Politics, Crypto,
   Sports, Celebrity, Search Spam). They're persistent on/off switches that never
   clutter your custom list. Edit them in [`src/data/packs.js`](../src/data/packs.js).
-- **Advanced mode** — flip the accent-colored **Advanced** toggle to recolor the
-  panel and reveal a per-site editor. Words you add there block **only** on that
-  site (Reddit, X, YouTube, or Google), layered on top of your global list and any
-  packs. The supported sites are curated in
+- **Sites** — the **Sites** tab holds a per-site editor. Words you add under a site
+  block **only** on that site (Reddit, X, YouTube, or Google), layered on top of your
+  global list and any packs. The supported sites are curated in
   [`src/data/sites.js`](../src/data/sites.js). The YouTube block also has a switch
   to **open Subscriptions instead of the home page** — `youtube.com/` (and the
   logo) go straight to your Subscriptions feed.
+- **Household** — the **Household** tab connects Hush to a Household Hub that sends this
+  browser a profile (see [Household hub](#household-hub)).
 - **Hidden-post counter** — a toolbar badge shows how many posts are hidden on the
   current tab; the popup shows that plus a persisted **all-time total** and an
   estimate of time saved.
@@ -103,6 +104,7 @@ Notes:
   "category". Prefix with `=` for **whole-word** matching.
 - On X, block a **user** by adding their handle, e.g. `@someuser` — the handle
   appears in the tweet's text.
+- The popup remembers the last tab you used. **Left** and **Right** arrow keys switch tabs.
 - The all-time total counts each post once per page load; reloading and re-hiding
   the same posts adds to the total again.
 
@@ -114,6 +116,9 @@ src/
 ├── background.js        # event page: toolbar badge + persisted all-time total
 ├── content.js           # injected into sites: hides matching posts, reports counts
 ├── popup/               # toolbar popup (html / css / js)
+│   ├── panel-tabs.js    #   Words / Sites / Household tab bar
+│   ├── panel-tabs.css
+│   └── fonts/           #   bundled Atkinson Hyperlegible Next (OFL-1.1)
 ├── lib/                 # shared, testable logic: matching engine, formatters,
 │                        #   schedule.js (quiet hours), hubconfig.js (hub config validator),
 │                        #   hubsync.js (hub sync decision table)
@@ -152,15 +157,17 @@ Hush works entirely on its own and makes no network request.
 
 ### Connect
 
-1. In the popup, turn on **Advanced** and open **Household hub** (below the per-site words).
+1. In the popup, open the **Household** tab.
 2. Enter the hub address (for example `http://hub.tail1234.ts.net` or
    `https://hub.tail1234.ts.net`), the six-character code shown by the hub's **Pair device**
    dialog (it lives ten minutes) and a name for this device, then **Connect**.
 3. The browser asks for permission to reach that one address. This is the only time Hush asks
    for a host permission, and only for the origin you typed, never at install.
 
-Once connected, the section shows the hub and profile names, the last sync, **Sync now** and
-**Disconnect**. Hush fetches the profile's config on a 15-minute alarm, when the browser
+Once connected, the tab shows a card with the profile name, "from <hub> · synced …" and a
+quiet-hours line: "Hub rules apply now, until 07:00", "Hub rules start at 21:00" or "Hub rules
+apply all day". Below it are **Sync now** and **Disconnect** (press once, then "Press again to
+disconnect"). Hush fetches the profile's config on a 15-minute alarm, when the browser
 starts, and whenever the extension wakes more than five minutes after the last attempt, with a
 conditional request so an unchanged profile costs one `304`. An edit on the hub reaches the
 device within one alarm tick, or at once with **Sync now**.
@@ -172,21 +179,24 @@ applies all the time.
 
 ### Locked profiles
 
-If the profile is **locked**, the popup becomes read-only under a "Managed by <hub>" banner
-(lists stay visible), and the hub's rules apply even when Hush is switched off. A locked device
-cannot disconnect itself: Disconnect is disabled, and the hub releases the device when it is
-revoked there. A lock stops casual edits in the popup; it does not stop someone removing Hush
+If the profile is **locked**, the popup opens on the **Household** tab and becomes read-only
+under a "Managed by <hub>" banner (lists stay visible), and the hub's rules apply even when Hush
+is switched off. A locked device cannot disconnect itself: the tab shows "To release this
+browser, revoke it on the hub." in place of Disconnect, and the hub releases the device when it
+is revoked there. A lock stops casual edits in the popup; it does not stop someone removing Hush
 unless a browser policy force-installs it (see
 [`browser/firefox/policies.json`](../browser/firefox/policies.json)).
 
 ### Offline, invalid and revoked
 
 - **Hub unreachable** (off the tailnet, server down, a 5xx): Hush keeps the last config it
-  received, lock included, and retries on the next tick. The section shows since when it has
-  been offline.
-- **Invalid config** (fails Hush's own validation): the previous config stays in force.
+  received, lock included, and retries on the next tick. The status line reads "Can't reach
+  <hub>. Using the rules from <time>."
+- **Invalid config** (fails Hush's own validation): the previous config stays in force. The
+  status line reads "The hub sent rules Hush can't use. Keeping the last good set."
 - **Revoked** (the device was removed on the hub): Hush says so once, drops the hub's rules and
-  goes back to your own words.
+  goes back to your own words. The tab reads "This browser was removed from <hub>. Your own
+  words still work."
 
 ### Disconnect
 
@@ -202,7 +212,7 @@ ESR.
 
 ### Android
 
-On Firefox for Android the popup opens as a full page; the Household hub section is the same.
+On Firefox for Android the popup opens as a full page; the Household tab is the same.
 The permission prompt for the hub address appears from Firefox 128. Phones that leave the house
 keep syncing as long as Tailscale is on, since the hub is reached over the tailnet; off the
 tailnet, Hush keeps the last config (see Offline above).
@@ -235,3 +245,6 @@ Run `pnpm ext:test` before opening a pull request.
 ## License
 
 [MIT](../LICENSE) © Emmanuel Janssens
+
+The bundled font, Atkinson Hyperlegible Next, is under the SIL Open Font License 1.1; its licence
+text is in `src/popup/fonts/LICENSE.txt`.
