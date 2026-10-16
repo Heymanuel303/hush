@@ -1,7 +1,7 @@
 {
     "manifest_version": 3,
     "name": "Hush",
-    "version": "1.11",
+    "version": "1.12",
     "description": "Hide Reddit posts, X tweets, YouTube videos and Google results that mention words you choose, optionally from your household hub.",
     "permissions": [
         "storage",
