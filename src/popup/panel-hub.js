@@ -16,22 +16,78 @@ function hubDisplayName() {
 }
 
 /* ---------------- paint ---------------- */
+// One paint for every state; CSS keys off `data-hub-state` on the panel.
+function hubStateName() {
+  const err = hubStatusState && hubStatusState.error;
+  if (!hubState) {
+    if (hubBusy) return "connecting";
+    return err === "revoked" ? "revoked" : "off";
+  }
+  if (lockedState) return "locked";
+  if (err === "offline" || err === "invalid") return err;
+  return "on";
+}
 function paintHub() {
   const connected = !!hubState;
   if (connected && hubState.hubName) lastHubName = hubState.hubName;
+  const state = hubStateName();
+  hubPanelEl.dataset.hubState = state;
   hubOffForm.hidden = connected;
   hubOnView.hidden = !connected;
-
-  const err = hubStatusState && hubStatusState.error;
-  const degraded = err === "offline" || err === "invalid";
   paintTabDot();
 
-  if (!connected) return;
-  hubSummaryEl.textContent =
-    `Connected to ${hubState.hubName} · profile ${hubState.profileName}`;
-  hubSyncInfoEl.textContent = syncInfoText();
-  hubSyncInfoEl.classList.toggle("warn", degraded);
+  hubConnectBtn.disabled = hubBusy;
+  hubConnectBtn.textContent = hubBusy ? "Connecting…" : "Connect";
+  const revoked = state === "revoked";
+  hubRevokedLineEl.hidden = !revoked;
+  hubRevokedLineEl.textContent = revoked
+    ? `This browser was removed from ${hubDisplayName()}. Your own words still work.` : "";
+  hubHelpEl.textContent = revoked
+    ? "To rejoin, get a new code on the hub."
+    : "Get a code on the hub: Devices → Pair a device. It expires in 10 minutes.";
+
+  if (!connected) { clearTimeout(quietTimer); return; }
+  const st = hubStatusState || {};
+  hubSummaryEl.textContent = hubState.profileName;
+  hubFromEl.textContent = st.lastSync
+    ? `from ${hubState.hubName} · synced ${formatAgo(st.lastSync)}`
+    : `from ${hubState.hubName} · not synced yet`;
+  paintQuiet();
+  hubPausedEl.hidden = enabledState || lockedState;
+  const line = syncInfoText();
+  hubSyncInfoEl.textContent = line;
+  hubSyncInfoEl.hidden = !line;
+  hubSyncInfoEl.classList.toggle("warn", state === "offline" || state === "invalid");
+  hubDisconnectBtn.hidden = lockedState;
+  hubLockedNoteEl.hidden = !lockedState;
 }
+let quietTimer;
+function timeOnly(d) {
+  return d.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
+}
+function quietText(now = new Date()) {
+  const q = hubConfigState && hubConfigState.quietHours;
+  if (!q || !q.windows || !q.windows.length) return { text: "Hub rules apply all day", next: null };
+  const next = nextBoundary(q, now);
+  if (!next) return { text: "Hub rules apply all day", next: null };
+  const tz = q.timezone && q.timezone !== Intl.DateTimeFormat().resolvedOptions().timeZone
+    ? ` (${q.timezone})` : "";
+  const t = timeOnly(next) + tz;
+  return {
+    text: isQuiet(q, now) ? `Hub rules apply now, until ${t}` : `Hub rules start at ${t}`,
+    next,
+  };
+}
+function paintQuiet() {
+  clearTimeout(quietTimer);
+  const { text, next } = quietText();
+  hubQuietEl.textContent = text;
+  if (next) {
+    // Re-run when a window edge passes while the popup stays open.
+    quietTimer = setTimeout(paintQuiet, Math.max(1000, next.getTime() - Date.now() + 500));
+  }
+}
+window.addEventListener("pagehide", () => clearTimeout(quietTimer));
 // "14:05" today, "12 Oct, 14:05" otherwise.
 function clockTime(ts) {
   const d = new Date(ts);
@@ -43,12 +99,12 @@ function clockTime(ts) {
 function syncInfoText() {
   const st = hubStatusState || {};
   if (st.error === "offline") {
-    return `Offline since ${st.offlineSince ? clockTime(st.offlineSince) : "the last sync"}, using the last rules`;
+    return `Can't reach ${hubState.hubName}. Using the rules from ${st.offlineSince ? clockTime(st.offlineSince) : "the last sync"}.`;
   }
   if (st.error === "invalid") {
-    return "The hub sent an invalid configuration; keeping the previous one";
+    return "The hub sent rules Hush can't use. Keeping the last good set.";
   }
-  return st.lastSync ? `Last sync ${formatAgo(st.lastSync)}` : "Not synced yet";
+  return "";
 }
 
 /* ---------------- connect ---------------- */
@@ -89,7 +145,7 @@ function connectHub() {
   }
   showHubError("");
   hubBusy = true;
-  hubConnectBtn.disabled = true;
+  paintHub();
   // Chrome only grants this when it is called synchronously inside the click
   // handler, before any await — so it is the first async call here.
   const asking = api.permissions.request({ origins: [origin + "/*"] });
@@ -119,7 +175,7 @@ async function finishConnect(asking, origin, code, label) {
     applyHubKeys(s);
   } finally {
     hubBusy = false;
-    hubConnectBtn.disabled = false;
+    paintHub();
   }
 }
 hubConnectBtn.addEventListener("click", connectHub);
@@ -144,6 +200,8 @@ hubLabelEl.value = defaultDeviceLabel();
 hubSyncBtn.addEventListener("click", async () => {
   hubSyncBtn.disabled = true;
   hubSyncInfoEl.textContent = "Syncing…";
+  hubSyncInfoEl.hidden = false;
+  hubSyncInfoEl.classList.remove("warn");
   try {
     await api.runtime.sendMessage({ type: "hubSync" });
   } catch { /* the status below shows the outcome */ }
@@ -159,7 +217,7 @@ hubDisconnectBtn.addEventListener("click", async () => {
   if (!disconnectArmed) {
     disconnectArmed = true;
     hubDisconnectBtn.classList.add("confirm");
-    hubDisconnectBtn.textContent = "Disconnect?";
+    hubDisconnectBtn.textContent = "Press again to disconnect";
     disconnectTimer = setTimeout(disarmDisconnect, 2500);
     return;
   }
@@ -184,7 +242,8 @@ function setLockedUI(locked) {
   lockedState = locked;
   document.body.classList.toggle("locked", locked);
   lockBannerEl.hidden = !locked;
-  hubDisconnectBtn.disabled = locked;
+  hubDisconnectBtn.hidden = locked;
+  hubLockedNoteEl.hidden = !locked;
   if (locked) disarmDisconnect();
   if (locked) lockTextEl.textContent = `Managed by ${hubDisplayName()}`;
   applyEnabledUI(enabledState); // re-runs setControlsDisabled
@@ -199,7 +258,7 @@ function maybeShowRevoked() {
   const at = st.revokedAt || 1;
   api.storage.local.get("hubRevokedSeen").then(({ hubRevokedSeen }) => {
     if (hubRevokedSeen === at) return;
-    showNotice(`This device was removed from ${hubDisplayName()}. Using your local words.`, () => {
+    showNotice(`This browser was removed from ${hubDisplayName()}. Your own words still work.`, () => {
       api.storage.local.set({ hubRevokedSeen: at });
     });
   });

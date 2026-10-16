@@ -27,6 +27,7 @@ function applyEnabledUI(enabled) {
   document.body.classList.toggle("paused", !enabled);
   setControlsDisabled(controlsOff());
   tabLabelForState(enabled);
+  paintHub();
 }
 // Truly disable operable controls while paused so the dimmed look qualifies for
 // the WCAG inactive-component exemption (the hero stats are non-interactive).
