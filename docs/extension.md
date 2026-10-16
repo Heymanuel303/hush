@@ -123,6 +123,7 @@ src/
 │                        #   schedule.js (quiet hours), hubconfig.js (hub config validator),
 │                        #   hubsync.js (hub sync decision table)
 └── data/                # local data: packs.js (starter packs) + sites.js (site registry)
+docs/screens/popup/     # light/dark popup screenshots + README (regenerate with POPUP_SCREENS=1)
 test/                    # node --test unit tests
 ```
 
