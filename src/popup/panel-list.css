@@ -5,8 +5,8 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
-  margin-bottom: 6px;
-  height: 18px;
+  margin-bottom: 8px;
+  height: 20px;
 }
 .list-title {
   display: flex;
@@ -14,21 +14,19 @@
   gap: 6px;
 }
 .list-title span:first-child {
-  font-size: 10px;
-  font-weight: 700;
-  letter-spacing: 0.6px;
-  text-transform: uppercase;
+  font-size: 12px;
+  font-weight: 600;
   color: var(--muted);
 }
 #count {
   display: none;
   min-width: 18px;
   text-align: center;
-  padding: 1px 6px;
-  border-radius: 999px;
+  padding: 0 8px;
+  border-radius: var(--r);
   background: var(--accent-soft);
   color: var(--accent-strong);
-  font-size: 10px;
+  font-size: 11px;
   font-weight: 600;
 }
 #count.show {
@@ -39,10 +37,10 @@
   border: none;
   background: none;
   cursor: pointer;
-  font-size: 11px;
+  font-size: 12px;
   color: var(--muted);
-  padding: 2px 4px;
-  border-radius: 6px;
+  padding: 4px;
+  border-radius: var(--r);
   transition:
     color 120ms ease,
     background 120ms ease;
@@ -75,13 +73,13 @@
 }
 #list::-webkit-scrollbar-thumb {
   background: var(--border);
-  border-radius: 4px;
+  border-radius: var(--r);
 }
 li.row {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 8px 4px 8px 10px;
+  padding: 8px 4px 8px 12px;
   border-bottom: 1px solid var(--border);
   font-size: 13px;
   gap: 8px;
@@ -158,7 +156,7 @@ li.row .word {
 .empty-icon {
   width: 46px;
   height: 46px;
-  border-radius: 50%;
+  border-radius: var(--r);
   margin-bottom: 4px;
   background: var(--accent-soft);
   color: var(--accent);
@@ -178,16 +176,16 @@ li.row .word {
 }
 
 .hint {
-  font-size: 11px;
+  font-size: 12px;
   color: var(--muted);
   margin: 12px 0 0;
   line-height: 1.45;
   border-top: 1px solid var(--border);
-  padding-top: 10px;
+  padding-top: 12px;
 }
 .hint strong {
   color: var(--text);
-  font-weight: 700;
+  font-weight: 600;
 }
 
 /* ---- onboarding banner ---- */
@@ -197,10 +195,10 @@ li.row .word {
   gap: 8px;
   background: var(--accent-soft);
   border: 1px solid var(--border);
-  border-radius: 10px;
-  padding: 9px 10px 9px 12px;
-  margin-bottom: 14px;
-  font-size: 11.5px;
+  border-radius: var(--r);
+  padding: 8px 8px 8px 12px;
+  margin-bottom: 12px;
+  font-size: 12px;
   line-height: 1.45;
   color: var(--text);
 }
@@ -224,7 +222,7 @@ li.row .word {
 
 /* ---- all-time "time saved" sub-stat ---- */
 .reclaimed {
-  font-size: 10px;
+  font-size: 11px;
   color: var(--muted);
 }
 .reclaimed[hidden] {
@@ -236,13 +234,13 @@ li.row .word {
   flex: none;
   min-width: 24px;
   height: 22px;
-  padding: 0 7px;
+  padding: 0 8px;
   border-radius: 999px;
   border: 1px solid var(--border);
   background: var(--surface);
   color: var(--muted);
   font-size: 11px;
-  font-weight: 700;
+  font-weight: 600;
   cursor: pointer;
   transition:
     background 120ms ease,
@@ -276,7 +274,7 @@ li.row input.edit {
   font: inherit;
   font-size: 13px;
   border: 1px solid var(--accent);
-  border-radius: 7px;
+  border-radius: var(--r);
   background: var(--bg);
   color: var(--text);
 }

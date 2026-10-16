@@ -3,7 +3,7 @@
 .hub-btn:focus-visible,
 .hub-field input:focus-visible {
   outline: 2px solid var(--accent);
-  outline-offset: 1px;
+  outline-offset: 2px;
 }
 .hub-body[hidden],
 .hub-form[hidden],
@@ -17,7 +17,7 @@
   display: none;
 }
 .hub-body {
-  padding: 8px 2px 0;
+  padding: 8px 0 0;
 }
 .hub-lead {
   margin: 0 0 8px;
@@ -29,7 +29,7 @@
 .hub-revoked,
 .hub-locked-note {
   margin: 0 0 8px;
-  font-size: 11px;
+  font-size: 12px;
   line-height: 1.45;
   color: var(--muted);
 }
@@ -37,7 +37,7 @@
   margin: 8px 0 0;
 }
 .hub-revoked {
-  color: var(--text);
+  color: var(--bad);
   font-size: 12px;
 }
 .hub-locked-note {
@@ -45,22 +45,22 @@
 }
 .hub-card {
   margin: 0 0 8px;
-  padding: 10px;
+  padding: 12px;
   border: 1px solid var(--border);
-  border-radius: 6px;
+  border-radius: var(--r);
   background: var(--surface);
 }
 .hub-from,
 .hub-quiet,
 .hub-paused {
-  margin: 0 0 2px;
-  font-size: 11px;
+  margin: 0 0 4px;
+  font-size: 12px;
   line-height: 1.45;
   color: var(--muted);
   overflow-wrap: anywhere;
 }
 .hub-paused {
-  margin: 6px 0 0;
+  margin: 8px 0 0;
 }
 .hub-field {
   display: block;
@@ -68,17 +68,17 @@
 }
 .hub-field span {
   display: block;
-  font-size: 11px;
+  font-size: 12px;
   font-weight: 600;
   color: var(--muted);
-  margin-bottom: 3px;
+  margin-bottom: 4px;
 }
 .hub-field input {
   width: 100%;
-  min-height: 32px;
-  padding: 0 10px;
+  min-height: 36px;
+  padding: 0 12px;
   border: 1px solid var(--border);
-  border-radius: 8px;
+  border-radius: var(--r);
   background: var(--surface);
   color: var(--text);
   font: inherit;
@@ -92,15 +92,15 @@
 }
 .hub-error {
   margin: 0 0 8px;
-  font-size: 11px;
+  font-size: 12px;
   line-height: 1.45;
-  color: var(--accent-strong);
+  color: var(--bad);
 }
 .hub-btn {
-  min-height: 32px;
-  padding: 0 14px;
+  min-height: 36px;
+  padding: 0 16px;
   border: 1px solid var(--border);
-  border-radius: 8px;
+  border-radius: var(--r);
   background: var(--surface);
   color: var(--text);
   font: inherit;
@@ -119,7 +119,7 @@
   width: 100%;
   background: var(--accent);
   border-color: var(--accent);
-  color: #fff;
+  color: var(--on-accent);
 }
 .hub-btn.primary:hover:not(:disabled) {
   background: var(--accent-strong);
@@ -136,20 +136,20 @@
 }
 .hub-sync-info {
   margin: 0 0 8px;
-  font-size: 11px;
+  font-size: 12px;
   color: var(--muted);
   line-height: 1.45;
 }
 .hub-sync-info.warn {
-  color: var(--accent-strong);
+  color: var(--warn);
 }
 .hub-actions {
   display: flex;
   gap: 8px;
 }
 .hub-privacy {
-  margin: 10px 0 0;
-  font-size: 11px;
+  margin: 12px 0 0;
+  font-size: 12px;
   line-height: 1.45;
   color: var(--muted);
 }
@@ -158,12 +158,13 @@
 .lock-banner {
   display: flex;
   align-items: center;
-  gap: 7px;
-  margin: -4px 0 12px;
-  padding: 7px 10px;
-  border-radius: 8px;
-  background: var(--accent-soft);
-  color: var(--accent-strong);
+  gap: 8px;
+  margin: 0 0 12px;
+  padding: 8px 12px;
+  border: 1px solid var(--border);
+  border-radius: var(--r);
+  background: var(--surface);
+  color: var(--text);
   font-size: 12px;
   font-weight: 600;
 }
@@ -172,14 +173,10 @@
 }
 .lock-banner svg {
   flex: none;
+  color: var(--muted);
 }
 .lock-banner span {
   overflow-wrap: anywhere;
-}
-@media (prefers-color-scheme: dark) {
-  .hub-btn.primary {
-    color: #1a1a1c;
-  }
 }
 
 /* Locked: dim the editing controls like body.paused does (they are truly disabled). */
