@@ -198,10 +198,12 @@
             </div>
         </section>
 
-        <section class="hub" role="tabpanel" id="panel-household" aria-labelledby="tab-household" tabindex="0" hidden>
+        <section class="hub" role="tabpanel" id="panel-household" aria-labelledby="tab-household" tabindex="0" data-hub-state="off" hidden>
             <div class="hub-body" id="hubBody">
+                <p class="hub-revoked" id="hubRevokedLine" role="status" hidden></p>
                 <form class="hub-form" id="hubOffForm" novalidate>
-                    <p class="hub-lead">Connect to a hub</p>
+                    <p class="hub-lead">Connect to your hub</p>
+                    <p class="hub-explain">Your hub sends this browser a profile: words, packs and quiet hours.</p>
                     <label class="hub-field">
                         <span>Hub address</span>
                         <input
@@ -214,7 +216,7 @@
                         />
                     </label>
                     <label class="hub-field">
-                        <span>Code</span>
+                        <span>Pairing code</span>
                         <input
                             id="hubCode"
                             class="hub-code"
@@ -232,16 +234,23 @@
                     </label>
                     <p class="hub-error" id="hubError" role="alert" hidden></p>
                     <button class="hub-btn primary" id="hubConnect" type="submit">Connect</button>
+                    <p class="hub-help" id="hubHelp">Get a code on the hub: Devices → Pair a device. It expires in 10 minutes.</p>
                 </form>
                 <div class="hub-connected" id="hubOnView" hidden>
-                    <p class="hub-summary" id="hubSummary"></p>
-                    <p class="hub-sync-info" id="hubSyncInfo" role="status"></p>
+                    <div class="hub-card">
+                        <p class="hub-summary" id="hubSummary"></p>
+                        <p class="hub-from" id="hubFrom"></p>
+                        <p class="hub-quiet" id="hubQuiet" role="status"></p>
+                        <p class="hub-paused" id="hubPaused" role="status" hidden>Hush is paused, so hub rules are off too.</p>
+                    </div>
+                    <p class="hub-sync-info" id="hubSyncInfo" role="status" hidden></p>
                     <div class="hub-actions">
                         <button class="hub-btn" id="hubSync" type="button">Sync now</button>
                         <button class="hub-btn danger" id="hubDisconnect" type="button">
                             Disconnect
                         </button>
                     </div>
+                    <p class="hub-locked-note" id="hubLockedNote">To release this browser, revoke it on the hub.</p>
                 </div>
                 <p class="hub-privacy">
                     Hush downloads rules from this hub. It never sends what you read or hide.
