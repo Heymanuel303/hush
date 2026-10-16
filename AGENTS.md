@@ -291,10 +291,10 @@ replica; anything that must be shared goes through the database.
 - `src/popup/fonts/` (bundled Atkinson Hyperlegible Next, OFL-1.1, licence alongside).
 - `src/data/packs.js` (`PACKS`), `data/sites.js` (`SITES` + `siteIdForHost`).
 - `src/popup/` — `panel.html` plus per-feature classic scripts and stylesheets sharing one
-  global scope. JS load order: `panel-core.js` → `panel-keywords.js` → `panel-packs.js` →
+  global scope. JS load order: `panel-core.js` → `panel-tabs.js` → `panel-keywords.js` → `panel-packs.js` →
   `panel-sites.js` → `panel-hub.js` → `panel.js` (entry, **always last**). CSS: `panel-theme.css`
   (first, defines the custom properties) → `panel-header.css` → `panel-hero.css` →
-  `panel-list.css` → `panel-packs.css` → `panel-sites.css` → `panel-hub.css` → `panel-misc.css` (last, its reduced-motion rule
+  `panel-tabs.css` → `panel-list.css` → `panel-packs.css` → `panel-sites.css` → `panel-hub.css` → `panel-misc.css` (last, its reduced-motion rule
   blankets earlier animations).
 - `test/` — `words.test.js`, `format.test.js`, `packs.test.js`, `sites.test.js`,
   `schedule.test.js`, `hubconfig.test.js` (the last two read `test/fixtures/` JSON with `fs`).
@@ -359,12 +359,13 @@ and `SITES` must stay top-level `const`s.
   `seedFromManaged()` copies `storage.managed` defaults into
   `storage.local` once, only when `blockWords` is undefined and `seededFromManaged` is unset.
 - **`src/popup/`** — toggle, counts with a time-saved estimate, keyword editor, starter packs and
-  advanced mode. `panel-core.js` holds the shim, DOM refs and shared state `let`s; each feature
+  the Words · Sites · Household tabs. `panel-core.js` holds the shim, DOM refs and shared state `let`s; each feature
   file owns its write chain; `panel.js` owns the toggle, stats, onboarding, the **single**
   `storage.onChanged` listener and the `init()` IIFE. Top-level code may only refer to
   earlier-loaded files.
-- **Hub section and locked UI** (`panel-hub.js` / `panel-hub.css`): a collapsible "Household hub"
-  section, shown only in advanced mode below the per-site editor: connect form (address, code,
+- **Tabs** (`panel-tabs.js` / `panel-tabs.css`): a sticky `Words · Sites · Household` tab bar (`role=tablist`, roving tabindex, Arrow/Home/End keys, selection follows focus) over three panels; inactive panels are `hidden`. The last tab is remembered in the UI-only `popupTab` key, written with a plain `set` on click only (no chain, no echo counter; the `onChanged` listener ignores it). `initialTab(stored)` opens Household on a locked device and on an unseen revoke, else `popupTab` if valid, else Sites once when the legacy `advanced: true` has no `popupTab` (and writes `popupTab: "sites"`), else Words. `paintTabDot()` (called from `paintHub()`) sets the Household tab's dot and its spoken state (`synced`/`offline`/`needs attention`/`removed`).
+- **Household panel and locked UI** (`panel-hub.js` / `panel-hub.css`): the Household tab's
+  panel (no collapsible, no Advanced gate): connect form (address, code,
   device label), connected status, Sync now, Disconnect (arm/confirm), and the line "Hush
   downloads rules from this hub. It never sends what you read or hide." The Connect click calls
   `permissions.request` **synchronously** before any `await` (Chrome requires it) and then sends
@@ -377,15 +378,16 @@ and `SITES` must stay top-level `const`s.
   only hub-related write is `hubRevokedSeen`). The site pill adds "· managed" from `getCount`.
 - **Starter packs** are persistent toggles (`enabledPacks`); their words are never listed among
   custom words. A pack's `name` is its stable id.
-- **Advanced mode** (`advanced`) recolours the panel via `--adv*` / `--accent*` and reveals the
-  per-site editor. `siteWords` always apply to matching regardless of the toggle.
+- **Per-site words** live in the Sites tab (`siteWords`) and always apply to matching. The
+  Advanced pill and its violet recolour are gone; `advanced` is a read-only legacy key (still
+  seeded by `seedFromManaged`, read once for the `popupTab` migration).
 - **Per-site option switches** (`SITE_OPTIONS` in `panel-sites.js`) are plain boolean keys
   written with a simple `set`. Today: `ytHomeRedirect` (exact `www.`/`m.`/bare `youtube.com`
   only; `music.youtube.com` would loop).
 
 State in `storage.local`: `blockWords` (custom words only), `enabledPacks` (default `[]`),
-`siteWords` (`{siteId: [raw,...]}`, default `{}`), `enabled` (default ON), `advanced` (default
-OFF), `ytHomeRedirect` (default OFF), `lifetimeHidden`, `seenOnboarding`, `seededFromManaged`, plus the hub keys: `hub` (`{url, deviceId, token, profileName, hubName, pairedAt}`), `hubConfig` (last validated `DeviceConfig` + `etag`) and `hubStatus` (`{lastSync, lastAttempt, error: null|'offline'|'invalid'|'revoked', offlineSince, revokedAt}`) — **written only by `background.js`** on `syncChain`; the popup and content script only read them.
+`siteWords` (`{siteId: [raw,...]}`, default `{}`), `enabled` (default ON), `advanced` (legacy,
+read-only), `popupTab` (`words`|`sites`|`household`, UI only), `ytHomeRedirect` (default OFF), `lifetimeHidden`, `seenOnboarding`, `seededFromManaged`, plus the hub keys: `hub` (`{url, deviceId, token, profileName, hubName, pairedAt}`), `hubConfig` (last validated `DeviceConfig` + `etag`) and `hubStatus` (`{lastSync, lastAttempt, error: null|'offline'|'invalid'|'revoked', offlineSince, revokedAt}`) — **written only by `background.js`** on `syncChain`; the popup and content script only read them.
 All three contexts react live to `storage.onChanged`.
 
 ### How to add work

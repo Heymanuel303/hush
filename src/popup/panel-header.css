@@ -1,4 +1,4 @@
-/* Hush popup — header: brand mark, the advanced-mode toggle, and the on/off switch. */
+/* Hush popup — header: brand mark and the on/off switch. */
 
 /* ---- header ---- */
 .header {
@@ -34,51 +34,6 @@
   display: flex;
   align-items: center;
   gap: 8px;
-}
-
-/* Advanced-mode toggle: wears the violet accent at all times so it signals what
-   it does even on the default panel; fills solid when the mode is on. */
-.adv-toggle {
-  display: inline-flex;
-  align-items: center;
-  gap: 4px;
-  height: 24px;
-  padding: 0 9px;
-  border-radius: 999px;
-  border: 1px solid var(--adv);
-  background: transparent;
-  color: var(--adv);
-  font-size: 11px;
-  font-weight: 600;
-  cursor: pointer;
-  transition:
-    background 120ms ease,
-    color 120ms ease;
-}
-.adv-toggle:hover {
-  background: var(--adv-soft);
-}
-.adv-toggle[aria-pressed="true"] {
-  background: var(--adv);
-  border-color: transparent;
-  color: #fff;
-}
-.adv-toggle:focus-visible {
-  outline: 2px solid var(--adv);
-  outline-offset: 2px;
-}
-@media (prefers-color-scheme: dark) {
-  /* The dark accent (--adv #8b7bff) is too light for AA as small text on the dark
-     panel and on its soft hover fill; use the lighter --adv-strong (#b4a9ff) for
-     the outline + hover states so both clear 4.5:1. */
-  .adv-toggle {
-    color: var(--adv-strong);
-    border-color: var(--adv-strong);
-  }
-  /* #fff on the light-violet dark accent is low-contrast; dark text clears AA. */
-  .adv-toggle[aria-pressed="true"] {
-    color: #1a1a1c;
-  }
 }
 
 .switch {

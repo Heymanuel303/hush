@@ -1,13 +1,13 @@
-// Hush — popup: advanced mode + per-site words.
+// Hush — popup: per-site words (the Sites tab).
 //
-// The advanced-mode toggle (accent recolor) and the per-site word editor: its
+// The per-site word editor: its
 // serialized siteWords write chain + echo counter, the collapsible per-site
 // blocks, and per-site add / bulk add / remove. Shares the global scope with the
 // other panel-*.js files (see panel.js); reads `api`, the DOM refs, and
-// `enabledState`/`advancedState`/`siteWords` from panel-core.js, SITES from
+// `enabledState`/`siteWords` from panel-core.js, SITES from
 // data/sites.js, and parseWord/composeWord from lib/words.js.
 
-// Per-site words (advanced mode) live in their own key (`siteWords`, an object
+// Per-site words live in their own key (`siteWords`, an object
 // of siteId → raw-word array) with their own serialized chain and echo counter,
 // exactly like enabledPacks above — so the three keys never share a
 // read-modify-write, and the storage.onChanged listener can ignore the echoes of
@@ -33,22 +33,8 @@ function queueSiteWrite(mutate) {
   return run;
 }
 
-/* ---------------- advanced mode + per-site words ---------------- */
-// Advanced mode is a persisted UI state (`advanced` key): it recolors the whole
-// panel to the violet accent (via the body.advanced class — see panel.css) and
-// reveals the per-site word editor. The per-site words themselves always apply
-// to matching regardless of this toggle; advanced mode is just their editor.
-function applyAdvancedUI(on) {
-  advancedState = on;
-  document.body.classList.toggle("advanced", on);
-  advToggle.setAttribute("aria-pressed", on ? "true" : "false");
-  sitesEl.hidden = !on;
-}
-advToggle.addEventListener("click", () => {
-  const on = !advancedState;
-  applyAdvancedUI(on);
-  api.storage.local.set({ advanced: on });
-});
+/* ---------------- per-site words ---------------- */
+// Per-site words always apply to matching; the Sites tab is just their editor.
 
 // The curated site list comes from data/sites.js (the single source of truth,
 // shared with content.js). Guard with typeof in case it's ever absent.
