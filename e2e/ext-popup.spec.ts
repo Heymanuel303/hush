@@ -298,17 +298,19 @@ test.describe('connect and household edge cases', () => {
 test('screenshots of every state', async ({ page }) => {
   test.skip(!process.env.SCREENS, 'set SCREENS=dir to write them');
   const now = '2026-10-12T12:00:00+00:00';
-  const off = { lastSync: 1, lastAttempt: 1 };
+  const t = Date.parse(now) - 7_200_000;
+  const off = { lastSync: t, lastAttempt: t };
+  const synced = { ...SYNCED, lastSync: t, lastAttempt: t };
   const states: Record<string, PopupSeed> = {
     words: { blockWords: ['spoiler', '=cat'] },
     sites: { popupTab: 'sites' },
     off: { popupTab: 'household' },
-    on: { hub: HUB, hubConfig: { ...HUB_CONFIG, quietHours: QUIET_WINDOW }, hubStatus: SYNCED },
-    paused: { enabled: false, hub: HUB, hubConfig: HUB_CONFIG, hubStatus: SYNCED },
-    offline: { hub: HUB, hubConfig: HUB_CONFIG, hubStatus: { ...off, error: 'offline', offlineSince: Date.parse(now) - 3_600_000 } },
-    invalid: { hub: HUB, hubConfig: HUB_CONFIG, hubStatus: { ...off, error: 'invalid' } },
+    on: { popupTab: 'household', hub: HUB, hubConfig: { ...HUB_CONFIG, quietHours: QUIET_WINDOW }, hubStatus: synced },
+    paused: { popupTab: 'household', enabled: false, hub: HUB, hubConfig: HUB_CONFIG, hubStatus: synced },
+    offline: { popupTab: 'household', hub: HUB, hubConfig: HUB_CONFIG, hubStatus: { ...off, error: 'offline', offlineSince: Date.parse(now) - 3_600_000 } },
+    invalid: { popupTab: 'household', hub: HUB, hubConfig: HUB_CONFIG, hubStatus: { ...off, error: 'invalid' } },
     revoked: { hubRevokedSeen: 5, popupTab: 'household', hubStatus: { error: 'revoked', revokedAt: 5 } },
-    locked: { hub: HUB, hubConfig: HUB_CONFIG_LOCKED, hubStatus: SYNCED },
+    locked: { hub: HUB, hubConfig: HUB_CONFIG_LOCKED, hubStatus: synced },
   };
   for (const w of [324, 375]) {
     for (const [name, seed] of Object.entries(states)) {
