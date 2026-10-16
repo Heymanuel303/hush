@@ -12,10 +12,10 @@
   gap: 10px;
   background: var(--text);
   color: var(--bg);
-  border-radius: 10px;
-  padding: 9px 9px 9px 13px;
+  border-radius: var(--r);
+  padding: 8px 8px 8px 12px;
   font-size: 12px;
-  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.25);
+  box-shadow: var(--shadow);
   animation: toastIn 140ms ease;
 }
 .toast[hidden] {
@@ -30,15 +30,15 @@
   flex: none;
   border: none;
   background: transparent;
-  color: var(--accent);
-  font-weight: 700;
+  color: var(--bg);
+  font-weight: 600;
   font-size: 12px;
   cursor: pointer;
   padding: 4px 9px;
-  border-radius: 7px;
+  border-radius: var(--r);
 }
 .toast #undo:hover {
-  background: rgba(127, 127, 127, 0.28);
+  background: var(--accent-soft);
 }
 .toast #undo:focus-visible {
   outline: 2px solid var(--accent);
