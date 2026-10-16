@@ -1,22 +1,8 @@
-/* Hush popup — advanced mode: the per-site word editor. */
+/* Hush popup — the Sites tab: the per-site word editor. */
 
-/* ---- per-site words (advanced mode) ---- */
+/* ---- per-site words ---- */
 .sites {
-  margin-top: 14px;
-  border-top: 1px solid var(--border);
-  padding-top: 12px;
   transition: opacity 160ms ease;
-}
-.sites[hidden] {
-  display: none;
-}
-.sites-head {
-  font-size: 10px;
-  font-weight: 700;
-  letter-spacing: 0.6px;
-  text-transform: uppercase;
-  color: var(--muted);
-  margin-bottom: 4px;
 }
 .sites-intro {
   font-size: 11px;

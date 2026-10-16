@@ -8,6 +8,7 @@
         <link rel="stylesheet" href="panel-theme.css" />
         <link rel="stylesheet" href="panel-header.css" />
         <link rel="stylesheet" href="panel-hero.css" />
+        <link rel="stylesheet" href="panel-tabs.css" />
         <link rel="stylesheet" href="panel-list.css" />
         <link rel="stylesheet" href="panel-packs.css" />
         <link rel="stylesheet" href="panel-sites.css" />
@@ -34,31 +35,6 @@
                 <h1>Hush</h1>
             </div>
             <div class="header-right">
-                <button
-                    class="adv-toggle"
-                    id="advToggle"
-                    type="button"
-                    aria-pressed="false"
-                    title="Advanced mode — add words for specific sites"
-                    aria-label="Toggle advanced mode"
-                >
-                    <svg
-                        width="12"
-                        height="12"
-                        viewBox="0 0 24 24"
-                        fill="none"
-                        stroke="currentColor"
-                        stroke-width="2.2"
-                        stroke-linecap="round"
-                        aria-hidden="true"
-                    >
-                        <line x1="4" y1="8" x2="20" y2="8"></line>
-                        <circle cx="9" cy="8" r="2.4" fill="var(--bg)"></circle>
-                        <line x1="4" y1="16" x2="20" y2="16"></line>
-                        <circle cx="15" cy="16" r="2.4" fill="var(--bg)"></circle>
-                    </svg>
-                    <span>Advanced</span>
-                </button>
                 <label class="switch">
                     <span class="switch-label" id="toggleLabel">On</span>
                     <span class="toggle">
@@ -126,109 +102,104 @@
             </div>
         </div>
 
-        <div class="add-row">
-            <input
-                id="word"
-                type="text"
-                placeholder="Add a word or @handle"
-                autofocus
-                aria-label="Add a keyword"
-            />
-            <button id="add">Add</button>
-        </div>
-
-        <div class="packs" id="packs">
-            <button
-                class="packs-toggle"
-                id="packsToggle"
-                type="button"
-                aria-expanded="false"
-                aria-controls="packsList"
-            >
-                <span>Starter packs</span>
-                <svg
-                    class="chev"
-                    width="11"
-                    height="11"
-                    viewBox="0 0 24 24"
-                    fill="none"
-                    stroke="currentColor"
-                    stroke-width="2.5"
-                    stroke-linecap="round"
-                    stroke-linejoin="round"
-                    aria-hidden="true"
-                >
-                    <polyline points="6 9 12 15 18 9"></polyline>
-                </svg>
+        <div id="tabsSentinel" aria-hidden="true"></div>
+        <div class="tabs" role="tablist" aria-label="Hush sections">
+            <button role="tab" type="button" id="tab-words" aria-controls="panel-words" aria-selected="true">Words</button>
+            <button role="tab" type="button" id="tab-sites" aria-controls="panel-sites" aria-selected="false" tabindex="-1">Sites</button>
+            <button role="tab" type="button" id="tab-household" aria-controls="panel-household" aria-selected="false" tabindex="-1">
+                <span>Household<span class="visually-hidden" id="tabDotText"></span></span><span class="tab-dot" id="tabDot" aria-hidden="true"></span>
             </button>
-            <div class="packs-list" id="packsList" hidden></div>
         </div>
 
-        <div class="list-wrap">
-            <div class="list-head">
-                <div class="list-title">
-                    <span>Blocked words</span>
-                    <span id="count"></span>
-                </div>
-                <button id="clearAll">Clear all</button>
+        <section role="tabpanel" id="panel-words" aria-labelledby="tab-words" tabindex="0">
+            <div class="add-row">
+                <input
+                    id="word"
+                    type="text"
+                    placeholder="Add a word or @handle"
+                    autofocus
+                    aria-label="Add a keyword"
+                />
+                <button id="add">Add</button>
             </div>
-            <ul id="list"></ul>
-            <div class="empty" id="empty">
-                <span class="empty-icon" aria-hidden="true">
+
+            <div class="packs" id="packs">
+                <button
+                    class="packs-toggle"
+                    id="packsToggle"
+                    type="button"
+                    aria-expanded="false"
+                    aria-controls="packsList"
+                >
+                    <span>Starter packs</span>
                     <svg
-                        width="22"
-                        height="22"
+                        class="chev"
+                        width="11"
+                        height="11"
                         viewBox="0 0 24 24"
                         fill="none"
                         stroke="currentColor"
-                        stroke-width="2"
+                        stroke-width="2.5"
                         stroke-linecap="round"
                         stroke-linejoin="round"
+                        aria-hidden="true"
                     >
-                        <circle cx="11" cy="11" r="7"></circle>
-                        <line x1="16" y1="16" x2="21" y2="21"></line>
+                        <polyline points="6 9 12 15 18 9"></polyline>
                     </svg>
-                </span>
-                <h2>Nothing blocked yet</h2>
-                <p>Add a word above to start hiding posts.</p>
+                </button>
+                <div class="packs-list" id="packsList" hidden></div>
             </div>
-        </div>
 
-        <div class="sites" id="sites" hidden>
-            <div class="sites-head"><span>Per-site words</span></div>
-            <p class="sites-intro">
-                Words added here block <strong>only</strong> on that site, on top
-                of your list above.
+            <div class="list-wrap">
+                <div class="list-head">
+                    <div class="list-title">
+                        <span>Blocked words</span>
+                        <span id="count"></span>
+                    </div>
+                    <button id="clearAll">Clear all</button>
+                </div>
+                <ul id="list"></ul>
+                <div class="empty" id="empty">
+                    <span class="empty-icon" aria-hidden="true">
+                        <svg
+                            width="22"
+                            height="22"
+                            viewBox="0 0 24 24"
+                            fill="none"
+                            stroke="currentColor"
+                            stroke-width="2"
+                            stroke-linecap="round"
+                            stroke-linejoin="round"
+                        >
+                            <circle cx="11" cy="11" r="7"></circle>
+                            <line x1="16" y1="16" x2="21" y2="21"></line>
+                        </svg>
+                    </span>
+                    <h2>No words yet</h2>
+                    <p>Add one above, or turn on a starter pack.</p>
+                </div>
+            </div>
+
+            <p class="hint">
+                Hides matching results on Reddit, X, YouTube &amp; Google. Matching is
+                case-insensitive; prefix a word with <strong>=</strong> for
+                whole-word only. Double-click a word to edit it, or paste a comma- or
+                line-separated list to add several at once.
             </p>
-            <div id="sitesList"></div>
-        </div>
 
-        <section class="hub" id="hub">
-            <button
-                class="hub-toggle"
-                id="hubToggle"
-                type="button"
-                aria-expanded="false"
-                aria-controls="hubBody"
-            >
-                <span class="hub-dot" id="hubDot" hidden></span>
-                <span class="hub-title">Household hub</span>
-                <svg
-                    class="chev"
-                    width="11"
-                    height="11"
-                    viewBox="0 0 24 24"
-                    fill="none"
-                    stroke="currentColor"
-                    stroke-width="2.5"
-                    stroke-linecap="round"
-                    stroke-linejoin="round"
-                    aria-hidden="true"
-                >
-                    <polyline points="6 9 12 15 18 9"></polyline>
-                </svg>
-            </button>
-            <div class="hub-body" id="hubBody" hidden>
+        </section>
+
+        <section role="tabpanel" id="panel-sites" aria-labelledby="tab-sites" tabindex="0" hidden>
+            <div class="sites" id="sites">
+                <p class="sites-intro">
+                    Words you add under a site only hide posts on that site.
+                </p>
+                <div id="sitesList"></div>
+            </div>
+        </section>
+
+        <section class="hub" role="tabpanel" id="panel-household" aria-labelledby="tab-household" tabindex="0" hidden>
+            <div class="hub-body" id="hubBody">
                 <form class="hub-form" id="hubOffForm" novalidate>
                     <p class="hub-lead">Connect to a hub</p>
                     <label class="hub-field">
@@ -278,13 +249,6 @@
             </div>
         </section>
 
-        <p class="hint">
-            Hides matching results on Reddit, X, YouTube &amp; Google. Matching is
-            case-insensitive; prefix a word with <strong>=</strong> for
-            whole-word only. Double-click a word to edit it, or paste a comma- or
-            line-separated list to add several at once.
-        </p>
-
         <div class="toast" id="toast" hidden>
             <span class="toast-msg" id="toastMsg"></span>
             <button id="undo" type="button">Undo</button>
@@ -296,9 +260,11 @@
              See panel.js for the full load-order contract. -->
         <script src="../lib/words.js"></script>
         <script src="../lib/format.js"></script>
+        <script src="../lib/schedule.js"></script>
         <script src="../data/packs.js"></script>
         <script src="../data/sites.js"></script>
         <script src="panel-core.js"></script>
+        <script src="panel-tabs.js"></script>
         <script src="panel-keywords.js"></script>
         <script src="panel-packs.js"></script>
         <script src="panel-sites.js"></script>

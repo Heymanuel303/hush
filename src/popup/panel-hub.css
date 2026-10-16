@@ -1,60 +1,10 @@
-/* Hush popup — household hub section (advanced mode) + locked banner. */
+/* Hush popup — Household panel + locked banner. */
 
-/* The hub is the parent's area: only shown in advanced mode. */
-.hub {
-  margin-top: 14px;
-  border-top: 1px solid var(--border);
-  padding-top: 8px;
-}
-body:not(.advanced) .hub {
-  display: none;
-}
-.hub-toggle {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  width: 100%;
-  border: none;
-  background: none;
-  cursor: pointer;
-  padding: 4px 2px;
-  font-size: 10px;
-  font-weight: 700;
-  letter-spacing: 0.6px;
-  text-transform: uppercase;
-  color: var(--muted);
-}
-.hub-toggle:hover {
-  color: var(--accent-strong);
-}
-.hub-toggle:focus-visible,
 .hub-btn:focus-visible,
 .hub-field input:focus-visible {
   outline: 2px solid var(--accent);
   outline-offset: 1px;
 }
-.hub-title {
-  flex: 1;
-  text-align: left;
-}
-.hub-toggle .chev {
-  flex: none;
-  transition: transform 150ms ease;
-}
-.hub-toggle[aria-expanded="true"] .chev {
-  transform: rotate(180deg);
-}
-.hub-dot {
-  width: 8px;
-  height: 8px;
-  border-radius: 50%;
-  background: var(--accent);
-  flex: none;
-}
-.hub-dot.off {
-  background: var(--muted);
-}
-.hub-dot[hidden],
 .hub-body[hidden],
 .hub-form[hidden],
 .hub-connected[hidden],

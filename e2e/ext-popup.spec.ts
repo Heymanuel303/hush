@@ -66,7 +66,7 @@ test('a locked hub profile renders the popup read-only', async ({ page }) => {
   await expect(page.locator('#word')).toBeDisabled();
   await expect(page.locator('#toggle')).toBeDisabled();
 
-  await page.locator('#hubToggle').click();
+  await expect(page.locator('#tab-household')).toHaveAttribute('aria-selected', 'true');
   await expect(page.locator('#hubSummary')).toContainText('profile Kid (shim)');
   await expect(page.locator('#hubDisconnect')).toBeDisabled();
 });

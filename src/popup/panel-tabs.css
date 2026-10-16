@@ -1,0 +1,96 @@
+/* Hush popup — the sticky Words · Sites · Household tab bar and the Household status dot. */
+
+.visually-hidden {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  margin: -1px;
+  padding: 0;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+}
+
+/* Zero-height marker just above the bar: once it scrolls out of view the bar is stuck. */
+#tabsSentinel {
+  height: 1px;
+  margin-bottom: -1px;
+}
+.tabs {
+  position: sticky;
+  top: 0;
+  z-index: 2;
+  display: flex;
+  gap: 2px;
+  /* Span the body's 16px padding so scrolled content never shows beside the bar. */
+  margin: 0 -16px 12px;
+  padding: 8px 16px;
+  background: var(--bg);
+  border-bottom: 1px solid transparent;
+}
+.tabs.stuck {
+  border-bottom-color: var(--border);
+}
+[role="tab"] {
+  flex: 1 1 0;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  min-width: 0;
+  height: 32px;
+  padding: 0 4px;
+  border: 1px solid transparent;
+  border-radius: 6px;
+  background: var(--surface);
+  color: var(--muted);
+  font: inherit;
+  font-size: 13px;
+  cursor: pointer;
+}
+[role="tab"]:hover {
+  color: var(--text);
+}
+[role="tab"][aria-selected="true"] {
+  background: var(--bg);
+  border-color: var(--border);
+  color: var(--text);
+  font-weight: 600;
+}
+[role="tab"]:focus-visible,
+[role="tabpanel"]:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+html.mobile [role="tab"] {
+  min-height: 40px;
+}
+
+.tab-dot {
+  flex: none;
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--muted);
+}
+.tab-dot:not([data-state]) {
+  display: none;
+}
+.tab-dot[data-state="synced"] {
+  background: var(--accent);
+}
+.tab-dot[data-state="revoked"] {
+  background: transparent;
+  border: 1.5px solid var(--muted);
+}
+
+/* Inside the tab label the hidden state text stays inline (zero-size text) so the
+   tab's accessible name reads "Household, offline" without a stray space. */
+#tabDotText {
+  position: static;
+  width: auto;
+  height: auto;
+  margin: 0;
+  font-size: 0;
+  clip-path: none;
+}

@@ -8,20 +8,12 @@
 // counter. The one key the popup writes is `hubRevokedSeen` (a revokedAt
 // timestamp) so the revoked toast shows once per revocation, not on every open.
 
-let hubOpen = false;
 let lastHubName = ""; // survives a revoke (background drops `hub`) so the toast can still name the hub
 let hubBusy = false;
 
 function hubDisplayName() {
   return (hubState && hubState.hubName) || lastHubName || "the hub";
 }
-
-function setHubOpen(open) {
-  hubOpen = open;
-  hubBody.hidden = !open;
-  hubToggle.setAttribute("aria-expanded", open ? "true" : "false");
-}
-hubToggle.addEventListener("click", () => setHubOpen(!hubOpen));
 
 /* ---------------- paint ---------------- */
 function paintHub() {
@@ -30,12 +22,9 @@ function paintHub() {
   hubOffForm.hidden = connected;
   hubOnView.hidden = !connected;
 
-  // Status dot: accent when synced, muted when offline/invalid, none when not connected.
-  hubDot.hidden = !connected;
   const err = hubStatusState && hubStatusState.error;
   const degraded = err === "offline" || err === "invalid";
-  hubDot.classList.toggle("off", degraded);
-  hubDot.title = !connected ? "" : degraded ? "Not in sync" : "Synced";
+  paintTabDot();
 
   if (!connected) return;
   hubSummaryEl.textContent =

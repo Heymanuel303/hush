@@ -7,10 +7,12 @@
 // The popup is split across classic <script>s that share ONE global lexical
 // scope (no bundler/modules), loaded in this order by panel.html:
 //   ../lib/words.js · ../lib/format.js · ../data/packs.js · ../data/sites.js
+//   ../lib/schedule.js (before the data files)
 //   panel-core.js      — api shim, DOM refs, cross-feature state
+//   panel-tabs.js      — Words · Sites · Household tab bar (+ popupTab)
 //   panel-keywords.js  — blocked-words list  (+ blockWords write chain)
 //   panel-packs.js     — starter packs       (+ enabledPacks write chain)
-//   panel-sites.js     — advanced/per-site   (+ siteWords write chain)
+//   panel-sites.js     — per-site words   (+ siteWords write chain)
 //   panel-hub.js       — household hub section + locked UI (read-only hub keys)
 //   panel.js           — this file: toggle/stats, onboarding, onChanged, init
 // Feature functions reference each other across files; that's safe because every
@@ -132,7 +134,6 @@ api.storage.onChanged.addListener((changes, area) => {
   if (area !== "local") return;
   if (changes.lifetimeHidden && !resetArmed) showTotal();
   if (changes.enabled) applyEnabledUI(changes.enabled.newValue !== false);
-  if (changes.advanced) applyAdvancedUI(changes.advanced.newValue === true);
   // Per-site option switches (SITE_OPTIONS in panel-sites.js): plain booleans, so
   // an echo of our own write is harmless — it just re-checks the same box.
   for (const key of SITE_OPTION_KEYS) {
@@ -192,14 +193,14 @@ async function maybeShowOnboarding() {
     if (/Android/i.test(navigator.userAgent)) document.documentElement.classList.add("mobile");
   }
   const stored = await api.storage.local.get(
-    ["enabled", "enabledPacks", "advanced", "siteWords", "hub", "hubConfig", "hubStatus",
-      ...SITE_OPTION_KEYS]);
-  const { enabled, enabledPacks: ep, advanced, siteWords: sw } = stored;
+    ["enabled", "enabledPacks", "advanced", "popupTab", "hubRevokedSeen", "siteWords", "hub",
+      "hubConfig", "hubStatus", ...SITE_OPTION_KEYS]);
+  const { enabled, enabledPacks: ep, siteWords: sw } = stored;
   enabledPacks = ep || [];
   siteWords = sw || {};
   for (const key of SITE_OPTION_KEYS) siteOptions[key] = stored[key] === true;
   renderPacks(); // build pack buttons first so applyEnabledUI → setControlsDisabled can sync their disabled state
-  renderSites(); // build the per-site editor too (hidden until advanced) for the same reason
+  renderSites(); // build the per-site editor too, for the same reason
   if (enabledPacks.length) togglePacks(true); // reveal active toggles on open
   hubState = stored.hub || null;
   hubConfigState = stored.hubConfig || null;
@@ -207,7 +208,7 @@ async function maybeShowOnboarding() {
   lockedState = !!(hubConfigState && hubConfigState.locked && hubState);
   applyEnabledUI(enabled !== false);
   applyHubKeys(stored);
-  applyAdvancedUI(advanced === true);
+  selectTab(initialTab(stored), { persist: false }); // before first paint of the panels
   renderAll(await getWords());
   showTotal();
   showHiddenCount();
