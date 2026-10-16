@@ -1,6 +1,6 @@
 import { mkdirSync } from 'node:fs';
 import { resolve } from 'node:path';
-import { test, type Page } from '@playwright/test';
+import { expect, test, type Page } from '@playwright/test';
 import {
   HUB, HUB_CONFIG, HUB_CONFIG_LOCKED, POPUP_URL, QUIET_WINDOW, installPopupShim, type PopupSeed,
 } from './popup-shim';
@@ -44,13 +44,13 @@ const SCREENS: Screen[] = [
     opts: { permission: 'hang' },
     prep: async (page) => {
       await page.locator('#hubUrl').fill('http://hub.home:3000');
-      await page.locator('#hubCode').fill('ABCD-2345');
+      await page.locator('#hubCode').fill('ABCDEF');
       await page.getByRole('button', { name: 'Connect' }).click();
     },
   },
   {
     name: 'household-connected',
-    seed: { ...connected, hubConfig: { ...HUB_CONFIG, quietHours: QUIET_WINDOW } },
+    seed: { ...connected, hubConfig: { ...HUB_CONFIG, quietHours: QUIET_WINDOW }, hubStatus: { ...SYNCED, lastSync: Date.parse('2026-10-19T09:55:00Z'), lastAttempt: Date.parse('2026-10-19T09:55:00Z') } },
     opts: { now: '2026-10-19T10:00:00Z' },
   },
   {
@@ -66,11 +66,14 @@ const SCREENS: Screen[] = [
   {
     name: 'household-locked',
     seed: { popupTab: 'words', blockWords: SIX, hub: HUB, hubConfig: HUB_CONFIG_LOCKED, hubStatus: SYNCED },
-    prep: async (page) => { await page.locator('#tab-household').click(); },
+    // A locked device opens on Household by itself.
+    prep: async (page) => { await expect(page.locator('#tab-household')).toHaveAttribute('aria-selected', 'true'); },
   },
   {
     name: 'words-locked',
     seed: { popupTab: 'words', blockWords: SIX, hub: HUB, hubConfig: HUB_CONFIG_LOCKED, hubStatus: SYNCED },
+    // Opens on Household; move to Words to show the disabled editors under the banner.
+    prep: async (page) => { await page.locator('#tab-words').click(); },
   },
   { name: 'paused', seed: { ...connected, enabled: false } },
 ];
