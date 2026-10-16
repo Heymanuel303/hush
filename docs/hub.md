@@ -89,8 +89,8 @@ refused (see 412 under Troubleshooting).
 ## Pairing
 
 On **Devices**, **Pair a device**, pick the profile: the hub shows a six-character code with a
-bar that drains over its ten-minute life. On the device, open Hush, turn on **Advanced**, open
-**Household hub**, enter the hub address, the code and a device name, and **Connect**. The
+bar that drains over its ten-minute life. On the device, open Hush, open the
+**Household** tab, enter the hub address, the pairing code and a device name, and **Connect**. The
 browser asks for permission to reach that address only. The device appears on the Devices
 screen and picks up edits within one 15-minute alarm tick (or at once with **Sync now** in its
 popup).
@@ -101,8 +101,9 @@ rules and returns to the device's own words.
 ## Locked profiles
 
 A locked profile makes the popup read-only under "Managed by <hub name>", applies the hub's rules
-even when Hush is switched off, and disables Disconnect. Only revoking the device on the hub
-releases it.
+even when Hush is switched off, and removes Disconnect. A locked device opens on the **Household**
+tab every time and shows "Managed by <hub name>" above the tabs. Only revoking the device on the
+hub releases it.
 
 The bypass caveat, exactly as the Devices screen shows it:
 
@@ -160,7 +161,7 @@ in the repository. Devices hold their own token, so a restored hub keeps its pai
 - **A device shows offline.** It has not fetched its config for three alarm ticks (45 minutes).
   Usually the browser has been closed, or the device is off the tailnet (Tailscale switched off),
   so the hub address is unreachable. On the device, open the
-  popup's Household hub section and press **Sync now**: the status there says whether the hub is
+  popup's **Household** tab and press **Sync now**: the status line there says whether the hub is
   unreachable. While offline the device keeps its last config, lock included.
 - **429, "Pi-hole has no free API sessions".** Pi-hole allows a fixed number of API sessions
   (`webserver.api.max_sessions`, default 16) and, when they are used up, also locks out its own

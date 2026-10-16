@@ -37,7 +37,7 @@ tabButtons.forEach((btn, i) => {
     else if (e.key === "End") next = TABS.length - 1;
     else return;
     e.preventDefault();
-    selectTab(TABS[next], { persist: true });
+    selectTab(TABS[next], { persist: false });
     tabButtons[next].focus();
   });
 });

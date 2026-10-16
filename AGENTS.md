@@ -288,6 +288,7 @@ replica; anything that must be shared goes through the database.
 - `src/manifest.json`, `background.js`, `content.js`.
 - `src/lib/words.js` (matching engine, `=` whole-word convention), `lib/format.js`,
   `lib/schedule.js` (quiet hours), `lib/hubconfig.js` (hub config validator).
+- `src/popup/fonts/` (bundled Atkinson Hyperlegible Next, OFL-1.1, licence alongside).
 - `src/data/packs.js` (`PACKS`), `data/sites.js` (`SITES` + `siteIdForHost`).
 - `src/popup/` — `panel.html` plus per-feature classic scripts and stylesheets sharing one
   global scope. JS load order: `panel-core.js` → `panel-tabs.js` → `panel-keywords.js` → `panel-packs.js` →

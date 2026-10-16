@@ -104,14 +104,14 @@
 
         <div id="tabsSentinel" aria-hidden="true"></div>
         <div class="tabs" role="tablist" aria-label="Hush sections">
-            <button role="tab" type="button" id="tab-words" aria-controls="panel-words" aria-selected="true">Words</button>
+            <button role="tab" type="button" id="tab-words" aria-controls="panel-words" aria-selected="false" tabindex="-1">Words</button>
             <button role="tab" type="button" id="tab-sites" aria-controls="panel-sites" aria-selected="false" tabindex="-1">Sites</button>
             <button role="tab" type="button" id="tab-household" aria-controls="panel-household" aria-selected="false" tabindex="-1">
                 <span>Household<span class="visually-hidden" id="tabDotText"></span></span><span class="tab-dot" id="tabDot" aria-hidden="true"></span>
             </button>
         </div>
 
-        <section role="tabpanel" id="panel-words" aria-labelledby="tab-words" tabindex="0">
+        <section role="tabpanel" id="panel-words" aria-labelledby="tab-words" tabindex="0" hidden>
             <div class="add-row">
                 <input
                     id="word"
