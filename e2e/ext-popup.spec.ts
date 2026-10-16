@@ -7,9 +7,10 @@ import {
 const PRIVACY = 'Hush downloads rules from this hub. It never sends what you read or hide.';
 const TABS = ['words', 'sites', 'household'] as const;
 
-async function open(page: Page, seed: PopupSeed = {}) {
+type ShimOpts = Parameters<typeof installPopupShim>[2];
+async function open(page: Page, seed: PopupSeed = {}, opts: ShimOpts = {}) {
   const mobile = (page.viewportSize()?.width ?? 1280) <= 500;
-  await installPopupShim(page, seed, { os: mobile ? 'android' : 'linux' });
+  await installPopupShim(page, seed, { os: mobile ? 'android' : 'linux', ...opts });
   await page.goto(POPUP_URL);
   await expect(page.locator('[role="tab"][aria-selected="true"]')).toHaveCount(1);
 }
@@ -212,20 +213,111 @@ test('mobile: touch targets are at least 40px', async ({ page }, info) => {
   }
 });
 
+test.describe('connect and household edge cases', () => {
+  const household = { popupTab: 'household' };
+
+  test('unpaired shows what the hub sends', async ({ page }) => {
+    await open(page, household);
+    await expect(page.locator('#panel-household')).toHaveAttribute('data-hub-state', 'off');
+    await expect(page.locator('#panel-household')).toContainText(
+      'Your hub sends this browser a profile: words, packs and quiet hours.',
+    );
+    await expect(page.locator('#hubConnect')).toHaveText('Connect');
+  });
+
+  test('Connect asks for permission before it sends hubPair', async ({ page }) => {
+    await open(page, household);
+    await page.fill('#hubUrl', 'http://hub.test');
+    await page.fill('#hubCode', 'abcdef');
+    await page.locator('#hubConnect').click();
+    await expect.poll(() => messages(page)).toHaveLength(1);
+    expect(await page.evaluate(() => (window as any).__perm.length)).toBe(1);
+    expect(await page.evaluate(() => (window as any).__order)).toEqual(['permission', 'message']);
+  });
+
+  test('a failed pair shows the error', async ({ page }) => {
+    await open(page, household, { reply: { ok: false, error: 'network' } });
+    await page.fill('#hubUrl', 'http://hub.test');
+    await page.fill('#hubCode', 'ABCDEF');
+    await page.locator('#hubConnect').click();
+    await expect(page.locator('#hubError')).toContainText('Could not reach the hub');
+  });
+
+  test('connecting disables the button', async ({ page }) => {
+    await open(page, household, { permission: 'hang' });
+    await page.fill('#hubUrl', 'http://hub.test');
+    await page.fill('#hubCode', 'ABCDEF');
+    await page.locator('#hubConnect').click();
+    await expect(page.locator('#panel-household')).toHaveAttribute('data-hub-state', 'connecting');
+    await expect(page.locator('#hubConnect')).toBeDisabled();
+    await expect(page.locator('#hubConnect')).toHaveText('Connecting…');
+    await expect(page.locator('#hubUrl')).toBeEnabled();
+  });
+
+  test('connected but never synced', async ({ page }) => {
+    await open(page, { ...household, hub: HUB, hubConfig: HUB_CONFIG, hubStatus: { lastSync: null, error: null } });
+    await expect(page.locator('#panel-household')).toHaveAttribute('data-hub-state', 'on');
+    await expect(page.locator('#hubFrom')).toHaveText('from Home hub · not synced yet');
+    await expect(page.locator('#hubSyncInfo')).toBeHidden();
+  });
+
+  test('offline without offlineSince falls back to the last sync', async ({ page }) => {
+    await open(page, { ...household, hub: HUB, hubConfig: HUB_CONFIG, hubStatus: { ...SYNCED, error: 'offline' } });
+    await expect(page.locator('#panel-household')).toHaveAttribute('data-hub-state', 'offline');
+    await expect(page.locator('#hubSyncInfo')).toHaveText("Can't reach Home hub. Using the rules from the last sync.");
+    await expect(page.locator('#hubSyncInfo')).toHaveClass(/warn/);
+  });
+
+  test('invalid has its state attribute', async ({ page }) => {
+    await open(page, { ...household, hub: HUB, hubConfig: HUB_CONFIG, hubStatus: { ...SYNCED, error: 'invalid' } });
+    await expect(page.locator('#panel-household')).toHaveAttribute('data-hub-state', 'invalid');
+  });
+
+  test('locked and offline keeps the warn style', async ({ page }) => {
+    await open(page, { hub: HUB, hubConfig: HUB_CONFIG_LOCKED, hubStatus: { ...SYNCED, error: 'offline' } });
+    await expect(page.locator('#panel-household')).toHaveAttribute('data-hub-state', 'locked');
+    await expect(page.locator('#hubSyncInfo')).toHaveClass(/warn/);
+  });
+
+  test.describe('profile in another time zone', () => {
+    test.use({ timezoneId: 'Europe/London', locale: 'en-US' });
+    test('quiet-hours time is shown in the profile zone', async ({ page }) => {
+      // Mon 18:00Z is 14:00 in New York (EDT); the window ends 17:00 there.
+      const q = { timezone: 'America/New_York', windows: [{ days: [1], start: '09:00', end: '17:00' }] };
+      await open(
+        page,
+        { ...household, hub: HUB, hubConfig: { ...HUB_CONFIG, quietHours: q }, hubStatus: SYNCED },
+        { now: '2026-10-12T18:00:00+00:00' },
+      );
+      await expect(page.locator('#hubQuiet')).toHaveText('Hub rules apply now, until 05:00 PM (America/New_York)');
+    });
+  });
+});
+
+
 test('screenshots of every state', async ({ page }) => {
   test.skip(!process.env.SCREENS, 'set SCREENS=dir to write them');
+  const now = '2026-10-12T12:00:00+00:00';
+  const off = { lastSync: 1, lastAttempt: 1 };
   const states: Record<string, PopupSeed> = {
     words: { blockWords: ['spoiler', '=cat'] },
     sites: { popupTab: 'sites' },
     off: { popupTab: 'household' },
-    on: { popupTab: 'household', hub: HUB, hubConfig: { ...HUB_CONFIG, quietHours: QUIET_WINDOW }, hubStatus: SYNCED },
+    on: { hub: HUB, hubConfig: { ...HUB_CONFIG, quietHours: QUIET_WINDOW }, hubStatus: SYNCED },
+    paused: { enabled: false, hub: HUB, hubConfig: HUB_CONFIG, hubStatus: SYNCED },
+    offline: { hub: HUB, hubConfig: HUB_CONFIG, hubStatus: { ...off, error: 'offline', offlineSince: Date.parse(now) - 3_600_000 } },
+    invalid: { hub: HUB, hubConfig: HUB_CONFIG, hubStatus: { ...off, error: 'invalid' } },
+    revoked: { hubRevokedSeen: 5, popupTab: 'household', hubStatus: { error: 'revoked', revokedAt: 5 } },
     locked: { hub: HUB, hubConfig: HUB_CONFIG_LOCKED, hubStatus: SYNCED },
   };
-  for (const [name, seed] of Object.entries(states)) {
-    const p = await page.context().newPage();
-    await installPopupShim(p, seed);
-    await p.goto(POPUP_URL);
-    await p.screenshot({ path: `${process.env.SCREENS}/popup-${name}-${page.viewportSize()!.width}.png` });
-    await p.close();
+  for (const w of [324, 375]) {
+    for (const [name, seed] of Object.entries(states)) {
+      const p = await page.context().newPage();
+      await p.setViewportSize({ width: w, height: 640 });
+      await installPopupShim(p, seed, { now, os: 'android' });
+      await p.goto(POPUP_URL);
+      await p.screenshot({ path: `${process.env.SCREENS}/popup-${name}-${w}.png` });
+      await p.close();
+    }
   }
 });
