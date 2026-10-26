@@ -26,19 +26,19 @@ export const useAuthStore = defineStore('auth', () => {
     setupStatus.value = await api.auth.setupStatus()
   }
 
-  async function login(email: string, password: string): Promise<void> {
-    admin.value = await api.auth.login({ email, password })
-    status.value = 'authenticated'
-  }
-
+  /** Ends the local session, then leaves for the idp's end-session URL the api hands back. */
   async function logout(): Promise<void> {
     try {
-      await api.auth.logout()
-    } finally {
+      const { location } = await api.auth.logout()
       admin.value = null
       status.value = 'anonymous'
+      window.location.assign(location)
+    } catch (e) {
+      admin.value = null
+      status.value = 'anonymous'
+      throw e
     }
   }
 
-  return { admin, status, setupStatus, load, loadSetupStatus, login, logout }
+  return { admin, status, setupStatus, load, loadSetupStatus, logout }
 })

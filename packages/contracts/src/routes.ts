@@ -1,5 +1,5 @@
 import { z } from 'zod';
-import { AdminInfo, HubStatus, LoginRequest, LogoutResponse, SetupStatus } from './auth.js';
+import { AdminInfo, HubStatus, LogoutResponse, SetupStatus } from './auth.js';
 import { ErrorBody } from './common.js';
 import { DeviceConfig } from './device-config.js';
 import {
@@ -49,7 +49,6 @@ export interface RouteSpec {
  * Every non-2xx response carries `ErrorBody` (`error`).
  */
 export const ROUTES = {
-  login: { method: 'POST', path: '/api/auth/login', auth: 'public', status: 200, request: LoginRequest, response: AdminInfo, note: '401 invalid_credentials' },
   logout: { method: 'POST', path: '/api/auth/logout', auth: 'admin', status: 200, response: LogoutResponse, note: 'ends the session; location is the idp end-session URL' },
   me: { method: 'GET', path: '/api/auth/me', auth: 'admin', status: 200, response: AdminInfo },
   setupStatus: { method: 'GET', path: '/api/setup/status', auth: 'public', status: 200, response: SetupStatus },

@@ -16,7 +16,9 @@ async function signOut() {
   try {
     await auth.logout()
     hub.reset()
-  } finally {
+  } catch {
+    // The local session is gone either way; the idp hop failed, so land on our own sign-in.
+    hub.reset()
     await router.push('/signin')
   }
 }

@@ -99,7 +99,6 @@ export type ConfigResult = { notModified: true } | { notModified: false; config:
 /** One function per name in contracts `ROUTES`. Only the admin ones are used by the web app. */
 export const api = {
   auth: {
-    login: (body: Body<'login'>) => call('login', { body }),
     logout: () => call('logout'),
     me: () => call('me'),
     setupStatus: () => call('setupStatus'),

@@ -40,22 +40,26 @@ describe('auth store', () => {
     expect(auth.status).toBe('unknown')
   })
 
-  it('login() authenticates and a rejected login leaves the state alone', async () => {
+  it('logout follows the location', async () => {
+    const assign = vi.fn<(url: string) => void>()
+    vi.stubGlobal('location', { assign })
     const auth = useAuthStore()
-    fetchMock.mockResolvedValueOnce(json(401, { error: 'invalid_credentials', message: 'No' }))
-    await expect(auth.login('a@b.co', 'bad')).rejects.toMatchObject({ status: 401 })
-    expect(auth.status).toBe('unknown')
-
     fetchMock.mockResolvedValueOnce(json(200, { email: 'a@b.co' }))
-    await auth.login('a@b.co', 'good')
-    expect(auth.status).toBe('authenticated')
-    expect(auth.admin?.email).toBe('a@b.co')
+    await auth.load()
+    fetchMock.mockResolvedValueOnce(json(200, { location: 'https://id.example/session/end' }))
+    await auth.logout()
+    expect(fetchMock.mock.calls[1]![0]).toBe('/api/auth/logout')
+    expect(assign).toHaveBeenCalledWith('https://id.example/session/end')
+    expect(auth.status).toBe('anonymous')
+    expect(auth.admin).toBeNull()
+    vi.unstubAllGlobals()
+    vi.stubGlobal('fetch', fetchMock)
   })
 
   it('logout() drops to anonymous even when the call fails', async () => {
     const auth = useAuthStore()
     fetchMock.mockResolvedValueOnce(json(200, { email: 'a@b.co' }))
-    await auth.login('a@b.co', 'good')
+    await auth.load()
     fetchMock.mockRejectedValueOnce(new TypeError('offline'))
     await expect(auth.logout()).rejects.toBeTruthy()
     expect(auth.status).toBe('anonymous')

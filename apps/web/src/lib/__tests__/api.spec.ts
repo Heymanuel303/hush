@@ -25,11 +25,11 @@ describe('api client', () => {
   })
 
   it('sends JSON bodies', async () => {
-    fetchMock.mockResolvedValue(reply(200, { email: 'a@b.co' }))
-    await api.auth.login({ email: 'a@b.co', password: 'pw' })
+    fetchMock.mockResolvedValue(reply(201, { id: 'p1' }))
+    await api.profiles.create({ name: 'Kids' } as never).catch(() => undefined)
     const init = fetchMock.mock.calls[0]![1]!
     expect(init.method).toBe('POST')
-    expect(init.body).toBe(JSON.stringify({ email: 'a@b.co', password: 'pw' }))
+    expect(init.body).toBe(JSON.stringify({ name: 'Kids' }))
     expect(new Headers(init.headers).get('Content-Type')).toBe('application/json')
   })
 
@@ -42,7 +42,7 @@ describe('api client', () => {
     fetchMock.mockResolvedValue(
       reply(401, { error: 'invalid_credentials', message: 'Wrong', details: { a: 1 } }),
     )
-    const error = await api.auth.login({ email: 'a@b.co', password: 'x' }).catch((e: unknown) => e)
+    const error = await api.auth.me().catch((e: unknown) => e)
     expect(error).toBeInstanceOf(ApiError)
     expect(error).toMatchObject({
       status: 401,
