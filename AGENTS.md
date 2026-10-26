@@ -58,6 +58,7 @@ The hub's `apps/`, `packages/`, `e2e/` and `scripts/` form the pnpm workspace. T
 | API       | NestJS 12 (ESM), Prisma 7 (`prisma-client`, `@prisma/adapter-pg`), PostgreSQL 17 |
 | Web       | Vue 3.5 with Vite 8, Pinia 4, Vue Router 5                                       |
 | UI        | Tailwind CSS 4, shadcn-vue 2 on reka-ui, `@lucide/vue`, IBM Plex Sans            |
+| idp       | `@heymanuel303/idp-client` 0.1.1 (exact) from GitHub Packages: `NODE_AUTH_TOKEN` in `~/.npmrc`, never committed |
 | Contracts | Zod 4 schemas in `packages/contracts` (package `contracts`), for api and web     |
 | Tests     | Vitest 4 everywhere, API tests against PostgreSQL, Playwright 1.63.0 exactly     |
 | Lint      | api: oxlint 1 (Nest 12 default); web: ESLint 10 flat config + oxlint; Prettier 3 |
@@ -74,6 +75,7 @@ apps/api/                 NestJS API, every route under the global prefix /api
   src/packs/              PacksSeed: upserts the built-in packs on bootstrap
   src/profiles/           profiles API (If-Match rule-set writes) + ProfileVersionService (the one Profile.version bump)
   src/devices/            pairing codes, POST /devices/pair, devices admin, DeviceGuard + GET /device/config (ETag)
+  src/auth/sso/           idp client ports: PrismaSessionStore (AdminSession) and AdminLinker (links, never creates, the Admin)
   src/pihole/             Pi-hole connection routes, PiholeClient (one session per process), summary cache
   src/common/             Zod pipes, SecretsService (encrypt/decrypt with HUB_ENCRYPTION_KEY)
   src/templates/          TEMPLATES constant (young-kid, teen, calm-adult), served by GET /api/templates

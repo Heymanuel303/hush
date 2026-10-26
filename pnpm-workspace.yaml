@@ -21,3 +21,6 @@ allowBuilds:
   unrs-resolver: false
   # Postinstall switches between Vue 2/3 builds; the default build already targets Vue 3.
   vue-demi: false
+
+minimumReleaseAgeExclude:
+  - '@heymanuel303/idp-client@0.1.1'

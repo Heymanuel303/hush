@@ -12,11 +12,31 @@ datasource db {
 }
 
 model Admin {
-  id           String   @id @default(uuid()) @db.Uuid
-  email        String   @unique
+  id           String         @id @default(uuid()) @db.Uuid
+  email        String         @unique
   passwordHash String
-  createdAt    DateTime @default(now())
-  updatedAt    DateTime @updatedAt
+  // The idp `sub`, stored on the first sign-in by verified email (never created by a sign-in).
+  idpSub       String?        @unique
+  createdAt    DateTime       @default(now())
+  updatedAt    DateTime       @updatedAt
+  sessions     AdminSession[]
+}
+
+// A database-backed admin session so a back-channel logout has something to end. `id` is the
+// cookie value. The sub is not stored: it is the owning Admin's `idpSub`.
+model AdminSession {
+  id                 String    @id
+  adminId            String    @db.Uuid
+  admin              Admin     @relation(fields: [adminId], references: [id], onDelete: Cascade)
+  idpSid             String?
+  refreshTokenSealed String?
+  accessExpiresAt    DateTime?
+  refreshLockedUntil DateTime?
+  expiresAt          DateTime
+  createdAt          DateTime  @default(now())
+
+  @@index([idpSid])
+  @@index([adminId])
 }
 
 // Profile.version is bumped in the same transaction as every RuleSet write (enforced in the
