@@ -1,11 +1,20 @@
 import { readFileSync } from 'node:fs';
 import type { INestApplication } from '@nestjs/common';
 import type { ProfileWithRules } from 'contracts';
+import type { OidcStub } from '@heymanuel303/idp-client/testkit';
 import request from 'supertest';
 import { TEMPLATES } from '../src/templates/templates.js';
 import { createTestApp, prismaOf, resetDb } from './db.js';
+import { adminCookie, ssoEnv, startStub } from './sso.js';
 
 const saved = { ...process.env };
+let stub: OidcStub;
+beforeAll(async () => {
+  stub = await startStub();
+});
+afterAll(async () => {
+  await stub.close();
+});
 let app: INestApplication;
 let cookie: string;
 
@@ -29,20 +38,13 @@ const stored = (id: string) => prismaOf(app).ruleSet.findUniqueOrThrow({ where: 
 beforeEach(async () => {
   process.env = {
     ...saved,
-    ADMIN_EMAIL: 'parent@example.test',
-    ADMIN_PASSWORD: 'correct horse battery',
-    SESSION_SECRET: 'test-session-secret',
-    COOKIE_SECURE: 'false',
+    ...ssoEnv(stub),
   };
   app = await createTestApp();
   await resetDb(prismaOf(app));
   await app.close();
   app = await createTestApp();
-  const res = await request(app.getHttpServer())
-    .post('/api/auth/login')
-    .send({ email: 'parent@example.test', password: 'correct horse battery' })
-    .expect(200);
-  cookie = (res.headers['set-cookie'] as unknown as string[])[0]!.split(';')[0]!;
+  cookie = await adminCookie(app, stub);
 });
 
 afterEach(async () => {

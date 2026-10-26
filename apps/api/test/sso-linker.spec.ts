@@ -27,7 +27,7 @@ describe('AdminLinker', () => {
   beforeEach(async () => {
     app = await createTestApp();
     await resetDb(prismaOf(app));
-    await prismaOf(app).admin.create({ data: { email, passwordHash: 'x' } });
+    await prismaOf(app).admin.create({ data: { email } });
     linker = app.get(AdminLinker);
   });
 
@@ -81,7 +81,7 @@ describe('AdminLinker', () => {
     await refused(linker.linkOrCreate(claims({ sub: 'sub-9', email: 'new@example.com' })));
     expect(await prisma.admin.count()).toBe(0);
     // With one admin present, refused sign-ins leave the count at one.
-    await prisma.admin.create({ data: { email, passwordHash: 'x' } });
+    await prisma.admin.create({ data: { email } });
     await refused(linker.linkOrCreate(claims({ email: 'new@example.com' })));
     expect(await prisma.admin.count()).toBe(1);
   });

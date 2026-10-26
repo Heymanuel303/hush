@@ -49,9 +49,9 @@ describe('schema and built-in packs', () => {
       SELECT indexname FROM pg_indexes WHERE tablename = 'AdminSession'`;
     expect(indexes.map((i) => i.indexname)).toContain('AdminSession_idpSid_idx');
 
-    await prisma.admin.create({ data: { email: 'a@example.com', passwordHash: 'x', idpSub: 's' } });
+    await prisma.admin.create({ data: { email: 'a@example.com', idpSub: 's' } });
     await expect(
-      prisma.admin.create({ data: { email: 'b@example.com', passwordHash: 'x', idpSub: 's' } }),
+      prisma.admin.create({ data: { email: 'b@example.com', idpSub: 's' } }),
     ).rejects.toThrow();
     const admin = await prisma.admin.findUniqueOrThrow({ where: { email: 'a@example.com' } });
     await prisma.adminSession.create({ data: { id: 'x', adminId: admin.id, expiresAt: new Date() } });

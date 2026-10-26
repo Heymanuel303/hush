@@ -11,6 +11,11 @@ vi.stubGlobal('fetch', fetchMock)
 afterEach(() => fetchMock.mockReset())
 
 describe('api client', () => {
+  it('logout answers the idp end-session location', async () => {
+    fetchMock.mockResolvedValue(reply(200, { location: 'https://id.example/session/end' }))
+    expect(await api.auth.logout()).toEqual({ location: 'https://id.example/session/end' })
+  })
+
   it('parses a valid body and sends credentials', async () => {
     fetchMock.mockResolvedValue(reply(200, { email: 'admin@hush.local' }))
     expect(await api.auth.me()).toEqual({ email: 'admin@hush.local' })
@@ -71,6 +76,6 @@ describe('api client', () => {
 
   it('returns 204 routes as undefined', async () => {
     fetchMock.mockResolvedValue(reply(204))
-    await expect(api.auth.logout()).resolves.toBeUndefined()
+    await expect(api.packs.remove('6f1c2d3e-0000-4000-8000-000000000000')).resolves.toBeUndefined()
   })
 })

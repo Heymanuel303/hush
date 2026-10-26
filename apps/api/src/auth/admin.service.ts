@@ -3,14 +3,10 @@ import type { OnApplicationBootstrap } from '@nestjs/common';
 import { APP_CONFIG } from '../config/config.js';
 import type { AppConfig } from '../config/config.js';
 import { PrismaService } from '../prisma/prisma.service.js';
-import { hashPassword, verifyPassword } from './password.js';
 
 @Injectable()
 export class AdminService implements OnApplicationBootstrap {
   private readonly log = new Logger(AdminService.name);
-  // Verified against when the email is unknown, so a wrong email costs as much as a wrong password.
-  private dummyHash: Promise<string> | undefined;
-
   constructor(
     private readonly prisma: PrismaService,
     @Inject(APP_CONFIG) private readonly config: AppConfig,
@@ -18,12 +14,12 @@ export class AdminService implements OnApplicationBootstrap {
 
   /** Makes the single Admin row match the environment. */
   async onApplicationBootstrap(): Promise<void> {
-    const { adminEmail, adminPassword } = this.config;
+    const { adminEmail } = this.config;
     const existing = await this.prisma.admin.findFirst({ orderBy: { createdAt: 'asc' } });
     if (!existing) {
       try {
         await this.prisma.admin.create({
-          data: { email: adminEmail, passwordHash: await hashPassword(adminPassword) },
+          data: { email: adminEmail },
         });
         this.log.log('Admin account created from the environment.');
       } catch (error) {
@@ -34,27 +30,15 @@ export class AdminService implements OnApplicationBootstrap {
       }
       return;
     }
-    const data: { email?: string; passwordHash?: string } = {};
-    if (existing.email !== adminEmail) data.email = adminEmail;
-    if (!(await verifyPassword(adminPassword, existing.passwordHash))) {
-      data.passwordHash = await hashPassword(adminPassword);
-    }
-    if (Object.keys(data).length > 0) {
-      await this.prisma.admin.update({ where: { id: existing.id }, data });
-      this.log.log(`Admin account updated from the environment (${Object.keys(data).join(', ')}).`);
+    // The sub linked on first sign-in stays; only the email follows the environment.
+    if (existing.email !== adminEmail) {
+      await this.prisma.admin.update({ where: { id: existing.id }, data: { email: adminEmail } });
+      this.log.log('Admin account updated from the environment (email).');
     }
   }
 
-  /** The admin for these credentials, or null. Always runs one scrypt verification. */
-  async authenticate(email: string, password: string): Promise<{ id: string; email: string } | null> {
-    const admin = await this.prisma.admin.findUnique({ where: { email } });
-    this.dummyHash ??= hashPassword('hush-dummy-password');
-    const ok = await verifyPassword(password, admin?.passwordHash ?? (await this.dummyHash));
-    return admin && ok ? { id: admin.id, email: admin.email } : null;
-  }
-
-  findById(id: string): Promise<{ id: string; email: string } | null> {
-    return this.prisma.admin.findUnique({ where: { id }, select: { id: true, email: true } });
+  findByIdpSub(sub: string): Promise<{ id: string; email: string } | null> {
+    return this.prisma.admin.findUnique({ where: { idpSub: sub }, select: { id: true, email: true } });
   }
 
   async isConfigured(): Promise<boolean> {

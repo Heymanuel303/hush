@@ -27,7 +27,7 @@ server without the hosting platform, use the local overlay:
 git clone git@github.com:Heymanuel303/hush.git && cd hush
 cp .env.example .env
 # in .env: uncomment COMPOSE_FILE=docker-compose.yml:docker-compose.local.yml,
-# set ADMIN_EMAIL, ADMIN_PASSWORD, HUB_NAME,
+# set ADMIN_EMAIL, ISSUER_URL, CLIENT_ID, CLIENT_SECRET, HUB_NAME,
 # SESSION_SECRET=$(openssl rand -base64 32), HUB_ENCRYPTION_KEY=$(openssl rand -base64 32)
 docker compose up -d --build
 ```
@@ -62,9 +62,10 @@ Every variable, its default and its meaning is in the
 
 | Variable | What to put |
 | --- | --- |
-| `ADMIN_EMAIL`, `ADMIN_PASSWORD` | The single admin account. Synced at every api start; change the password here and restart. |
+| `ADMIN_EMAIL` | The single admin. Synced at every api start. The first Hey Id sign-in with this verified email links the account; anyone else gets `not_an_admin`. |
+| `ISSUER_URL`, `CLIENT_ID`, `CLIENT_SECRET` | The Hey Id client `hush` (confidential), created in the idp admin dashboard with redirect `<PUBLIC_WEB_URL>/api/auth/sso/callback`, post-logout `<PUBLIC_WEB_URL>/signin` and back-channel `<PUBLIC_WEB_URL>/api/auth/sso/backchannel-logout`. |
 | `HUB_NAME` | The name devices show ("Managed by <name>"). |
-| `SESSION_SECRET` | `openssl rand -base64 32`; signs the session cookie. |
+| `SESSION_SECRET` | `openssl rand -base64 32`; seals the pending sign-in and the stored refresh token. |
 | `HUB_ENCRYPTION_KEY` | `openssl rand -base64 32`; encrypts the Pi-hole app password at rest. Back it up (see Backup). |
 | `PIHOLE_TLS_INSECURE` | `true` only if the hub reaches Pi-hole over its self-signed HTTPS. Affects the Pi-hole connection only, never devices. |
 | `NODE_AUTH_TOKEN` | Build-time only: a GitHub token with `read:packages` for the `@heymanuel303` scope, so the image builds can install `@heymanuel303/idp-client`. Set it in `.env` or the shell before `docker compose up --build`; it is a BuildKit secret and ends up in no image layer. CI needs the same value as the `NODE_AUTH_TOKEN` repository secret. |
@@ -72,7 +73,7 @@ Every variable, its default and its meaning is in the
 
 ## First run
 
-Sign in with `ADMIN_EMAIL` / `ADMIN_PASSWORD`. A hub with no profiles opens the setup wizard:
+Sign in through Hey Id with the `ADMIN_EMAIL` account. A hub with no profiles opens the setup wizard:
 connect Pi-hole (skippable), create the first profile from a template, pair the first device. The
 wizard stays reachable from **Setup guide** in the navigation.
 

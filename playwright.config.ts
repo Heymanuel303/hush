@@ -40,10 +40,27 @@ export default defineConfig({
   ],
   webServer: process.env.E2E_BASE_URL
     ? undefined
-    : {
-        command: 'pnpm dev',
-        url: 'http://localhost:5173',
-        reuseExistingServer: !process.env.CI,
-        timeout: 120_000,
-      },
+    : [
+        {
+          // The idp test kit, first so the api finds it on 127.0.0.1:3999 (its development
+          // ISSUER_URL, CLIENT_ID `hush`, CLIENT_SECRET and PUBLIC_URL defaults match this).
+          command: 'pnpm --filter api exec oidc-stub',
+          url: 'http://127.0.0.1:3999/.well-known/openid-configuration',
+          reuseExistingServer: !process.env.CI,
+          env: {
+            OIDC_STUB_CLIENT_ID: 'hush',
+            OIDC_STUB_CLIENT_SECRET: 'hush-dev-client-secret',
+            OIDC_STUB_REDIRECT_URIS: 'http://localhost:5173/api/auth/sso/callback',
+            OIDC_STUB_POST_LOGOUT_URIS: 'http://localhost:5173/signin',
+            OIDC_STUB_BACKCHANNEL_URI: 'http://localhost:5173/api/auth/sso/backchannel-logout',
+            OIDC_STUB_PORT: '3999',
+          },
+        },
+        {
+          command: 'pnpm dev',
+          url: 'http://localhost:5173',
+          reuseExistingServer: !process.env.CI,
+          timeout: 120_000,
+        },
+      ],
 });
