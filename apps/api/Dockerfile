@@ -12,17 +12,18 @@ WORKDIR /repo
 COPY . .
 # Deviation from the starter kit: @heymanuel303/idp-client comes from GitHub Packages, so the
 # install needs a read token. It arrives as a BuildKit secret (never an ARG/ENV), is written to
-# the user npmrc for this one RUN and removed again, so no layer keeps it. The runtime stage has
-# no pnpm and never sees it.
-RUN --mount=type=secret,id=node_auth_token \
-    sh -c 'printf "//npm.pkg.github.com/:_authToken=%s\n" "$(cat /run/secrets/node_auth_token)" > /root/.npmrc \
-      && pnpm install --frozen-lockfile; rc=$?; rm -f /root/.npmrc; exit $rc'
+# the user npmrc for this one RUN and removed again, so no layer keeps it. `pnpm deploy`
+# re-resolves the package against the registry, so install, build and deploy share this single
+# secret-mounted RUN. The runtime stage has no pnpm and never sees the token.
 # Build the shared contracts, generate the Prisma client, compile the api and copy the api
 # with its production dependencies only to /out/api.
-RUN pnpm --filter contracts build \
- && pnpm --filter api exec prisma generate \
- && pnpm --filter api build \
- && pnpm --filter api --prod deploy /out/api
+RUN --mount=type=secret,id=node_auth_token \
+    sh -c 'printf "//npm.pkg.github.com/:_authToken=%s\n" "$(cat /run/secrets/node_auth_token)" > /root/.npmrc \
+      && { pnpm install --frozen-lockfile \
+        && pnpm --filter contracts build \
+        && pnpm --filter api exec prisma generate \
+        && pnpm --filter api build \
+        && pnpm --filter api --prod deploy /out/api; }; rc=$?; rm -f /root/.npmrc; exit $rc'
 
 FROM node:22.23-bookworm-slim AS runtime
 RUN apt-get update \
