@@ -1,13 +1,5 @@
 import { expect, test } from '@playwright/test';
-
-const EMAIL = 'admin@hush.local';
-const PASSWORD = 'hush-dev-password';
-
-async function signIn(page: import('@playwright/test').Page, password = PASSWORD) {
-  await page.getByLabel('Email').fill(EMAIL);
-  await page.getByLabel('Password').fill(password);
-  await page.getByRole('button', { name: 'Sign in' }).click();
-}
+import { ADMIN_EMAIL, signInAsAdmin, signInWithEmail } from './helpers';
 
 test.beforeEach(async ({ request }) => {
   // Wait for the api behind the dev proxy.
@@ -16,25 +8,24 @@ test.beforeEach(async ({ request }) => {
     .toBe(200);
 });
 
-test('wrong password shows the error alert', async ({ page }) => {
+test('another email lands on the sign-in page with not_an_admin', async ({ page }) => {
   await page.goto('/signin');
-  await signIn(page, 'not-the-password');
-  await expect(
-    page.getByRole('alert').filter({ hasText: 'Email or password is wrong' }),
-  ).toBeVisible();
-  await expect(page).toHaveURL(/\/signin/);
+  await signInWithEmail(page, 'someone-else@example.com');
+  await expect(page).toHaveURL(/\/signin\?error=not_an_admin$/);
+  await expect(page.getByRole('alert')).toContainText("not the hub's admin");
 });
 
-test('correct credentials land on the home page and sign-out returns', async ({ page }) => {
+test('the admin lands on the home page and sign-out returns', async ({ page }) => {
   await page.goto('/signin');
-  await signIn(page);
+  await signInAsAdmin(page);
   // A hub with no profiles opens on /setup, otherwise on /profiles.
   await expect(page).toHaveURL(/\/(setup|profiles)$/);
   await page.goto('/profiles');
   await expect(page.getByRole('heading', { name: 'Profiles', exact: true })).toBeVisible();
 
   await page.getByRole('button', { name: 'Sign out' }).click();
-  await expect(page).toHaveURL(/\/signin/);
+  // The stub's end_session returns to the post-logout URI.
+  await expect(page).toHaveURL(/\/signin$/);
 });
 
 test('anonymous visit to /devices redirects with next, then returns after sign-in', async ({
@@ -42,14 +33,13 @@ test('anonymous visit to /devices redirects with next, then returns after sign-i
 }) => {
   await page.goto('/devices');
   await expect(page).toHaveURL(/\/signin\?next=\/devices$/);
-  await signIn(page);
+  await signInWithEmail(page, ADMIN_EMAIL);
   await expect(page).toHaveURL(/\/devices$/);
 });
 
 test('the nav is reachable on desktop and through the menu on mobile', async ({ page }, info) => {
   await page.goto('/signin');
-  await signIn(page);
-  await expect(page).toHaveURL(/\/(setup|profiles)$/);
+  await signInAsAdmin(page);
 
   if (info.project.name === 'mobile') {
     await page.getByRole('button', { name: 'Open menu' }).click();

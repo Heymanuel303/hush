@@ -42,13 +42,13 @@ export default defineConfig({
     ? undefined
     : [
         {
-          // The idp test kit, first so the api finds it on 127.0.0.1:3999 (its development
-          // ISSUER_URL, CLIENT_ID `hush`, CLIENT_SECRET and PUBLIC_URL defaults match this).
+          // The idp test kit, first so the api finds it on 127.0.0.1:3999. Client `hush-e2e`
+          // is the one the api below is given; never the real idp.
           command: 'pnpm --filter api exec oidc-stub',
           url: 'http://127.0.0.1:3999/.well-known/openid-configuration',
           reuseExistingServer: !process.env.CI,
           env: {
-            OIDC_STUB_CLIENT_ID: 'hush',
+            OIDC_STUB_CLIENT_ID: 'hush-e2e',
             OIDC_STUB_CLIENT_SECRET: 'hush-dev-client-secret',
             OIDC_STUB_REDIRECT_URIS: 'http://localhost:5173/api/auth/sso/callback',
             OIDC_STUB_POST_LOGOUT_URIS: 'http://localhost:5173/signin',
@@ -59,6 +59,12 @@ export default defineConfig({
         {
           command: 'pnpm dev',
           url: 'http://localhost:5173',
+          env: {
+            ISSUER_URL: 'http://127.0.0.1:3999',
+            CLIENT_ID: 'hush-e2e',
+            CLIENT_SECRET: 'hush-dev-client-secret',
+            PUBLIC_URL: 'http://localhost:5173',
+          },
           reuseExistingServer: !process.env.CI,
           timeout: 120_000,
         },
