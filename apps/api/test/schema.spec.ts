@@ -35,6 +35,30 @@ describe('schema and built-in packs', () => {
     expect((await prisma.pack.findUniqueOrThrow({ where: { name: 'Mine' } })).builtIn).toBe(false);
   });
 
+  it('has AdminSession and Admin.idpSub, with a unique sub and cascading sessions', async () => {
+    const prisma = prismaOf(app);
+    const columns = await prisma.$queryRaw<{ table_name: string; column_name: string }[]>`
+      SELECT table_name, column_name FROM information_schema.columns
+      WHERE table_schema = 'public' AND table_name IN ('Admin', 'AdminSession')`;
+    const has = (t: string, c: string) => columns.some((x) => x.table_name === t && x.column_name === c);
+    expect(has('Admin', 'idpSub')).toBe(true);
+    for (const c of ['id', 'adminId', 'idpSid', 'refreshTokenSealed', 'accessExpiresAt', 'refreshLockedUntil', 'expiresAt', 'createdAt']) {
+      expect(has('AdminSession', c)).toBe(true);
+    }
+    const indexes = await prisma.$queryRaw<{ indexname: string }[]>`
+      SELECT indexname FROM pg_indexes WHERE tablename = 'AdminSession'`;
+    expect(indexes.map((i) => i.indexname)).toContain('AdminSession_idpSid_idx');
+
+    await prisma.admin.create({ data: { email: 'a@example.com', passwordHash: 'x', idpSub: 's' } });
+    await expect(
+      prisma.admin.create({ data: { email: 'b@example.com', passwordHash: 'x', idpSub: 's' } }),
+    ).rejects.toThrow();
+    const admin = await prisma.admin.findUniqueOrThrow({ where: { email: 'a@example.com' } });
+    await prisma.adminSession.create({ data: { id: 'x', adminId: admin.id, expiresAt: new Date() } });
+    await prisma.admin.delete({ where: { id: admin.id } });
+    expect(await prisma.adminSession.count()).toBe(0);
+  });
+
   it('restricts deleting a profile with a device, cascades rules and pairing codes', async () => {
     const prisma = prismaOf(app);
     const profile = await prisma.profile.create({

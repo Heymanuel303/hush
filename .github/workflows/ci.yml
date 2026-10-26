@@ -34,7 +34,13 @@ jobs:
           node-version: '22.23'
       - name: Enable pnpm
         run: npm install -g corepack@latest && corepack enable
-      - run: pnpm install --frozen-lockfile
+      # @heymanuel303/idp-client is on GitHub Packages; the repo secret needs read:packages.
+      - name: Install
+        run: |
+          printf '//npm.pkg.github.com/:_authToken=%s\n' "$NODE_AUTH_TOKEN" >> ~/.npmrc
+          pnpm install --frozen-lockfile
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NODE_AUTH_TOKEN }}
       - run: pnpm lint
       - name: Design lint
         run: pnpm lint:design

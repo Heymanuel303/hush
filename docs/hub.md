@@ -67,6 +67,7 @@ Every variable, its default and its meaning is in the
 | `SESSION_SECRET` | `openssl rand -base64 32`; signs the session cookie. |
 | `HUB_ENCRYPTION_KEY` | `openssl rand -base64 32`; encrypts the Pi-hole app password at rest. Back it up (see Backup). |
 | `PIHOLE_TLS_INSECURE` | `true` only if the hub reaches Pi-hole over its self-signed HTTPS. Affects the Pi-hole connection only, never devices. |
+| `NODE_AUTH_TOKEN` | Build-time only: a GitHub token with `read:packages` for the `@heymanuel303` scope, so the image builds can install `@heymanuel303/idp-client`. Set it in `.env` or the shell before `docker compose up --build`; it is a BuildKit secret and ends up in no image layer. CI needs the same value as the `NODE_AUTH_TOKEN` repository secret. |
 | `WORKER_ENABLED` | Leave it alone: compose sets it `true` on the `worker` service and `false` on the api, so a schedule runs exactly once. |
 
 ## First run
