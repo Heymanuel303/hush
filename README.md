@@ -69,6 +69,8 @@ Conventions for working on it are in [AGENTS.md](AGENTS.md).
 
 ```sh
 cp .env.example .env   # then set SESSION_SECRET, the database password and PLATFORM_PROVISION_TOKEN
+# pnpm needs a GitHub Packages read token for @heymanuel303/idp-client:
+echo "//npm.pkg.github.com/:_authToken=$NODE_AUTH_TOKEN" >> ~/.npmrc
 pnpm install
 docker compose up -d   # db-init creates the role and database, migrate applies the migrations
 pnpm dev
@@ -102,6 +104,7 @@ serve the same app at <http://hush.localhost>.
 | `COOKIE_SECURE`            | `false`                                          | `true` behind HTTPS so the session cookie gets `Secure`                                                                       |
 | `PORT`                     | `3000`                                           | port the api listens on outside Docker (the containers always use 3000)                                                       |
 | `NODE_ENV`                 | `development`                                    | the `api` container sets `production`                                                                                         |
+| `NODE_AUTH_TOKEN`          | _(required to build)_                            | GitHub token with `read:packages` for the `@heymanuel303` scope; build-time secret for `pnpm install` (images, CI), never stored |
 | `WEB_EXT_API_KEY`          | _(maintainer only)_                              | AMO signing key for `pnpm ext:sign`; extension only, not read by the hub                                                      |
 | `WEB_EXT_API_SECRET`       | _(maintainer only)_                              | AMO signing secret for `pnpm ext:sign`; extension only, not read by the hub                                                   |
 

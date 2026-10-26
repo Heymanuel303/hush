@@ -10,7 +10,13 @@ RUN apt-get update \
 RUN npm install -g corepack@latest && corepack enable
 WORKDIR /repo
 COPY . .
-RUN pnpm install --frozen-lockfile
+# Deviation from the starter kit: @heymanuel303/idp-client comes from GitHub Packages, so the
+# install needs a read token. It arrives as a BuildKit secret (never an ARG/ENV), is written to
+# the user npmrc for this one RUN and removed again, so no layer keeps it. The runtime stage has
+# no pnpm and never sees it.
+RUN --mount=type=secret,id=node_auth_token \
+    sh -c 'printf "//npm.pkg.github.com/:_authToken=%s\n" "$(cat /run/secrets/node_auth_token)" > /root/.npmrc \
+      && pnpm install --frozen-lockfile; rc=$?; rm -f /root/.npmrc; exit $rc'
 # Build the shared contracts, generate the Prisma client, compile the api and copy the api
 # with its production dependencies only to /out/api.
 RUN pnpm --filter contracts build \

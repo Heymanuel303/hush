@@ -55,6 +55,7 @@ services:
     build:
       context: .
       dockerfile: apps/api/Dockerfile
+      secrets: [node_auth_token]
     image: hush-api
     command: ["node", "/db-init.mjs"]
     restart: "no"
@@ -79,6 +80,7 @@ services:
     build:
       context: .
       dockerfile: apps/api/Dockerfile
+      secrets: [node_auth_token]
     image: hush-api
     command: ["./node_modules/.bin/prisma", "migrate", "deploy"]
     restart: "no"
@@ -93,6 +95,7 @@ services:
     build:
       context: .
       dockerfile: apps/api/Dockerfile
+      secrets: [node_auth_token]
     image: hush-api
     restart: unless-stopped
     depends_on:
@@ -130,6 +133,7 @@ services:
     build:
       context: .
       dockerfile: apps/web/Dockerfile
+      secrets: [node_auth_token]
       args:
         VITE_API_BASE: ${VITE_API_BASE:-/api}
     restart: unless-stopped
@@ -150,6 +154,11 @@ services:
       default: {}
       apps:
         aliases: [hush-web]
+
+# Build-time only: GitHub Packages read token for `pnpm install` in the image builds.
+secrets:
+  node_auth_token:
+    environment: NODE_AUTH_TOKEN
 
 networks:
   # Created by the platform (docker network create apps); the overlay replaces it locally.

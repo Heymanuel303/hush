@@ -32,6 +32,9 @@ jobs:
       # --wait returns non-zero when any healthcheck fails or migrate exits non-zero.
       - name: Build and start the stack
         run: docker compose up --build --wait --wait-timeout 300
+        env:
+          # Build secret for the GitHub Packages install; repo secret with read:packages.
+          NODE_AUTH_TOKEN: ${{ secrets.NODE_AUTH_TOKEN }}
       - name: Web serves the SPA
         run: curl -f http://127.0.0.1:8080/
       - name: API health through nginx
