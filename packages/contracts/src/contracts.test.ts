@@ -176,7 +176,7 @@ describe('routes', () => {
         .map((r) => r.path)
         .sort(),
     ).toEqual(
-      ['/api/device/config', '/api/auth/login', '/api/devices/pair', '/api/setup/status'].sort(),
+      ['/api/device/config', '/api/devices/pair', '/api/setup/status'].sort(),
     );
   });
   it('method+path pairs are unique', () => {

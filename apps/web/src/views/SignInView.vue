@@ -1,52 +1,38 @@
 <script setup lang="ts">
-import { computed, onMounted, ref } from 'vue'
-import { useRoute, useRouter } from 'vue-router'
-import { CircleAlert, LoaderCircle, TriangleAlert } from '@lucide/vue'
+import { computed, onMounted } from 'vue'
+import { useRoute } from 'vue-router'
+import { CircleAlert, TriangleAlert } from '@lucide/vue'
 import HushMark from '@/components/layout/HushMark.vue'
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
-import { Input } from '@/components/ui/input'
-import { Label } from '@/components/ui/label'
-import { ApiError } from '@/lib/api'
 import { safeNext } from '@/router'
 import { useAuthStore } from '@/stores/auth'
 
 const auth = useAuthStore()
 const route = useRoute()
-const router = useRouter()
-
-const email = ref('')
-const password = ref('')
-const submitting = ref(false)
-const error = ref<string | null>(null)
 
 const notConfigured = computed(() => auth.setupStatus?.adminConfigured === false)
 
-function messageFor(e: unknown): string {
-  if (!(e instanceof ApiError)) return 'Something went wrong. Try again.'
-  if (e.status === 401) return 'Email or password is wrong'
-  if (e.status === 429) return 'Too many attempts, wait a minute'
-  if (e.status === 0) return 'The hub did not answer. Check that it is running.'
-  return `Sign-in failed (status ${e.status}). Try again.`
+const loginHref = computed(
+  () => `/api/auth/sso/login?return=${encodeURIComponent(safeNext(route.query.next))}`,
+)
+
+const ERROR_MESSAGES: Record<string, string> = {
+  not_an_admin: "This account is not the hub's admin",
+  access_denied: 'Hey Id did not grant access. Try again.',
+  login_expired: 'The sign-in took too long. Try again.',
+  login_failed: 'Sign-in failed. Try again.',
 }
 
-async function submit() {
-  if (submitting.value) return
-  submitting.value = true
-  error.value = null
-  try {
-    await auth.login(email.value, password.value)
-    await router.push(route.query.next ? safeNext(route.query.next) : '/')
-  } catch (e) {
-    error.value = messageFor(e)
-  } finally {
-    submitting.value = false
-  }
-}
+const errorMessage = computed(() => {
+  const code = route.query.error
+  if (typeof code !== 'string' || code === '') return null
+  return ERROR_MESSAGES[code] ?? ERROR_MESSAGES.login_failed
+})
 
 onMounted(() => {
-  // A failed status read only hides the operator hint; the form still works.
+  // A failed status read only hides the operator hint; the link still works.
   auth.loadSetupStatus().catch(() => undefined)
 })
 </script>
@@ -67,49 +53,24 @@ onMounted(() => {
         </CardDescription>
       </CardHeader>
       <CardContent>
-        <form class="flex flex-col gap-4" novalidate @submit.prevent="submit">
+        <div class="flex flex-col gap-4">
           <Alert v-if="notConfigured">
             <TriangleAlert />
             <AlertTitle>No admin account yet</AlertTitle>
             <AlertDescription>
               Set <code class="font-mono">ADMIN_EMAIL</code> and
-              <code class="font-mono">ADMIN_PASSWORD</code> in <code class="font-mono">.env</code>
+              <code class="font-mono">ISSUER_URL</code> in <code class="font-mono">.env</code>
               and restart the hub.
             </AlertDescription>
           </Alert>
 
-          <Alert v-if="error" variant="destructive">
+          <Alert v-if="errorMessage" variant="destructive">
             <CircleAlert />
-            <AlertDescription>{{ error }}</AlertDescription>
+            <AlertDescription>{{ errorMessage }}</AlertDescription>
           </Alert>
 
-          <div class="flex flex-col gap-2">
-            <Label for="email">Email</Label>
-            <Input
-              id="email"
-              v-model="email"
-              type="email"
-              autocomplete="username"
-              required
-              :disabled="submitting"
-            />
-          </div>
-          <div class="flex flex-col gap-2">
-            <Label for="password">Password</Label>
-            <Input
-              id="password"
-              v-model="password"
-              type="password"
-              autocomplete="current-password"
-              required
-              :disabled="submitting"
-            />
-          </div>
-          <Button type="submit" :disabled="submitting">
-            <LoaderCircle v-if="submitting" class="animate-spin" aria-hidden="true" />
-            {{ submitting ? 'Signing in' : 'Sign in' }}
-          </Button>
-        </form>
+          <Button as="a" :href="loginHref">Sign in with Hey Id</Button>
+        </div>
       </CardContent>
     </Card>
     </main>
