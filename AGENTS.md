@@ -221,6 +221,17 @@ Signature: the pairing code, six uppercase letter tiles in the accent on the mon
 
 Allowed: none
 
+## Identity
+
+The admin signs in only through Hey Id (the idp) with `@heymanuel303/idp-client`; there is no
+password. The adapter is mounted under `/api/auth/sso` (login, callback, backchannel-logout) and
+the session cookie is `hush_session`. Only the sub or the verified `ADMIN_EMAIL` is accepted;
+anyone else lands on `/signin?error=not_an_admin`. Tests never reach the real idp: Playwright
+starts the `oidc-stub` bin first (client `hush-e2e`, `127.0.0.1:3999`, six `OIDC_STUB_*`
+variables in `playwright.config.ts`) and the api gets `ISSUER_URL`, `CLIENT_ID`, `CLIENT_SECRET`
+and `PUBLIC_URL` pointing at it. `e2e/helpers.ts` has `signInAsAdmin(page)`; specs that only need
+a session reuse the storage state from `e2e/global-setup.ts`. Integration tests use `startOidcStub`.
+
 ## Per-replica state
 
 The api runs with `API_REPLICAS` containers. In-memory state such as rate limits or timers is per

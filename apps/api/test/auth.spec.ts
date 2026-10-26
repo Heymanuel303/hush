@@ -322,7 +322,7 @@ describe('loadConfig', () => {
     expect(loadConfig(prod)).toMatchObject({ clientId: 'hush', publicUrl: 'https://hush.example.test' });
   });
 
-  it('ADMIN_PASSWORD is neither required nor read', () => {
+  it('no password setting is required or read', () => {
     expect(loadConfig(prod)).not.toHaveProperty('adminPassword');
   });
 
