@@ -17,7 +17,7 @@ describe('PrismaSessionStore', () => {
   beforeEach(async () => {
     app = await createTestApp();
     await resetDb(prismaOf(app));
-    await prismaOf(app).admin.create({ data: { email: 'admin@example.com', passwordHash: 'x', idpSub: 'sub-1' } });
+    await prismaOf(app).admin.create({ data: { email: 'admin@example.com', idpSub: 'sub-1' } });
     store = app.get(PrismaSessionStore);
   });
 

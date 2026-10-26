@@ -1,7 +1,11 @@
 import { z } from 'zod';
 
 const DEV_ADMIN_EMAIL = 'admin@hush.local';
-const DEV_ADMIN_PASSWORD = 'hush-dev-password';
+// Development defaults point at the idp test stub (`oidc-stub` on 127.0.0.1:3999, client `hush`).
+const DEV_ISSUER_URL = 'http://127.0.0.1:3999';
+const DEV_CLIENT_ID = 'hush';
+const DEV_CLIENT_SECRET = 'hush-dev-client-secret';
+const DEV_PUBLIC_URL = 'http://localhost:5173';
 // 32 bytes, fixed, public: only ever used outside production (with a warning).
 const DEV_ENCRYPTION_KEY = 'aHVzaC1kZXYtZW5jcnlwdGlvbi1rZXktMzJieXRlcyE=';
 const DEV_SESSION_SECRET = 'hush-dev-session-secret-not-for-production';
@@ -12,7 +16,10 @@ const optional = z.preprocess((v) => (v === '' ? undefined : v), z.string().opti
 const Env = z.object({
   NODE_ENV: optional,
   ADMIN_EMAIL: optional.pipe(z.email().optional()),
-  ADMIN_PASSWORD: optional,
+  ISSUER_URL: optional.pipe(z.url().optional()),
+  CLIENT_ID: optional,
+  CLIENT_SECRET: optional,
+  PUBLIC_URL: optional.pipe(z.url().optional()),
   HUB_NAME: optional,
   SESSION_SECRET: optional,
   COOKIE_SECURE: optional,
@@ -24,7 +31,11 @@ const Env = z.object({
 export interface AppConfig {
   production: boolean;
   adminEmail: string;
-  adminPassword: string;
+  /** The idp (Hey Id) issuer, client credentials and the origin the browser reaches the hub at. */
+  issuerUrl: string;
+  clientId: string;
+  clientSecret: string;
+  publicUrl: string;
   hubName: string;
   sessionSecret: string;
   cookieSecure: boolean;
@@ -54,17 +65,25 @@ export function loadConfig(
   const e = parsed.data;
   const production = e.NODE_ENV === 'production';
   if (production) {
-    const missing: string[] = (['ADMIN_EMAIL', 'ADMIN_PASSWORD', 'SESSION_SECRET'] as const).filter(
-      (k) => !e[k],
-    );
+    const missing: string[] = (
+      ['ADMIN_EMAIL', 'SESSION_SECRET', 'ISSUER_URL', 'CLIENT_ID', 'CLIENT_SECRET', 'PUBLIC_URL'] as const
+    ).filter((k) => !e[k]);
     if (!e.HUB_ENCRYPTION_KEY) missing.push('HUB_ENCRYPTION_KEY');
     if (missing.length > 0) {
       throw new Error(`Missing required environment in production: ${missing.join(', ')}`);
     }
   } else {
-    const defaulted: string[] = (['ADMIN_EMAIL', 'ADMIN_PASSWORD', 'SESSION_SECRET', 'HUB_ENCRYPTION_KEY'] as const).filter(
-      (k) => !e[k],
-    );
+    const defaulted: string[] = (
+      [
+        'ADMIN_EMAIL',
+        'SESSION_SECRET',
+        'HUB_ENCRYPTION_KEY',
+        'ISSUER_URL',
+        'CLIENT_ID',
+        'CLIENT_SECRET',
+        'PUBLIC_URL',
+      ] as const
+    ).filter((k) => !e[k]);
     if (defaulted.length > 0) {
       warn(`${defaulted.join(', ')} not set: using development defaults. Do not use in production.`);
     }
@@ -76,7 +95,10 @@ export function loadConfig(
   return {
     production,
     adminEmail: e.ADMIN_EMAIL ?? DEV_ADMIN_EMAIL,
-    adminPassword: e.ADMIN_PASSWORD ?? DEV_ADMIN_PASSWORD,
+    issuerUrl: e.ISSUER_URL ?? DEV_ISSUER_URL,
+    clientId: e.CLIENT_ID ?? DEV_CLIENT_ID,
+    clientSecret: e.CLIENT_SECRET ?? DEV_CLIENT_SECRET,
+    publicUrl: (e.PUBLIC_URL ?? DEV_PUBLIC_URL).replace(/\/+$/, ''),
     hubName: e.HUB_NAME ?? 'Hush Hub',
     sessionSecret: e.SESSION_SECRET ?? DEV_SESSION_SECRET,
     cookieSecure: e.COOKIE_SECURE === 'true',

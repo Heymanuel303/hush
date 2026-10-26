@@ -93,9 +93,12 @@ serve the same app at <http://hush.localhost>.
 | `API_REPLICAS`             | `1`                                              | number of `api` containers                                                                                                    |
 | `DATABASE_URL`             | `postgres://hush:<password>@localhost:5432/hush` | PostgreSQL for `pnpm dev` and Prisma on the host: the same role through the platform's host port (not read by the containers) |
 | `VITE_API_BASE`            | `/api`                                           | prefix of every api call from the web app (build arg of the web image)                                                        |
-| `SESSION_SECRET`           | _(required)_                                     | signs the session cookie; compose refuses to start without it                                                                 |
-| `ADMIN_EMAIL`              | _(required in production)_                       | email of the single admin account; synced to the database at every api start (dev default `admin@hush.local`)                 |
-| `ADMIN_PASSWORD`           | _(required in production)_                       | password of the admin; re-hashed on start when it changes (dev default `hush-dev-password`)                                   |
+| `SESSION_SECRET`           | _(required)_                                     | derives the keys that seal the pending sign-in and the refresh token; compose refuses to start without it                    |
+| `ADMIN_EMAIL`              | _(required in production)_                       | email of the single admin; synced to the database at every api start; the idp sign-in whose verified email matches stores the sub (dev default `admin@hush.local`)                 |
+| `ISSUER_URL`               | _(required in production)_                       | Hey Id (the idp) origin, https in production; dev default is the `oidc-stub` on `http://127.0.0.1:3999` |
+| `CLIENT_ID`                | _(required in production)_                       | the confidential idp client, `hush` (dev default `hush`) |
+| `CLIENT_SECRET`            | _(required in production)_                       | the secret of that client; compose refuses to start without it, no default |
+| `PUBLIC_URL`               | `PUBLIC_WEB_URL`                                 | origin the browser reaches the hub at; compose sets it from `PUBLIC_WEB_URL` (api dev default `http://localhost:5173`) |
 | `HUB_ENCRYPTION_KEY`       | _(required in production)_                       | 32 random bytes, base64 (`openssl rand -base64 32`): encrypts the Pi-hole app password at rest; dev uses a fixed key (warned) |
 | `PIHOLE_TLS_INSECURE`      | `false`                                          | `true` accepts Pi-hole's self-signed HTTPS certificate, for the Pi-hole connection only                                       |
 | `WORKER_ENABLED`           | `false`                                          | `true` only on the `worker` service: runs the kid-mode schedule loop (every 60 s); the api replicas keep `false`              |

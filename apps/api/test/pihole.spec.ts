@@ -1,14 +1,23 @@
 import type { INestApplication } from '@nestjs/common';
 import { PiholeConnection, PiholeSummary, PiholeTestResult } from 'contracts';
+import type { OidcStub } from '@heymanuel303/idp-client/testkit';
 import request from 'supertest';
 import { SecretsService } from '../src/common/secrets.service.js';
 import { loadConfig } from '../src/config/config.js';
 import { PiholeService } from '../src/pihole/pihole.service.js';
 import { createTestApp, prismaOf, resetDb } from './db.js';
+import { adminCookie, ssoEnv, startStub } from './sso.js';
 import { startFakePihole } from './fake-pihole.js';
 import type { FakePihole } from './fake-pihole.js';
 
 const saved = { ...process.env };
+let stub: OidcStub;
+beforeAll(async () => {
+  stub = await startStub();
+});
+afterAll(async () => {
+  await stub.close();
+});
 const PASSWORD = 'app-password-123';
 let app: INestApplication;
 let cookie: string;
@@ -25,21 +34,14 @@ const authCalls = () => fake.calls['POST /api/auth'] ?? 0;
 beforeEach(async () => {
   process.env = {
     ...saved,
-    ADMIN_EMAIL: 'parent@example.test',
-    ADMIN_PASSWORD: 'correct horse battery',
-    SESSION_SECRET: 'test-session-secret',
-    COOKIE_SECURE: 'false',
+    ...ssoEnv(stub),
   };
   fake = await startFakePihole({ password: PASSWORD });
   app = await createTestApp();
   await resetDb(prismaOf(app));
   await app.close();
   app = await createTestApp();
-  const res = await request(app.getHttpServer())
-    .post('/api/auth/login')
-    .send({ email: 'parent@example.test', password: 'correct horse battery' })
-    .expect(200);
-  cookie = (res.headers['set-cookie'] as unknown as string[])[0]!.split(';')[0]!;
+  cookie = await adminCookie(app, stub);
 });
 
 afterEach(async () => {
@@ -78,7 +80,7 @@ describe('SecretsService', () => {
 
 describe('config', () => {
   it('production refuses to start without HUB_ENCRYPTION_KEY', () => {
-    const env = { NODE_ENV: 'production', ADMIN_EMAIL: 'a@b.test', ADMIN_PASSWORD: 'x', SESSION_SECRET: 'y' };
+    const env = { NODE_ENV: 'production', ADMIN_EMAIL: 'a@b.test', SESSION_SECRET: 'y', ISSUER_URL: 'https://id.example.test', CLIENT_ID: 'hush', CLIENT_SECRET: 'z', PUBLIC_URL: 'https://hush.example.test' };
     expect(() => loadConfig(env)).toThrow(/HUB_ENCRYPTION_KEY/);
     expect(loadConfig({ ...env, HUB_ENCRYPTION_KEY: Buffer.alloc(32, 1).toString('base64') }).encryptionKey).toHaveLength(32);
   });

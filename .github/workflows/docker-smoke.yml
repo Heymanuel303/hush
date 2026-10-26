@@ -22,11 +22,14 @@ jobs:
           sed -i "s|^SESSION_SECRET=.*|SESSION_SECRET=$(openssl rand -base64 32)|" .env
           sed -i "s|^COMPOSE_FILE=.*|COMPOSE_FILE=docker-compose.yml:docker-compose.local.yml|" .env
           sed -i "s|^ADMIN_EMAIL=.*|ADMIN_EMAIL=smoke@hush.local|" .env
-          sed -i "s|^ADMIN_PASSWORD=.*|ADMIN_PASSWORD=$(openssl rand -hex 12)|" .env
+          # No idp on the runner: the stack only has to boot, so these point at nothing real.
+          sed -i "s|^ISSUER_URL=.*|ISSUER_URL=https://id.smoke.invalid|" .env
+          sed -i "s|^CLIENT_SECRET=.*|CLIENT_SECRET=$(openssl rand -hex 12)|" .env
           sed -i "s|^HUB_ENCRYPTION_KEY=.*|HUB_ENCRYPTION_KEY=$(openssl rand -base64 32)|" .env
           grep -q "^SESSION_SECRET=.\+" .env
           grep -q "^ADMIN_EMAIL=.\+" .env
-          grep -q "^ADMIN_PASSWORD=.\+" .env
+          grep -q "^ISSUER_URL=.\+" .env
+          grep -q "^CLIENT_SECRET=.\+" .env
           grep -q "^HUB_ENCRYPTION_KEY=.\+" .env
           grep -q "^COMPOSE_FILE=docker-compose.yml:docker-compose.local.yml$" .env
       # --wait returns non-zero when any healthcheck fails or migrate exits non-zero.
@@ -41,18 +44,13 @@ jobs:
         run: curl -f http://127.0.0.1:8080/api/health
       - name: Setup status reports the admin
         run: curl -f http://127.0.0.1:8080/api/setup/status | grep -q '"adminConfigured":true'
-      - name: Admin login and authenticated hub status
+      - name: Admin routes need a session and the password login is gone
         run: |
           set -eu
-          EMAIL=$(grep '^ADMIN_EMAIL=' .env | cut -d= -f2-)
-          PASSWORD=$(grep '^ADMIN_PASSWORD=' .env | cut -d= -f2-)
-          code=$(curl -s -o /dev/null -w '%{http_code}' -c cookies.txt \
-            -H 'Content-Type: application/json' \
-            -d "{\"email\":\"$EMAIL\",\"password\":\"$PASSWORD\"}" \
-            http://127.0.0.1:8080/api/auth/login)
-          test "$code" = 200
-          grep -q hush_session cookies.txt
-          curl -f -b cookies.txt http://127.0.0.1:8080/api/hub/status
+          code=$(curl -s -o /dev/null -w '%{http_code}' http://127.0.0.1:8080/api/hub/status)
+          test "$code" = 401
+          code=$(curl -s -o /dev/null -w '%{http_code}' -X POST http://127.0.0.1:8080/api/auth/login)
+          test "$code" = 404
       - name: Device config without a token is rejected
         run: |
           code=$(curl -s -o /dev/null -w '%{http_code}' http://127.0.0.1:8080/api/device/config)

@@ -2,10 +2,19 @@ import { createHash } from 'node:crypto';
 import type { INestApplication } from '@nestjs/common';
 import { BUILT_IN_PACKS, DeviceConfig } from 'contracts';
 import type { PairingCode, PairResponse, ProfileWithRules } from 'contracts';
+import type { OidcStub } from '@heymanuel303/idp-client/testkit';
 import request from 'supertest';
 import { createTestApp, prismaOf, resetDb } from './db.js';
+import { adminCookie, ssoEnv, startStub } from './sso.js';
 
 const saved = { ...process.env };
+let stub: OidcStub;
+beforeAll(async () => {
+  stub = await startStub();
+});
+afterAll(async () => {
+  await stub.close();
+});
 let app: INestApplication;
 let cookie: string;
 
@@ -35,21 +44,14 @@ const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms));
 beforeEach(async () => {
   process.env = {
     ...saved,
-    ADMIN_EMAIL: 'parent@example.test',
-    ADMIN_PASSWORD: 'correct horse battery',
-    SESSION_SECRET: 'test-session-secret',
-    COOKIE_SECURE: 'false',
+    ...ssoEnv(stub),
     HUB_NAME: 'Home Hub',
   };
   app = await createTestApp();
   await resetDb(prismaOf(app));
   await app.close();
   app = await createTestApp();
-  const res = await request(app.getHttpServer())
-    .post('/api/auth/login')
-    .send({ email: 'parent@example.test', password: 'correct horse battery' })
-    .expect(200);
-  cookie = (res.headers['set-cookie'] as unknown as string[])[0]!.split(';')[0]!;
+  cookie = await adminCookie(app, stub);
 });
 
 afterEach(async () => {

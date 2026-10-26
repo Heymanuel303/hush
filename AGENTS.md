@@ -75,7 +75,7 @@ apps/api/                 NestJS API, every route under the global prefix /api
   src/packs/              PacksSeed: upserts the built-in packs on bootstrap
   src/profiles/           profiles API (If-Match rule-set writes) + ProfileVersionService (the one Profile.version bump)
   src/devices/            pairing codes, POST /devices/pair, devices admin, DeviceGuard + GET /device/config (ETag)
-  src/auth/sso/           idp client ports: PrismaSessionStore (AdminSession) and AdminLinker (links, never creates, the Admin)
+  src/auth/sso/           idp client: SsoModule mounts the adapter at /api/auth/sso; PrismaSessionStore (AdminSession) and AdminLinker (links, never creates, the Admin)
   src/pihole/             Pi-hole connection routes, PiholeClient (one session per process), summary cache
   src/common/             Zod pipes, SecretsService (encrypt/decrypt with HUB_ENCRYPTION_KEY)
   src/templates/          TEMPLATES constant (young-kid, teen, calm-adult), served by GET /api/templates
@@ -228,11 +228,9 @@ replica; anything that must be shared goes through the database.
 
 - The pairing rate limit is in memory, per replica.
 - Pairing codes, device tokens, profile versions and kid-mode state live in PostgreSQL.
-- The admin session is the stateless signed cookie `hush_session` (HMAC with `SESSION_SECRET`,
-  7 days); there is no server-side session state, so any replica validates any cookie.
-- The login rate limit (10 attempts per minute per client IP, then 429) is in memory, per replica.
-  The client IP is the first `X-Forwarded-For` entry: Caddy overwrites the header with the real
-  peer, and nginx appends the Caddy address after it (the last entry is the same for everyone).
+- The admin session is an `AdminSession` row in PostgreSQL; the `hush_session` cookie carries its id
+  (7 days), so any replica validates any cookie and a back-channel logout can end it. There is no
+  login limiter: the password login is gone and Hey Id owns credential checks.
 - Kid-mode schedules run only in the `worker` service, gated by `WORKER_ENABLED`: exactly one
   instance, reusing the api image and the `x-api-environment` anchor with `WORKER_ENABLED: "true"`;
   never add `deploy: replicas` to it and never scale it.
@@ -256,14 +254,14 @@ replica; anything that must be shared goes through the database.
   publishes a host port: the platform's Caddy serves the web container, locally at
   `http://hush.localhost`. Only the overlay publishes `WEB_PORT`.
 - The `x-api-environment` anchor carries every api variable: `SESSION_SECRET`, `ADMIN_EMAIL`,
-  `ADMIN_PASSWORD` and `HUB_ENCRYPTION_KEY` (required, compose refuses to start without them),
+  `ISSUER_URL`, `CLIENT_ID`, `CLIENT_SECRET` and `HUB_ENCRYPTION_KEY` (required, compose refuses to start without them),
   `HUB_NAME` (`Hush Hub`), `PIHOLE_TLS_INSECURE` (`false`), `WORKER_ENABLED` (`"false"`),
-  `PUBLIC_WEB_URL`, `COOKIE_SECURE`. The `worker` service overrides only `WORKER_ENABLED`; the
+  `PUBLIC_WEB_URL` (also passed as `PUBLIC_URL`), `COOKIE_SECURE`. The `worker` service overrides only `WORKER_ENABLED`; the
   overlay sets `DATABASE_URL` for `worker` as for every other service.
 - Backup: the hub's state is the database volume **plus** `HUB_ENCRYPTION_KEY`. The key decrypts the
   stored Pi-hole app password; a restored database with a different key needs the Pi-hole
   connection saved again. Keep the key with the backup, never in the repository.
-- `docker-smoke` checks the setup status, an admin login, `GET /api/hub/status`, a 401 on
+- `docker-smoke` checks the setup status, a 401 on `GET /api/hub/status` and a 404 on the removed `POST /api/auth/login`, a 401 on
   `GET /api/device/config` without a token, and the healthy `worker`.
 - A new environment variable or service lands in `.env.example`, `docker-compose.yml` and the README
   configuration table in the same change.

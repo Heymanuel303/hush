@@ -17,10 +17,17 @@ x-api-environment: &api-environment
   SESSION_SECRET: ${SESSION_SECRET:?Set SESSION_SECRET in .env (openssl rand -base64 32)}
   PUBLIC_WEB_URL: ${PUBLIC_WEB_URL:-http://hush.localhost}
   COOKIE_SECURE: ${COOKIE_SECURE:-false}
-  # Required, no default: the single admin account, created and kept in sync from these at
-  # every api start (the api refuses to start in production without them).
+  # Required, no default: the single admin's email, created and kept in sync at every api start
+  # (the api refuses to start in production without it). The admin signs in through Hey Id.
   ADMIN_EMAIL: ${ADMIN_EMAIL:?Set ADMIN_EMAIL in .env}
-  ADMIN_PASSWORD: ${ADMIN_PASSWORD:?Set ADMIN_PASSWORD in .env}
+  # Hey Id (the idp): the confidential client `hush`, created in its admin dashboard. All
+  # required, no defaults. PUBLIC_URL is the origin the browser reaches the hub at (the same
+  # value as PUBLIC_WEB_URL); the client registers <PUBLIC_URL>/api/auth/sso/callback,
+  # <PUBLIC_URL>/signin and <PUBLIC_URL>/api/auth/sso/backchannel-logout.
+  ISSUER_URL: ${ISSUER_URL:?Set ISSUER_URL in .env (the Hey Id origin)}
+  CLIENT_ID: ${CLIENT_ID:?Set CLIENT_ID in .env (hush)}
+  CLIENT_SECRET: ${CLIENT_SECRET:?Set CLIENT_SECRET in .env}
+  PUBLIC_URL: ${PUBLIC_WEB_URL:-http://hush.localhost}
   # Name of this hub, shown to devices when they pair.
   HUB_NAME: ${HUB_NAME:-Hush Hub}
   # Required, no default: encrypts the Pi-hole app password at rest (AES-256-GCM). Back it up
