@@ -21,6 +21,14 @@ describe('state components', () => {
     expect(wrapper.get('[role="status"]').element.children).toHaveLength(3)
   })
 
+  it('LoadingState skeletons stay visible on a dark card', () => {
+    // In dark, `muted` equals the card surface, so a bg-muted skeleton vanishes inside a Card.
+    const wrapper = mount(LoadingState, { props: { rows: 1 } })
+    const bars = wrapper.findAll('[data-slot="skeleton"]')
+    expect(bars.length).toBeGreaterThan(0)
+    for (const bar of bars) expect(bar.classes()).toContain('dark:bg-input')
+  })
+
   it('ErrorState renders the message and the retry slot', () => {
     const wrapper = mount(ErrorState, {
       props: { message: 'The hub did not answer.' },
