@@ -12,6 +12,7 @@ import {
   SheetTrigger,
 } from '@/components/ui/sheet'
 import HushMark from './HushMark.vue'
+import ThemeMenu from './ThemeMenu.vue'
 
 const nav = [
   { to: '/profiles', label: 'Profiles' },
@@ -51,6 +52,7 @@ const menuOpen = ref(false)
 
         <div class="ml-auto flex items-center gap-2">
           <slot name="account" />
+          <ThemeMenu />
 
           <Sheet v-model:open="menuOpen">
             <SheetTrigger as-child>
