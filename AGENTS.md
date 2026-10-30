@@ -85,7 +85,7 @@ apps/api/                 NestJS API, every route under the global prefix /api
 apps/web/                 Vue single-page app (Vite)
   src/assets/theme.css    every design token (light + dark), imported once in main.ts
   src/components/ui/      shadcn-vue primitives (CLI-generated, restyled once to the direction)
-  src/components/layout/  AppShell.vue (header, nav, gutters), HushMark.vue
+  src/components/layout/  AppShell.vue (header, nav, gutters, theme switcher), HushMark.vue, ThemeMenu.vue (Light/Dark/System dropdown)
   src/components/state/   EmptyState, LoadingState, ErrorState
   src/components/pihole/  PiholeConnectionForm (shared by the Pi-hole screen and the setup wizard)
   src/components/devices/ PairDevicePanel (dialog body, shared with the setup wizard), PairDeviceDialog, DeviceActions, DeviceActionDialog, DeviceKidControl
@@ -95,7 +95,7 @@ apps/web/                 Vue single-page app (Vite)
   src/components/schedule/ ScheduleEditor.vue (quiet hours v-model; shared with the Devices screen)
   src/lib/                api.ts (typed fetch client), utils.ts
   src/stores/             Pinia stores (auth, hub, packs, profiles, pihole, devices)
-  src/composables/        useTheme.ts (the single owner of the light/dark/auto preference; localStorage `hush-theme`, browser-only)
+  src/composables/        useTheme.ts (theme preference: localStorage `hush-theme` = light|dark|auto; html.dark class; browser-only)
   src/router/             route table + the global auth guard
   src/views/              one <Name>View.vue per route (SignInView, SetupView.vue = the first-run wizard, stubs for the rest)
   src/components/layout/  also PageHeader.vue (title, description, action slot)
@@ -129,7 +129,7 @@ Run from the repository root (scripts of the root `package.json`).
 | Extension in Firefox | `pnpm ext:start` / `pnpm ext:start:chromium` (needs a desktop) |
 | Signed `.xpi`        | `pnpm ext:sign` (maintainer only, needs `.env`)                |
 
-`e2e/household.spec.ts` (pair, edit, lock, revoke, kid mode, both projects) is the release check and must stay green before a version bump; `e2e/ext-popup.spec.ts` opens the popup from `file://` with a stubbed `chrome.*`.
+`e2e/household.spec.ts` (pair, edit, lock, revoke, kid mode, both projects) is the release check and must stay green before a version bump; `e2e/ext-popup.spec.ts` opens the popup from `file://` with a stubbed `chrome.*`; `e2e/theme.spec.ts` pins the theme switcher and its persistence.
 
 `node --test test/` fails on Node 22 (it loads `test` as a module); keep the glob form.
 The api `build`, `dev`, `typecheck` and `test` scripts run `prisma generate` first.
@@ -179,7 +179,8 @@ in `beforeEach` (it also removes the built-in packs, which return on the next ap
   generated `prisma/migrations/` folder.
 - **A Vue view with its route:** `apps/web/src/views/<Name>View.vue`, a route in
   `src/router/index.ts`, a nav entry in `AppShell.vue` if it is top level; it renders inside the
-  AppShell and handles loading, empty and error with the `components/state` components.
+  AppShell and handles loading, empty and error with the `components/state` components, and reads
+  well in both themes (screenshot it in dark too).
 - **An API call from the web:** a function in `apps/web/src/lib/api.ts` named after the route in
   `contracts` `ROUTES` (`api.<area>.<verb>`); it parses the response with the contract schema and
   throws `ApiError {status, error, message, details}` on non-2xx (status 0 = network). Never call
@@ -202,6 +203,10 @@ in `beforeEach` (it also removes the built-in packs, which return on the next ap
 - Use the theme tokens; never ad-hoc colors or inline styles.
 - Every screen handles its loading, empty and error states.
 - Every screen works at 375px and at 1280px wide.
+- Every screen renders in light and in dark: the tokens in `theme.css` apply under `html.dark`,
+  set by `useTheme()`; a new colour token is added to both `:root` and `.dark`
+  (`dark-token-parity` in the design lint fails otherwise). Use `dark:` only with token classes,
+  never to introduce a second palette.
 - Public marketing pages (landing, anything a visitor sees before signing up) are
   the exception: custom section components under `apps/web/src/marketing` with their own
   layout, not held to the `components/ui` rule. They keep the theme's colour and font tokens
@@ -214,7 +219,7 @@ in `beforeEach` (it also removes the built-in packs, which return on the next ap
 
 Audience: technical parents and homelab households who already run Pi-hole and Tailscale; the tone is calm, plain and exact, like a well-kept admin console, never playful and never alarmist.
 Typeface: IBM Plex Sans from Fontsource (`@fontsource/ibm-plex-sans`, weights 400, 500, 600) for everything; pairing codes, IP addresses and ETags use the system monospace stack (`ui-monospace, SFMono-Regular, Menlo, monospace`).
-Base: warm paper and ink. Light: background `#fbfaf8`, foreground `#1a1a1c`, card/surface `#ffffff`, muted surface `#f3f1ec`, muted text `#6b6b73`, border `rgba(26, 26, 28, 0.12)`. Dark: background `#1c1c1e`, foreground `#f2f2f5`, surface `#2a2a2d`, muted text `#9a9aa3`, border `rgba(255, 255, 255, 0.12)`. These are the extension popup's neutrals (`src/popup/panel-theme.css`).
+Base: warm paper and ink. Light: background `#fbfaf8`, foreground `#1a1a1c`, card/surface `#ffffff`, muted surface `#f3f1ec`, muted text `#6b6b73`, border `rgba(26, 26, 28, 0.12)`. Dark: background `#1c1c1e`, foreground `#f2f2f5`, surface `#2a2a2d`, muted text `#9a9aa3`, border `rgba(255, 255, 255, 0.12)`. These are the extension popup's neutrals (`src/popup/panel-theme.css`). The preference is a device setting (`localStorage` `hush-theme`), never hub config.
 Accent: Hush orange, `#d93a00` in light and `#ff5a1f` in dark (the extension's badge colour), used for primary buttons, the active side of switches, focus rings, the "paired" status dot and the pairing-code tiles. No second accent: locked and kid-mode states use the foreground colour plus a lucide icon (`lock`, `shield`). The extension's violet advanced-mode accent is **not** used in the hub.
 Radius: 6px (`--radius: 0.375rem`) on buttons, inputs, badges, table cells and cards; 12px is allowed only on dialogs and on the pairing-code card.
 Density: a 4px scale (4, 8, 12, 16, 24, 32); 40px table rows on Devices, Profiles and Packs; 36px inputs and buttons; 12px horizontal cell padding; page gutter 24px at 1280px and 16px at 375px; content column max 1120px.
