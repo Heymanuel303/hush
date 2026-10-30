@@ -144,7 +144,8 @@ test('clean fixture has zero hits', () => {
     ...vue(
       '<h1 class="text-foreground bg-card shadow-sm">Orders</h1>\n<p class="text-muted-foreground">Nothing yet.</p>',
     ),
-    'apps/web/src/style.css': ':root {\n  --a: #111;\n  box-shadow: 0 1px 2px rgba(0,0,0,.1);\n}\n',
+    'apps/web/src/style.css':
+      ':root {\n  --a: #111;\n  box-shadow: 0 1px 2px rgba(0,0,0,.1);\n}\n.dark {\n  --a: #eee;\n}\n',
     'apps/web/index.html': '<html><title>App</title></html>\n',
   });
   assert.equal(r.code, 0);
@@ -185,6 +186,9 @@ const ZINC_CSS = (bg = 'oklch(1 0 0)', primary = 'oklch(0.21 0.006 285.885)') =>
     `  --primary: ${primary};`,
     '  --muted: oklch(0.967 0.001 286.375);',
     '  --border: oklch(0.92 0.004 286.32);',
+    '}',
+    '.dark {',
+    '  --background: #111; --foreground: #eee; --primary: #ddd; --muted: #222; --border: #333;',
     '}',
     '',
   ].join('\n');
@@ -310,7 +314,7 @@ test('the whitelist never silences raw-palette, banned-copy or ignore-without-re
   );
 });
 
-test('--list-rules prints the eleven rule names', () => {
+test('--list-rules prints the twelve rule names', () => {
   const out = execFileSync('node', [script, '--list-rules'], { encoding: 'utf8' });
   assert.deepEqual(out.trim().split('\n'), [
     'purple-gradient',
@@ -323,6 +327,53 @@ test('--list-rules prints the eleven rule names', () => {
     'emoji-heading',
     'banned-copy',
     'raw-palette',
+    'dark-token-parity',
     'ignore-without-reason',
+  ]);
+});
+
+const PARITY_THEME = 'apps/web/src/assets/theme.css';
+
+test('dark-token-parity flags a token missing from .dark', () => {
+  const css =
+    ':root {\n  --background: #fbfaf8;\n  --warning: #b45309;\n  --radius: 0.375rem;\n}\n' +
+    '.dark {\n  --background: #1c1c1e;\n}\n';
+  expectHit({ [PARITY_THEME]: css }, 'dark-token-parity', PARITY_THEME, 6);
+  assert.match(hitLines(lint({ [PARITY_THEME]: css }))[0], /--warning missing from \.dark$/);
+});
+
+test('dark-token-parity passes matching sets', () => {
+  const r = lint({
+    [PARITY_THEME]:
+      ':root {\n  --background: #fbfaf8;\n  --warning: #b45309;\n  --radius: 0.375rem;\n  color-scheme: light;\n}\n' +
+      '.dark {\n  --background: #1c1c1e;\n  --warning: oklch(0.7 0.15 60);\n  color-scheme: dark;\n}\n',
+  });
+  assert.equal(r.code, 0, r.lines.join('\n'));
+});
+
+test('dark-token-parity: a token only in .dark, and a missing .dark block', () => {
+  expectHit(
+    { [PARITY_THEME]: ':root {\n  --a: #111;\n}\n.dark {\n  --a: #eee;\n  --b: rgb(1 2 3);\n}\n' },
+    'dark-token-parity',
+    PARITY_THEME,
+    1,
+  );
+  expectHit(
+    { [PARITY_THEME]: ':root {\n  --a: hsl(10 50% 50%);\n}\n' },
+    'dark-token-parity',
+    PARITY_THEME,
+    1,
+  );
+});
+
+test('dark-token-parity reports each missing name, even on one line', () => {
+  const r = lint({
+    [PARITY_THEME]: ':root {\n  --a: #111;\n  --b: #222;\n}\n.dark {\n  --c: #333;\n}\n',
+  });
+  assert.equal(r.code, 1);
+  assert.deepEqual(hitLines(r), [
+    `${PARITY_THEME}:1: dark-token-parity: --c missing from :root`,
+    `${PARITY_THEME}:5: dark-token-parity: --a missing from .dark`,
+    `${PARITY_THEME}:5: dark-token-parity: --b missing from .dark`,
   ]);
 });
