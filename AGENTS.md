@@ -95,6 +95,7 @@ apps/web/                 Vue single-page app (Vite)
   src/components/schedule/ ScheduleEditor.vue (quiet hours v-model; shared with the Devices screen)
   src/lib/                api.ts (typed fetch client), utils.ts
   src/stores/             Pinia stores (auth, hub, packs, profiles, pihole, devices)
+  src/composables/        useTheme.ts (the single owner of the light/dark/auto preference; localStorage `hush-theme`, browser-only)
   src/router/             route table + the global auth guard
   src/views/              one <Name>View.vue per route (SignInView, SetupView.vue = the first-run wizard, stubs for the rest)
   src/components/layout/  also PageHeader.vue (title, description, action slot)
