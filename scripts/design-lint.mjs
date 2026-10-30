@@ -465,6 +465,37 @@ export const RULES = [
     },
   },
   {
+    name: 'dark-token-parity',
+    description: 'a colour custom property set in :root is missing from .dark, or the reverse',
+    check(f) {
+      if (!f.theme) return [];
+      const block = (re) => {
+        const m = f.text.match(re);
+        if (!m) return null;
+        const body = braces(f.text, m.index + m[0].length - 1) ?? '';
+        const names = new Set();
+        for (const d of body.matchAll(/--([\w-]+)\s*:\s*([^;}]+)/g)) {
+          if (new RegExp(COLOUR_RE.source, 'i').test(d[2])) names.add(d[1]);
+        }
+        return { off: m.index, names };
+      };
+      const root = block(/:root\s*\{/);
+      const dark = block(/\.dark\s*\{/);
+      if (!root) return [];
+      if (!dark) {
+        return root.names.size
+          ? [hit(f, root.off, ':root has colour tokens but no .dark block')]
+          : [];
+      }
+      const out = [];
+      for (const n of root.names)
+        if (!dark.names.has(n)) out.push(hit(f, dark.off, `--${n} missing from .dark`));
+      for (const n of dark.names)
+        if (!root.names.has(n)) out.push(hit(f, root.off, `--${n} missing from :root`));
+      return out;
+    },
+  },
+  {
     name: 'ignore-without-reason',
     description: 'design-lint-ignore without a known rule name and a reason',
     unsilenceable: true,
@@ -546,7 +577,7 @@ function main(argv) {
       (ig.has(`${h.line}:${h.rule.name}`) || ig.has(`${h.line - 1}:${h.rule.name}`))
     )
       continue;
-    const key = `${h.f.rel}:${h.rule.name}:${h.line}`;
+    const key = `${h.f.rel}:${h.rule.name}:${h.line}:${h.found}`;
     if (seen.has(key)) continue;
     seen.add(key);
     hits.push({ path: h.f.rel, line: h.line, rule: h.rule.name, found: h.found });
