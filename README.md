@@ -53,6 +53,8 @@ locked flag) and pairs each browser running Hush with a six-letter code. Every p
 its profile's config; nothing flows back: the hub has no stats endpoint and the extension fetches
 only from the hub the user named. Kid mode moves a device's Tailscale IP into the Pi-hole Kid
 group through the Pi-hole v6 API. Install, pairing, kid mode and backup: [docs/hub.md](docs/hub.md).
+The console has light and dark themes: it follows the OS scheme by default and the theme button
+in the header switches it.
 Conventions for working on it are in [AGENTS.md](AGENTS.md).
 
 ## Prerequisites

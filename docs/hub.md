@@ -77,6 +77,13 @@ Sign in through Hey Id with the `ADMIN_EMAIL` account. A hub with no profiles op
 connect Pi-hole (skippable), create the first profile from a template, pair the first device. The
 wizard stays reachable from **Setup guide** in the navigation.
 
+## Appearance
+
+The console follows the operating system's light or dark scheme by default. The theme button in
+the header (a sun or moon icon) switches it to **Light**, **Dark** or **System**. The choice is
+stored in that browser only, never on the hub, so each browser picks its own. The extension popup
+follows the OS scheme on its own and has no switch.
+
 ## Profiles and templates
 
 A profile is a set of rules plus a locked flag. Three templates are offered when creating one:
