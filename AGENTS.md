@@ -278,6 +278,16 @@ replica; anything that must be shared goes through the database.
 - A new environment variable or service lands in `.env.example`, `docker-compose.yml` and the README
   configuration table in the same change.
 
+## Lessons
+
+Rules learned from earlier sprints; each one cost a failed run.
+
+- Any step that resolves @heymanuel303 packages (pnpm install and pnpm deploy) must run inside the same RUN that mounts the node_auth_token BuildKit secret, and CI must write NODE_AUTH_TOKEN to ~/.npmrc before installing.
+- Before running pnpm install locally, write `//npm.pkg.github.com/:_authToken=$NODE_AUTH_TOKEN` to ~/.npmrc; a 401 is not a reason to skip the checks.
+- A change to a Dockerfile, compose file or docker-smoke workflow is not done until docker-smoke has passed on the branch.
+- Idp redirect, post-logout and back-channel URLs are defined once in docs/hub.md, and code, compose comments and the registration request copy them from there.
+- When a change stops reading an environment variable, remove it from config.ts, .env.example, compose and the docs in the same change.
+
 ## The extension
 
 ### Stack and rules
