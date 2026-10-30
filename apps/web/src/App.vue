@@ -4,6 +4,7 @@ import { LogOut } from '@lucide/vue'
 import AppShell from '@/components/layout/AppShell.vue'
 import { Button } from '@/components/ui/button'
 import { Toaster } from '@/components/ui/sonner'
+import { useTheme } from '@/composables/useTheme'
 import { useAuthStore } from '@/stores/auth'
 import { useHubStore } from '@/stores/hub'
 
@@ -11,6 +12,8 @@ const route = useRoute()
 const router = useRouter()
 const auth = useAuthStore()
 const hub = useHubStore()
+// Called once here so the html class follows the preference on every route, /signin included.
+const { resolved } = useTheme()
 
 async function signOut() {
   try {
@@ -38,5 +41,5 @@ async function signOut() {
     </template>
     <RouterView />
   </AppShell>
-  <Toaster />
+  <Toaster :theme="resolved" />
 </template>
