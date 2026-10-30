@@ -45,6 +45,8 @@
 }
 
 :root {
+  /* color-scheme drives native pickers, select popups and scrollbars. */
+  color-scheme: light;
   --radius: 0.375rem;
 
   --background: #fbfaf8;
@@ -78,6 +80,7 @@
 }
 
 .dark {
+  color-scheme: dark;
   --background: #1c1c1e;
   --foreground: #f2f2f5;
   --card: #2a2a2d;
