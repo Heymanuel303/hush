@@ -108,7 +108,10 @@ const bare = (word: string) => (word.startsWith('=') ? word.slice(1) : word)
       aria-label="Words"
     >
       <li v-for="(word, index) in modelValue" :key="word.toLowerCase()" class="max-w-full">
-        <Badge variant="secondary" class="h-6 max-w-full gap-1 pr-1 font-normal">
+        <Badge
+          variant="secondary"
+          class="dark:border-input dark:bg-input/30 h-6 max-w-full gap-1 pr-1 font-normal"
+        >
           <span
             v-if="word.startsWith('=')"
             class="bg-primary text-primary-foreground rounded-sm px-1 font-mono text-[11px] leading-4"
