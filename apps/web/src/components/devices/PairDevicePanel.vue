@@ -148,14 +148,14 @@ onBeforeUnmount(stopTimers)
             :key="i"
             data-testid="code-tile"
             :class="[
-              'text-primary bg-muted flex h-14 min-w-0 flex-1 items-center justify-center rounded-md font-mono text-3xl font-semibold',
+              'text-primary bg-muted dark:bg-background flex h-14 min-w-0 flex-1 items-center justify-center rounded-md font-mono text-3xl font-semibold',
               remaining?.expired && 'opacity-40',
             ]"
           >{{ letter }}</span>
         </div>
         <div class="flex items-center gap-3">
           <progress
-            class="[&::-webkit-progress-bar]:bg-muted [&::-webkit-progress-value]:bg-primary [&::-moz-progress-bar]:bg-primary h-1 flex-1 appearance-none overflow-hidden rounded-full border-0 [&::-webkit-progress-bar]:rounded-full"
+            class="bg-muted dark:bg-input [&::-webkit-progress-bar]:bg-muted dark:[&::-webkit-progress-bar]:bg-input [&::-webkit-progress-value]:bg-primary [&::-moz-progress-bar]:bg-primary h-1 flex-1 appearance-none overflow-hidden rounded-full border-0 [&::-webkit-progress-bar]:rounded-full"
             :value="Math.round((remaining?.fraction ?? 0) * 600)"
             max="600"
             aria-hidden="true"
@@ -177,7 +177,7 @@ onBeforeUnmount(stopTimers)
       <div class="flex min-w-0 flex-col gap-1.5">
         <span class="text-sm font-medium">Hub address to type</span>
         <div class="flex items-center gap-2">
-          <code class="bg-muted min-w-0 flex-1 truncate rounded-md px-3 py-2 font-mono text-sm">{{ hubUrl }}</code>
+          <code class="bg-muted dark:bg-background min-w-0 flex-1 truncate rounded-md px-3 py-2 font-mono text-sm">{{ hubUrl }}</code>
           <Button type="button" variant="outline" size="sm" @click="copyUrl">
             <component :is="copied ? Check : Copy" aria-hidden="true" />
             {{ copied ? 'Copied' : 'Copy' }}
