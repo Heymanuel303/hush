@@ -106,9 +106,7 @@ onMounted(init)
 
     <Alert class="mb-6">
       <AlertDescription>
-        The hub manages what Hush hides. It cannot stop someone removing or disabling Hush on a device
-        that is not force-installed by a browser policy. For a locked device see
-        browser/firefox/policies.json in the repository.
+        The hub manages what Hush hides. It cannot stop someone removing or disabling Hush on a device that is not force-installed by a browser policy. For a locked device see browser/firefox/policies.json in the repository.
       </AlertDescription>
     </Alert>
 
