@@ -28,7 +28,9 @@ test('pair, rename, kid mode and revoke', async ({ page, request }, info) => {
   const label = `Den PC ${info.project.name} ${Date.now()}`;
 
   // A profile to pair to, and a Pi-hole connection for kid mode.
-  const created = await request.post('/api/profiles', { data: { name: `Kids ${info.project.name} ${Date.now()}` } });
+  const created = await request.post('/api/profiles', {
+    data: { name: `Kids ${info.project.name} ${Date.now()}` },
+  });
   expect(created.ok()).toBeTruthy();
   const profile = (await created.json()) as { id: string; name: string };
   const put = await request.put('/api/pihole', {
@@ -40,7 +42,10 @@ test('pair, rename, kid mode and revoke', async ({ page, request }, info) => {
   await expect(page.getByRole('heading', { name: 'Devices', level: 1 })).toBeVisible();
   // The disclaimer is always on screen, verbatim, on both layouts.
   await expect(page.getByText(DISCLAIMER)).toBeVisible();
-  await page.screenshot({ path: `${SHOTS}/devices-loaded-${info.project.name}.png`, fullPage: true });
+  await page.screenshot({
+    path: `${SHOTS}/devices-loaded-${info.project.name}.png`,
+    fullPage: true,
+  });
 
   // Pair through the dialog, standing in for the extension with the public route.
   await page.getByRole('button', { name: 'Pair a device' }).first().click();
@@ -54,7 +59,9 @@ test('pair, rename, kid mode and revoke', async ({ page, request }, info) => {
   await expect(dialog.getByTestId('code-remaining')).toHaveText(/^(9:5\d|10:00)$/);
   await page.screenshot({ path: `${SHOTS}/devices-pair-${info.project.name}.png` });
 
-  const paired = await request.post('/api/devices/pair', { data: { code, label, browser: 'firefox' } });
+  const paired = await request.post('/api/devices/pair', {
+    data: { code, label, browser: 'firefox' },
+  });
   expect(paired.status()).toBe(201);
   const { token } = (await paired.json()) as { token: string };
   await expect(dialog.getByText(`Paired: ${label}`)).toBeVisible({ timeout: 10_000 });
@@ -62,7 +69,10 @@ test('pair, rename, kid mode and revoke', async ({ page, request }, info) => {
   await expect(page.getByText(label).filter({ visible: true }).first()).toBeVisible();
 
   // Rename.
-  await page.getByRole('button', { name: `Actions for ${label}` }).filter({ visible: true }).click();
+  await page
+    .getByRole('button', { name: `Actions for ${label}` })
+    .filter({ visible: true })
+    .click();
   await page.getByRole('menuitem', { name: 'Rename' }).click();
   await page.getByRole('textbox', { name: 'Name' }).fill(`${label} renamed`);
   await page.getByRole('button', { name: 'Save' }).click();
@@ -70,7 +80,10 @@ test('pair, rename, kid mode and revoke', async ({ page, request }, info) => {
   const name = `${label} renamed`;
 
   // Kid mode needs an IP.
-  await page.getByRole('button', { name: `Actions for ${name}` }).filter({ visible: true }).click();
+  await page
+    .getByRole('button', { name: `Actions for ${name}` })
+    .filter({ visible: true })
+    .click();
   await page.getByRole('menuitem', { name: 'Set Tailscale IP' }).click();
   await page.getByRole('textbox', { name: 'Tailscale IP' }).fill('100.64.0.7');
   await page.getByRole('button', { name: 'Save' }).click();
@@ -82,16 +95,30 @@ test('pair, rename, kid mode and revoke', async ({ page, request }, info) => {
   await page.screenshot({ path: `${SHOTS}/devices-kid-${info.project.name}.png`, fullPage: true });
 
   // Revoke: the token stops working.
-  expect((await request.get('/api/device/config', { headers: { Authorization: `Bearer ${token}` } })).status()).toBe(200);
-  await page.getByRole('button', { name: `Actions for ${name}` }).filter({ visible: true }).click();
+  expect(
+    (
+      await request.get('/api/device/config', { headers: { Authorization: `Bearer ${token}` } })
+    ).status(),
+  ).toBe(200);
+  await page
+    .getByRole('button', { name: `Actions for ${name}` })
+    .filter({ visible: true })
+    .click();
   await page.getByRole('menuitem', { name: 'Revoke' }).click();
   await expect(page.getByText('The device drops back to its own local words')).toBeVisible();
   await page.getByRole('dialog').getByRole('button', { name: 'Revoke' }).click();
   await expect(page.getByRole('dialog')).toBeHidden();
-  expect((await request.get('/api/device/config', { headers: { Authorization: `Bearer ${token}` } })).status()).toBe(401);
+  expect(
+    (
+      await request.get('/api/device/config', { headers: { Authorization: `Bearer ${token}` } })
+    ).status(),
+  ).toBe(401);
   await page.getByLabel('Show revoked').click();
-  await expect(page.getByText("Revoked").filter({ visible: true }).first()).toBeVisible();
-  await page.screenshot({ path: `${SHOTS}/devices-revoked-${info.project.name}.png`, fullPage: true });
+  await expect(page.getByText('Revoked').filter({ visible: true }).first()).toBeVisible();
+  await page.screenshot({
+    path: `${SHOTS}/devices-revoked-${info.project.name}.png`,
+    fullPage: true,
+  });
 });
 
 test('empty and error states', async ({ page }, info) => {
@@ -99,7 +126,10 @@ test('empty and error states', async ({ page }, info) => {
   await page.goto('/devices');
   await expect(page.getByText('No devices paired yet')).toBeVisible();
   await expect(page.getByText(DISCLAIMER)).toBeVisible();
-  await page.screenshot({ path: `${SHOTS}/devices-empty-${info.project.name}.png`, fullPage: true });
+  await page.screenshot({
+    path: `${SHOTS}/devices-empty-${info.project.name}.png`,
+    fullPage: true,
+  });
 
   await page.unroute('**/api/devices');
   await page.route('**/api/devices', (route) =>
@@ -107,5 +137,8 @@ test('empty and error states', async ({ page }, info) => {
   );
   await page.reload();
   await expect(page.getByText('The hub is unwell.')).toBeVisible();
-  await page.screenshot({ path: `${SHOTS}/devices-error-${info.project.name}.png`, fullPage: true });
+  await page.screenshot({
+    path: `${SHOTS}/devices-error-${info.project.name}.png`,
+    fullPage: true,
+  });
 });

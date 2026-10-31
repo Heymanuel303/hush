@@ -51,18 +51,18 @@ The hub's `apps/`, `packages/`, `e2e/` and `scripts/` form the pnpm workspace. T
 
 ## Stack
 
-| Area      | Choice                                                                           |
-| --------- | -------------------------------------------------------------------------------- |
-| Runtime   | Node 22.23 (`engines.node`, `engine-strict`), pnpm 12.9.1 through corepack       |
-| Language  | TypeScript 6, strict, one version across the workspace                           |
-| API       | NestJS 12 (ESM), Prisma 7 (`prisma-client`, `@prisma/adapter-pg`), PostgreSQL 17 |
-| Web       | Vue 3.5 with Vite 8, Pinia 4, Vue Router 5                                       |
-| UI        | Tailwind CSS 4, shadcn-vue 2 on reka-ui, `@lucide/vue`, IBM Plex Sans            |
+| Area      | Choice                                                                                                                                                                                                                               |
+| --------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| Runtime   | Node 22.23 (`engines.node`, `engine-strict`), pnpm 12.9.1 through corepack                                                                                                                                                           |
+| Language  | TypeScript 6, strict, one version across the workspace                                                                                                                                                                               |
+| API       | NestJS 12 (ESM), Prisma 7 (`prisma-client`, `@prisma/adapter-pg`), PostgreSQL 17                                                                                                                                                     |
+| Web       | Vue 3.5 with Vite 8, Pinia 4, Vue Router 5                                                                                                                                                                                           |
+| UI        | Tailwind CSS 4, shadcn-vue 2 on reka-ui, `@lucide/vue`, IBM Plex Sans                                                                                                                                                                |
 | idp       | `@heymanuel303/idp-client` 0.1.1 (exact) from GitHub Packages: `NODE_AUTH_TOKEN` in `~/.npmrc`, never committed; images get it as the BuildKit secret `node_auth_token` (compose `secrets`), CI as the `NODE_AUTH_TOKEN` repo secret |
-| Contracts | Zod 4 schemas in `packages/contracts` (package `contracts`), for api and web     |
-| Tests     | Vitest 4 everywhere, API tests against PostgreSQL, Playwright 1.63.0 exactly     |
-| Lint      | api: oxlint 1 (Nest 12 default); web: ESLint 10 flat config + oxlint; Prettier 3 |
-| Extension | Plain JS/HTML/CSS in `src/`, MV3, `node --test`, `web-ext` via `npx`; no deps    |
+| Contracts | Zod 4 schemas in `packages/contracts` (package `contracts`), for api and web                                                                                                                                                         |
+| Tests     | Vitest 4 everywhere, API tests against PostgreSQL, Playwright 1.63.0 exactly                                                                                                                                                         |
+| Lint      | api: oxlint 1 (Nest 12 default); web: ESLint 10 flat config + oxlint; Prettier 3                                                                                                                                                     |
+| Extension | Plain JS/HTML/CSS in `src/`, MV3, `node --test`, `web-ext` via `npx`; no deps                                                                                                                                                        |
 
 Playwright is baked into the agent container with its Chromium; never bump it alone.
 

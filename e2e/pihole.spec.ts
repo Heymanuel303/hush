@@ -24,7 +24,10 @@ test.afterAll(async () => {
   await pihole.close();
 });
 
-test('connect, test, save, see the summary, reject a wrong password, disconnect', async ({ page, request }, info) => {
+test('connect, test, save, see the summary, reject a wrong password, disconnect', async ({
+  page,
+  request,
+}, info) => {
   await expect
     .poll(async () => (await request.get('/api/health')).status(), { timeout: 30_000 })
     .toBe(200);
@@ -48,7 +51,10 @@ test('connect, test, save, see the summary, reject a wrong password, disconnect'
   const groups = page.getByRole('list', { name: 'Groups' });
   await expect(groups.getByText('Default')).toBeVisible();
   await expect(groups.getByText('Kid')).toBeVisible();
-  await page.screenshot({ path: `${SHOTS}/pihole-tested-${info.project.name}.png`, fullPage: true });
+  await page.screenshot({
+    path: `${SHOTS}/pihole-tested-${info.project.name}.png`,
+    fullPage: true,
+  });
   await page.getByRole('button', { name: 'Save', exact: true }).click();
 
   await expect(page.getByText('Pi-hole traffic')).toBeVisible();
@@ -61,7 +67,10 @@ test('connect, test, save, see the summary, reject a wrong password, disconnect'
     'Leave empty to keep the stored password',
   );
   expect(await page.content()).not.toContain(PIHOLE_PASSWORD);
-  await page.screenshot({ path: `${SHOTS}/pihole-connected-${info.project.name}.png`, fullPage: true });
+  await page.screenshot({
+    path: `${SHOTS}/pihole-connected-${info.project.name}.png`,
+    fullPage: true,
+  });
 
   // A test of the saved values updates the status card.
   await page.getByRole('button', { name: 'Test connection' }).click();

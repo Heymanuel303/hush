@@ -2,13 +2,22 @@ import { mkdirSync } from 'node:fs';
 import { resolve } from 'node:path';
 import { expect, test, type Page } from '@playwright/test';
 import {
-  HUB, HUB_CONFIG, HUB_CONFIG_LOCKED, POPUP_URL, QUIET_WINDOW, installPopupShim, type PopupSeed,
+  HUB,
+  HUB_CONFIG,
+  HUB_CONFIG_LOCKED,
+  POPUP_URL,
+  QUIET_WINDOW,
+  installPopupShim,
+  type PopupSeed,
 } from './popup-shim';
 
 // Palette review set: every popup screen in light and dark at 324px and 375px, written to
 // docs/screens/popup/. Opt-in so `pnpm e2e` and CI never regenerate binaries:
 //   POPUP_SCREENS=1 pnpm e2e e2e/popup-screens.spec.ts --project=desktop
-test.skip(process.env.POPUP_SCREENS !== '1', 'set POPUP_SCREENS=1 to regenerate docs/screens/popup');
+test.skip(
+  process.env.POPUP_SCREENS !== '1',
+  'set POPUP_SCREENS=1 to regenerate docs/screens/popup',
+);
 
 // file:// popups may not load the bundled woff2 without this.
 test.use({ launchOptions: { args: ['--allow-file-access-from-files'] } });
@@ -34,7 +43,9 @@ const SCREENS: Screen[] = [
   {
     name: 'sites',
     seed: { popupTab: 'sites', blockWords: SIX, ytHomeRedirect: true },
-    prep: async (page) => { await page.locator('.site-block[data-site="YouTube"] .site-toggle').click(); },
+    prep: async (page) => {
+      await page.locator('.site-block[data-site="YouTube"] .site-toggle').click();
+    },
   },
   { name: 'household-off', seed: { popupTab: 'household' } },
   {
@@ -50,30 +61,62 @@ const SCREENS: Screen[] = [
   },
   {
     name: 'household-connected',
-    seed: { ...connected, hubConfig: { ...HUB_CONFIG, quietHours: QUIET_WINDOW }, hubStatus: { ...SYNCED, lastSync: Date.parse('2026-10-19T09:55:00Z'), lastAttempt: Date.parse('2026-10-19T09:55:00Z') } },
+    seed: {
+      ...connected,
+      hubConfig: { ...HUB_CONFIG, quietHours: QUIET_WINDOW },
+      hubStatus: {
+        ...SYNCED,
+        lastSync: Date.parse('2026-10-19T09:55:00Z'),
+        lastAttempt: Date.parse('2026-10-19T09:55:00Z'),
+      },
+    },
     opts: { now: '2026-10-19T10:00:00Z' },
   },
   {
     name: 'household-offline',
-    seed: { ...connected, hubStatus: { ...SYNCED, error: 'offline', offlineSince: Date.UTC(2026, 9, 15) } },
+    seed: {
+      ...connected,
+      hubStatus: { ...SYNCED, error: 'offline', offlineSince: Date.UTC(2026, 9, 15) },
+    },
   },
   { name: 'household-invalid', seed: { ...connected, hubStatus: { ...SYNCED, error: 'invalid' } } },
   {
     name: 'household-revoked',
-    seed: { popupTab: 'words', hubStatus: { lastSync: Date.now() - 86_400_000, error: 'revoked', revokedAt: 5 } },
-    prep: async (page) => { await page.locator('#tab-household').click(); },
+    seed: {
+      popupTab: 'words',
+      hubStatus: { lastSync: Date.now() - 86_400_000, error: 'revoked', revokedAt: 5 },
+    },
+    prep: async (page) => {
+      await page.locator('#tab-household').click();
+    },
   },
   {
     name: 'household-locked',
-    seed: { popupTab: 'words', blockWords: SIX, hub: HUB, hubConfig: HUB_CONFIG_LOCKED, hubStatus: SYNCED },
+    seed: {
+      popupTab: 'words',
+      blockWords: SIX,
+      hub: HUB,
+      hubConfig: HUB_CONFIG_LOCKED,
+      hubStatus: SYNCED,
+    },
     // A locked device opens on Household by itself.
-    prep: async (page) => { await expect(page.locator('#tab-household')).toHaveAttribute('aria-selected', 'true'); },
+    prep: async (page) => {
+      await expect(page.locator('#tab-household')).toHaveAttribute('aria-selected', 'true');
+    },
   },
   {
     name: 'words-locked',
-    seed: { popupTab: 'words', blockWords: SIX, hub: HUB, hubConfig: HUB_CONFIG_LOCKED, hubStatus: SYNCED },
+    seed: {
+      popupTab: 'words',
+      blockWords: SIX,
+      hub: HUB,
+      hubConfig: HUB_CONFIG_LOCKED,
+      hubStatus: SYNCED,
+    },
     // Opens on Household; move to Words to show the disabled editors under the banner.
-    prep: async (page) => { await page.locator('#tab-words').click(); },
+    prep: async (page) => {
+      await page.locator('#tab-words').click();
+    },
   },
   { name: 'paused', seed: { ...connected, enabled: false } },
 ];
@@ -94,9 +137,14 @@ for (const screen of SCREENS) {
           await document.fonts.ready;
           return document.fonts.check('13px "Atkinson Hyperlegible Next"');
         });
-        if (!ok) throw new Error('Atkinson Hyperlegible Next did not load; the capture would show the fallback font');
+        if (!ok)
+          throw new Error(
+            'Atkinson Hyperlegible Next did not load; the capture would show the fallback font',
+          );
         await page.screenshot({
-          path: resolve(OUT, `${screen.name}-${scheme}-${size.w}.png`), fullPage: true, scale: 'css',
+          path: resolve(OUT, `${screen.name}-${scheme}-${size.w}.png`),
+          fullPage: true,
+          scale: 'css',
         });
       });
     }

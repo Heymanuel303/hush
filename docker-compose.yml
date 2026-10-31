@@ -9,7 +9,7 @@ name: hush
 
 x-api-environment: &api-environment
   NODE_ENV: production
-  PORT: "3000"
+  PORT: '3000'
   # API_DATABASE_URL in .env is the app's role and database on the platform's `db` host;
   # the overlay replaces DATABASE_URL with its own postgres service.
   DATABASE_URL: ${API_DATABASE_URL:-postgres://postgres:postgres@postgres:5432/hush}
@@ -37,15 +37,15 @@ x-api-environment: &api-environment
   PIHOLE_TLS_INSECURE: ${PIHOLE_TLS_INSECURE:-false}
   # The kid-mode schedule loop runs only in the `worker` service, so the scaled api
   # replicas (and migrate) keep it off and a schedule is applied exactly once.
-  WORKER_ENABLED: "false"
+  WORKER_ENABLED: 'false'
 
+# 127.0.0.1, never localhost: node may resolve localhost to ::1 where nothing listens.
 x-api-healthcheck: &api-healthcheck
-  # 127.0.0.1, never localhost: node may resolve localhost to ::1 where nothing listens.
   test:
     [
-      "CMD",
-      "node",
-      "-e",
+      'CMD',
+      'node',
+      '-e',
       "fetch('http://127.0.0.1:3000/api/health').then((r) => process.exit(r.ok ? 0 : 1), () => process.exit(1))",
     ]
   interval: 5s
@@ -64,8 +64,8 @@ services:
       dockerfile: apps/api/Dockerfile
       secrets: [node_auth_token]
     image: hush-api
-    command: ["node", "/db-init.mjs"]
-    restart: "no"
+    command: ['node', '/db-init.mjs']
+    restart: 'no'
     environment:
       # Same default as the x-api-environment anchor, duplicated on purpose: the
       # anchor is not reused here so PLATFORM_PROVISION_TOKEN stays out of the api
@@ -78,7 +78,7 @@ services:
       PLATFORM_PROVISION_TOKEN: ${PLATFORM_PROVISION_TOKEN:-}
     # Bind mount: the api runtime image holds only the pnpm-deployed api, so the
     # script rides in from the repository instead of a place in the image.
-    volumes: ["./scripts/db-init.mjs:/db-init.mjs:ro"]
+    volumes: ['./scripts/db-init.mjs:/db-init.mjs:ro']
     networks: [default, apps]
 
   # Applies the Prisma migrations once per `docker compose up`, then exits; the api
@@ -89,8 +89,8 @@ services:
       dockerfile: apps/api/Dockerfile
       secrets: [node_auth_token]
     image: hush-api
-    command: ["./node_modules/.bin/prisma", "migrate", "deploy"]
-    restart: "no"
+    command: ['./node_modules/.bin/prisma', 'migrate', 'deploy']
+    restart: 'no'
     depends_on:
       db-init:
         condition: service_completed_successfully
@@ -132,7 +132,7 @@ services:
         condition: service_completed_successfully
     environment:
       <<: *api-environment
-      WORKER_ENABLED: "true"
+      WORKER_ENABLED: 'true'
     healthcheck: *api-healthcheck
     networks: [default, apps]
 
@@ -153,7 +153,7 @@ services:
       api:
         condition: service_healthy
     healthcheck:
-      test: ["CMD", "wget", "-q", "-O", "/dev/null", "http://127.0.0.1/"]
+      test: ['CMD', 'wget', '-q', '-O', '/dev/null', 'http://127.0.0.1/']
       interval: 5s
       timeout: 5s
       retries: 10
