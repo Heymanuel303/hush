@@ -20,7 +20,8 @@ export default async function globalSetup(config: FullConfig): Promise<void> {
   // Follows the redirect to the stub, which answers its login form (a 200 page).
   const start = await api.get('/api/auth/sso/login');
   const returnTo = new URL(start.url()).searchParams.get('return');
-  if (!start.ok() || !returnTo) throw new Error(`global setup: the stub login page answered ${start.status()}`);
+  if (!start.ok() || !returnTo)
+    throw new Error(`global setup: the stub login page answered ${start.status()}`);
   // The stub signs the user in, then the redirects end at the app's callback and on to `/`.
   const signedIn = await api.post(new URL('/login', start.url()).href, {
     form: { email: ADMIN_EMAIL, return: returnTo },

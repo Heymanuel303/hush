@@ -13,11 +13,11 @@ services:
       POSTGRES_DB: hush
     # Published for `pnpm dev`, the Prisma CLI and the tests on the host (DATABASE_URL in .env).
     ports:
-      - "${POSTGRES_PORT:-5432}:5432"
+      - '${POSTGRES_PORT:-5432}:5432'
     volumes:
       - postgres-data:/var/lib/postgresql/data
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -h 127.0.0.1 -U postgres"]
+      test: ['CMD-SHELL', 'pg_isready -h 127.0.0.1 -U postgres']
       interval: 5s
       timeout: 5s
       retries: 10
@@ -27,7 +27,7 @@ services:
   # (explicitly, never with !override). DATABASE_URL points at that postgres whatever
   # API_DATABASE_URL in .env says, so a copied .env.example works unchanged.
   db-init:
-    command: ["node", "-e", "console.log('db-init: local overlay, nothing to provision')"]
+    command: ['node', '-e', "console.log('db-init: local overlay, nothing to provision')"]
     environment:
       DATABASE_URL: postgres://postgres:postgres@postgres:5432/hush
 
@@ -51,7 +51,7 @@ services:
   web:
     # Host port of the web container; the Vite dev server keeps its own port.
     ports:
-      - "${WEB_PORT:-8080}:80"
+      - '${WEB_PORT:-8080}:80'
 
 networks:
   # Overrides `external: true` from docker-compose.yml. An empty mapping (`apps: {}`) would

@@ -91,7 +91,9 @@ test('unlock through the Lock tab', async () => {
   await page.getByRole('switch', { name: 'Locked' }).click();
   await expect(page.getByRole('switch', { name: 'Locked' })).not.toBeChecked();
   await page.goto('/profiles');
-  await expect(page.getByRole('row', { name: new RegExp(name) }).getByLabel('Locked')).toHaveCount(0);
+  await expect(page.getByRole('row', { name: new RegExp(name) }).getByLabel('Locked')).toHaveCount(
+    0,
+  );
 });
 
 test('a stale save shows the 412 alert and Reload drops the edits', async ({ browser }) => {

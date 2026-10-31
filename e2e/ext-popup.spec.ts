@@ -1,6 +1,13 @@
 import { expect, test, type Page } from '@playwright/test';
 import {
-  HUB, HUB_CONFIG, HUB_CONFIG_LOCKED, POPUP_URL, QUIET_WINDOW, SYNCED, installPopupShim, type PopupSeed,
+  HUB,
+  HUB_CONFIG,
+  HUB_CONFIG_LOCKED,
+  POPUP_URL,
+  QUIET_WINDOW,
+  SYNCED,
+  installPopupShim,
+  type PopupSeed,
 } from './popup-shim';
 
 // The popup's behaviour suite: tab shell and Household states, no extension host.
@@ -14,7 +21,8 @@ async function open(page: Page, seed: PopupSeed = {}, opts: ShimOpts = {}) {
   await page.goto(POPUP_URL);
   await expect(page.locator('[role="tab"][aria-selected="true"]')).toHaveCount(1);
 }
-const sets = (page: Page) => page.evaluate(() => (window as any).__sets as Record<string, unknown>[]);
+const sets = (page: Page) =>
+  page.evaluate(() => (window as any).__sets as Record<string, unknown>[]);
 const messages = (page: Page) => page.evaluate(() => (window as any).__messages as unknown[]);
 const selected = async (page: Page) => {
   for (const t of TABS) {
@@ -24,7 +32,8 @@ const selected = async (page: Page) => {
 };
 async function expectOnly(page: Page, tab: (typeof TABS)[number]) {
   expect(await selected(page)).toBe(tab);
-  for (const t of TABS) await expect(page.locator(`#panel-${t}`)).toBeVisible({ visible: t === tab });
+  for (const t of TABS)
+    await expect(page.locator(`#panel-${t}`)).toBeVisible({ visible: t === tab });
 }
 const popupTabWrites = async (page: Page) => (await sets(page)).filter((s) => 'popupTab' in s);
 
@@ -65,13 +74,17 @@ test('arrow, Home and End keys move the selection', async ({ page }) => {
   await open(page);
   await page.locator('#tab-words').focus();
   const order: [string, (typeof TABS)[number]][] = [
-    ['ArrowRight', 'sites'], ['ArrowRight', 'household'], ['ArrowRight', 'words'],
-    ['End', 'household'], ['Home', 'words'],
+    ['ArrowRight', 'sites'],
+    ['ArrowRight', 'household'],
+    ['ArrowRight', 'words'],
+    ['End', 'household'],
+    ['Home', 'words'],
   ];
   for (const [key, tab] of order) {
     await page.keyboard.press(key);
     await expect(page.locator(`#tab-${tab}`)).toHaveAttribute('aria-selected', 'true');
-    for (const t of TABS) await expect(page.locator(`#tab-${t}`)).toHaveAttribute('tabindex', t === tab ? '0' : '-1');
+    for (const t of TABS)
+      await expect(page.locator(`#tab-${t}`)).toHaveAttribute('tabindex', t === tab ? '0' : '-1');
     await expect(page.locator(`#tab-${tab}`)).toBeFocused();
   }
   await page.keyboard.press('ArrowRight');
@@ -88,14 +101,19 @@ test('unpaired: the connect form sends hubPair', async ({ page }) => {
   await open(page, { popupTab: 'household' });
   const p = page.locator('#panel-household');
   await expect(p).toContainText('Connect to your hub');
-  for (const l of ['Hub address', 'Pairing code', 'This device']) await expect(p.getByLabel(l)).toBeVisible();
-  await expect(p).toContainText('Get a code on the hub: Devices → Pair a device. It expires in 10 minutes.');
+  for (const l of ['Hub address', 'Pairing code', 'This device'])
+    await expect(p.getByLabel(l)).toBeVisible();
+  await expect(p).toContainText(
+    'Get a code on the hub: Devices → Pair a device. It expires in 10 minutes.',
+  );
   await expect(p).toContainText(PRIVACY);
   await page.fill('#hubUrl', 'http://hub.test');
   await page.fill('#hubCode', 'abcdef');
   const label = await page.inputValue('#hubLabel');
   await page.getByRole('button', { name: 'Connect' }).click();
-  await expect.poll(() => messages(page)).toEqual([{ type: 'hubPair', url: 'http://hub.test', code: 'ABCDEF', label }]);
+  await expect
+    .poll(() => messages(page))
+    .toEqual([{ type: 'hubPair', url: 'http://hub.test', code: 'ABCDEF', label }]);
 });
 
 test.describe('connected', () => {
@@ -129,29 +147,49 @@ test.describe('connected', () => {
 });
 
 test('paused: hub rules are off too, dot still synced', async ({ page }) => {
-  await open(page, { popupTab: 'household', enabled: false, hub: HUB, hubConfig: HUB_CONFIG, hubStatus: SYNCED });
+  await open(page, {
+    popupTab: 'household',
+    enabled: false,
+    hub: HUB,
+    hubConfig: HUB_CONFIG,
+    hubStatus: SYNCED,
+  });
   await expect(page.locator('#hubPaused')).toHaveText('Hush is paused, so hub rules are off too.');
   await expect(page.locator('#tab-household')).toHaveAccessibleName('Household, synced');
 });
 
 test('offline and invalid', async ({ page }) => {
   await open(page, {
-    popupTab: 'household', hub: HUB, hubConfig: HUB_CONFIG,
+    popupTab: 'household',
+    hub: HUB,
+    hubConfig: HUB_CONFIG,
     hubStatus: { ...SYNCED, error: 'offline', offlineSince: Date.now() },
   });
-  await expect(page.locator('#hubSyncInfo')).toContainText("Can't reach Home hub. Using the rules from");
+  await expect(page.locator('#hubSyncInfo')).toContainText(
+    "Can't reach Home hub. Using the rules from",
+  );
   await expect(page.locator('#tab-household')).toHaveAccessibleName('Household, offline');
 
   const second = await page.context().newPage();
-  await installPopupShim(second, { popupTab: 'household', hub: HUB, hubConfig: HUB_CONFIG, hubStatus: { ...SYNCED, error: 'invalid' } });
+  await installPopupShim(second, {
+    popupTab: 'household',
+    hub: HUB,
+    hubConfig: HUB_CONFIG,
+    hubStatus: { ...SYNCED, error: 'invalid' },
+  });
   await second.goto(POPUP_URL);
-  await expect(second.locator('#hubSyncInfo')).toContainText("The hub sent rules Hush can't use. Keeping the last good set.");
+  await expect(second.locator('#hubSyncInfo')).toContainText(
+    "The hub sent rules Hush can't use. Keeping the last good set.",
+  );
   await expect(second.locator('#tab-household')).toHaveAccessibleName('Household, needs attention');
 });
 
 test.describe('revoked', () => {
   test('opens on Household once, then marks it seen', async ({ page }) => {
-    await open(page, { popupTab: 'words', hubStatus: { lastSync: 1, error: 'revoked', revokedAt: 5 } });
+    await open(page, {
+      popupTab: 'words',
+      hubStatus: { lastSync: 1, error: 'revoked', revokedAt: 5 },
+    });
     await expectOnly(page, 'household');
     // The hub record is gone on a fresh open, so the line falls back to "the hub".
     const line = 'This browser was removed from the hub. Your own words still work.';
@@ -160,16 +198,28 @@ test.describe('revoked', () => {
     await expect(page.locator('#hubOffForm')).toBeVisible();
     await expect(page.locator('#hubHelp')).toHaveText('To rejoin, get a new code on the hub.');
     await expect(page.locator('#tab-household')).toHaveAccessibleName('Household, removed');
-    await expect.poll(async () => (await sets(page)).some((s) => s.hubRevokedSeen === 5), { timeout: 10_000 }).toBe(true);
+    await expect
+      .poll(async () => (await sets(page)).some((s) => s.hubRevokedSeen === 5), { timeout: 10_000 })
+      .toBe(true);
   });
   test('already seen: opens on the remembered tab', async ({ page }) => {
-    await open(page, { popupTab: 'words', hubRevokedSeen: 5, hubStatus: { lastSync: 1, error: 'revoked', revokedAt: 5 } });
+    await open(page, {
+      popupTab: 'words',
+      hubRevokedSeen: 5,
+      hubStatus: { lastSync: 1, error: 'revoked', revokedAt: 5 },
+    });
     await expectOnly(page, 'words');
   });
 });
 
 test('locked: Household, banner everywhere, read-only', async ({ page }) => {
-  await open(page, { popupTab: 'words', blockWords: ['local'], hub: HUB, hubConfig: HUB_CONFIG_LOCKED, hubStatus: SYNCED });
+  await open(page, {
+    popupTab: 'words',
+    blockWords: ['local'],
+    hub: HUB,
+    hubConfig: HUB_CONFIG_LOCKED,
+    hubStatus: SYNCED,
+  });
   await expectOnly(page, 'household');
   for (const t of TABS) {
     await page.locator(`#tab-${t}`).click();
@@ -177,14 +227,17 @@ test('locked: Household, banner everywhere, read-only', async ({ page }) => {
     await expect(page.locator('#lockBanner')).toContainText('Managed by Home hub');
   }
   await page.locator('#tab-words').click();
-  for (const id of ['#word', '#add', '#clearAll', '#toggle']) await expect(page.locator(id)).toBeDisabled();
+  for (const id of ['#word', '#add', '#clearAll', '#toggle'])
+    await expect(page.locator(id)).toBeDisabled();
   await page.locator('#tab-sites').click();
   const inputs = page.locator('#sitesList input[type="text"]');
   expect(await inputs.count()).toBeGreaterThan(0);
   for (const input of await inputs.all()) await expect(input).toBeDisabled();
   await page.locator('#tab-household').click();
   await expect(page.getByRole('button', { name: 'Disconnect' })).toBeHidden();
-  await expect(page.locator('#hubLockedNote')).toHaveText('To release this browser, revoke it on the hub.');
+  await expect(page.locator('#hubLockedNote')).toHaveText(
+    'To release this browser, revoke it on the hub.',
+  );
   await expect(page.getByRole('button', { name: 'Sync now' })).toBeEnabled();
 });
 
@@ -255,26 +308,47 @@ test.describe('connect and household edge cases', () => {
   });
 
   test('connected but never synced', async ({ page }) => {
-    await open(page, { ...household, hub: HUB, hubConfig: HUB_CONFIG, hubStatus: { lastSync: null, error: null } });
+    await open(page, {
+      ...household,
+      hub: HUB,
+      hubConfig: HUB_CONFIG,
+      hubStatus: { lastSync: null, error: null },
+    });
     await expect(page.locator('#panel-household')).toHaveAttribute('data-hub-state', 'on');
     await expect(page.locator('#hubFrom')).toHaveText('from Home hub · not synced yet');
     await expect(page.locator('#hubSyncInfo')).toBeHidden();
   });
 
   test('offline without offlineSince falls back to the last sync', async ({ page }) => {
-    await open(page, { ...household, hub: HUB, hubConfig: HUB_CONFIG, hubStatus: { ...SYNCED, error: 'offline' } });
+    await open(page, {
+      ...household,
+      hub: HUB,
+      hubConfig: HUB_CONFIG,
+      hubStatus: { ...SYNCED, error: 'offline' },
+    });
     await expect(page.locator('#panel-household')).toHaveAttribute('data-hub-state', 'offline');
-    await expect(page.locator('#hubSyncInfo')).toHaveText("Can't reach Home hub. Using the rules from the last sync.");
+    await expect(page.locator('#hubSyncInfo')).toHaveText(
+      "Can't reach Home hub. Using the rules from the last sync.",
+    );
     await expect(page.locator('#hubSyncInfo')).toHaveClass(/warn/);
   });
 
   test('invalid has its state attribute', async ({ page }) => {
-    await open(page, { ...household, hub: HUB, hubConfig: HUB_CONFIG, hubStatus: { ...SYNCED, error: 'invalid' } });
+    await open(page, {
+      ...household,
+      hub: HUB,
+      hubConfig: HUB_CONFIG,
+      hubStatus: { ...SYNCED, error: 'invalid' },
+    });
     await expect(page.locator('#panel-household')).toHaveAttribute('data-hub-state', 'invalid');
   });
 
   test('locked and offline keeps the warn style', async ({ page }) => {
-    await open(page, { hub: HUB, hubConfig: HUB_CONFIG_LOCKED, hubStatus: { ...SYNCED, error: 'offline' } });
+    await open(page, {
+      hub: HUB,
+      hubConfig: HUB_CONFIG_LOCKED,
+      hubStatus: { ...SYNCED, error: 'offline' },
+    });
     await expect(page.locator('#panel-household')).toHaveAttribute('data-hub-state', 'locked');
     await expect(page.locator('#hubSyncInfo')).toHaveClass(/warn/);
   });
@@ -283,17 +357,21 @@ test.describe('connect and household edge cases', () => {
     test.use({ timezoneId: 'Europe/London', locale: 'en-US' });
     test('quiet-hours time is shown in the profile zone', async ({ page }) => {
       // Mon 18:00Z is 14:00 in New York (EDT); the window ends 17:00 there.
-      const q = { timezone: 'America/New_York', windows: [{ days: [1], start: '09:00', end: '17:00' }] };
+      const q = {
+        timezone: 'America/New_York',
+        windows: [{ days: [1], start: '09:00', end: '17:00' }],
+      };
       await open(
         page,
         { ...household, hub: HUB, hubConfig: { ...HUB_CONFIG, quietHours: q }, hubStatus: SYNCED },
         { now: '2026-10-12T18:00:00+00:00' },
       );
-      await expect(page.locator('#hubQuiet')).toHaveText('Hub rules apply now, until 05:00 PM (America/New_York)');
+      await expect(page.locator('#hubQuiet')).toHaveText(
+        'Hub rules apply now, until 05:00 PM (America/New_York)',
+      );
     });
   });
 });
-
 
 test('screenshots of every state', async ({ page }) => {
   test.skip(!process.env.SCREENS, 'set SCREENS=dir to write them');
@@ -305,11 +383,36 @@ test('screenshots of every state', async ({ page }) => {
     words: { blockWords: ['spoiler', '=cat'] },
     sites: { popupTab: 'sites' },
     off: { popupTab: 'household' },
-    on: { popupTab: 'household', hub: HUB, hubConfig: { ...HUB_CONFIG, quietHours: QUIET_WINDOW }, hubStatus: synced },
-    paused: { popupTab: 'household', enabled: false, hub: HUB, hubConfig: HUB_CONFIG, hubStatus: synced },
-    offline: { popupTab: 'household', hub: HUB, hubConfig: HUB_CONFIG, hubStatus: { ...off, error: 'offline', offlineSince: Date.parse(now) - 3_600_000 } },
-    invalid: { popupTab: 'household', hub: HUB, hubConfig: HUB_CONFIG, hubStatus: { ...off, error: 'invalid' } },
-    revoked: { hubRevokedSeen: 5, popupTab: 'household', hubStatus: { error: 'revoked', revokedAt: 5 } },
+    on: {
+      popupTab: 'household',
+      hub: HUB,
+      hubConfig: { ...HUB_CONFIG, quietHours: QUIET_WINDOW },
+      hubStatus: synced,
+    },
+    paused: {
+      popupTab: 'household',
+      enabled: false,
+      hub: HUB,
+      hubConfig: HUB_CONFIG,
+      hubStatus: synced,
+    },
+    offline: {
+      popupTab: 'household',
+      hub: HUB,
+      hubConfig: HUB_CONFIG,
+      hubStatus: { ...off, error: 'offline', offlineSince: Date.parse(now) - 3_600_000 },
+    },
+    invalid: {
+      popupTab: 'household',
+      hub: HUB,
+      hubConfig: HUB_CONFIG,
+      hubStatus: { ...off, error: 'invalid' },
+    },
+    revoked: {
+      hubRevokedSeen: 5,
+      popupTab: 'household',
+      hubStatus: { error: 'revoked', revokedAt: 5 },
+    },
     locked: { hub: HUB, hubConfig: HUB_CONFIG_LOCKED, hubStatus: synced },
   };
   for (const w of [324, 375]) {
